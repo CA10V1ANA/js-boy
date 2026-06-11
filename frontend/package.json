@@ -1,0 +1,25 @@
+{
+  "name": "delivery-management-frontend",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "C:\\Progra~1\\nodejs\\node.exe -r ./vite-crypto-polyfill.cjs ./node_modules/vite/bin/vite.js --host 0.0.0.0",
+    "build": "C:\\Progra~1\\nodejs\\node.exe ./node_modules/typescript/bin/tsc && C:\\Progra~1\\nodejs\\node.exe -r ./vite-crypto-polyfill.cjs ./node_modules/vite/bin/vite.js build",
+    "preview": "C:\\Progra~1\\nodejs\\node.exe -r ./vite-crypto-polyfill.cjs ./node_modules/vite/bin/vite.js preview --host 0.0.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "axios": "^1.7.9",
+    "vite": "^6.0.1",
+    "typescript": "^5.7.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.0.2",
+    "lucide-react": "^0.468.0"
+  },
+  "devDependencies": {}
+}

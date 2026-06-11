@@ -1,0 +1,343 @@
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #172033;
+  background: #f4f6f9;
+  --navy: #10233f;
+  --navy-soft: #173456;
+  --blue: #1d4ed8;
+  --gray: #667085;
+  --line: #d9dee8;
+  --surface: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.appShell {
+  display: grid;
+  grid-template-columns: 264px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 24px 18px;
+  color: #ffffff;
+  background: var(--navy);
+}
+
+.brand,
+.loginBrand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brandMark {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  color: var(--navy);
+  background: #ffffff;
+  border-radius: 8px;
+}
+
+.brand strong,
+.brand small {
+  display: block;
+  line-height: 1.1;
+}
+
+.brand strong {
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.brand small {
+  margin-top: 4px;
+  color: #c9d5e8;
+  font-size: 12px;
+}
+
+.sideNav {
+  display: grid;
+  gap: 6px;
+}
+
+.sideNav a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 12px;
+  color: #dbe6f6;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+.sideNav a.active,
+.sideNav a:hover {
+  color: #ffffff;
+  background: var(--navy-soft);
+}
+
+.contentArea {
+  min-width: 0;
+}
+
+.appHeader {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 72px;
+  padding: 0 28px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.appHeader > div {
+  flex: 1;
+}
+
+.appHeader strong,
+.appHeader span {
+  display: block;
+}
+
+.appHeader span {
+  margin-top: 3px;
+  color: var(--gray);
+  font-size: 14px;
+}
+
+.iconButton {
+  display: none;
+  width: 42px;
+  height: 42px;
+  color: var(--navy);
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.page {
+  padding: 28px;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.pageHeader h1 {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.pageHeader p {
+  margin: 8px 0 0;
+  color: var(--gray);
+}
+
+.primaryButton {
+  min-height: 42px;
+  padding: 0 18px;
+  color: #ffffff;
+  background: var(--blue);
+  border: 0;
+  border-radius: 8px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.primaryButton:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  min-height: 40px;
+  padding: 0 16px;
+  color: var(--navy);
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.metricCard,
+.emptyState,
+.loginPanel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(16, 35, 63, 0.06);
+}
+
+.metricCard {
+  min-height: 118px;
+  padding: 20px;
+}
+
+.metricCard span {
+  display: block;
+  color: var(--gray);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.metricCard strong {
+  display: block;
+  margin-top: 14px;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.emptyState {
+  display: grid;
+  gap: 6px;
+  min-height: 180px;
+  padding: 28px;
+  align-content: center;
+  color: var(--gray);
+}
+
+.emptyState strong {
+  color: #172033;
+  font-size: 18px;
+}
+
+.loginPage {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 24px;
+  background:
+    linear-gradient(rgba(16, 35, 63, 0.82), rgba(16, 35, 63, 0.82)),
+    radial-gradient(circle at top right, #1d4ed8, transparent 34%),
+    var(--navy);
+}
+
+.loginPanel {
+  width: min(100%, 420px);
+  padding: 28px;
+}
+
+.loginBrand {
+  margin-bottom: 28px;
+}
+
+.loginBrand .brandMark {
+  color: #ffffff;
+  background: var(--blue);
+}
+
+.loginBrand h1,
+.loginBrand p {
+  margin: 0;
+}
+
+.loginBrand h1 {
+  font-size: 28px;
+}
+
+.loginBrand p {
+  margin-top: 4px;
+  color: var(--gray);
+}
+
+.formStack {
+  display: grid;
+  gap: 16px;
+}
+
+.formStack label {
+  display: grid;
+  gap: 7px;
+  font-weight: 800;
+}
+
+.formStack input {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.errorMessage {
+  margin: 0;
+  padding: 10px 12px;
+  color: #991b1b;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+@media (max-width: 980px) {
+  .appShell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .iconButton {
+    display: inline-grid;
+    place-items: center;
+  }
+
+  .metricGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .appHeader,
+  .page {
+    padding-inline: 18px;
+  }
+
+  .headerLogout {
+    padding-inline: 12px;
+  }
+
+  .pageHeader {
+    display: grid;
+  }
+
+  .metricGrid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: delivery-management
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/delivery_app}
+    username: ${SPRING_DATASOURCE_USERNAME:delivery_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:delivery_pass}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: 8080
+
+app:
+  security:
+    jwt-secret: ${JWT_SECRET:change-me-with-a-long-random-secret}
+    jwt-expiration-minutes: ${JWT_EXPIRATION_MINUTES:480}
