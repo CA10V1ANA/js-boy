@@ -52,7 +52,7 @@ export function LoginPage() {
               type="email"
               placeholder="proprietario@jsboy.com"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event: { target: { value: string } }) => setEmail(event.target.value)}
             />
           </label>
           <label>
@@ -61,7 +61,7 @@ export function LoginPage() {
               type="password"
               placeholder="Sua senha"
               value={senha}
-              onChange={(event) => setSenha(event.target.value)}
+              onChange={(event: { target: { value: string } }) => setSenha(event.target.value)}
             />
           </label>
           {erro ? <p className="errorMessage">{erro}</p> : null}

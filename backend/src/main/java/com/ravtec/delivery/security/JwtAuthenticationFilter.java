@@ -33,7 +33,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         var token = authorization.substring(7);
-        var email = jwtService.extrairEmail(token);
+        String email;
+
+        try {
+            email = jwtService.extrairEmail(token);
+        } catch (RuntimeException exception) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             var userDetails = usuarioDetailsService.loadUserByUsername(email);
@@ -52,4 +59,3 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
-
