@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface EntregadorRepository extends JpaRepository<Entregador, UUID> {
     List<Entregador> findByNomeContainingIgnoreCaseOrTelefoneContainingIgnoreCase(String nome, String telefone);
+
+    long countByAtivoTrue();
 }

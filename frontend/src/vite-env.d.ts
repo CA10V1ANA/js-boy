@@ -26,6 +26,7 @@ declare module 'react' {
 
   export function createContext<T>(defaultValue: T): Context<T>;
   export function useContext<T>(context: Context<T>): T;
+  export function useEffect(effect: () => void | (() => void), deps?: any[]): void;
   export function useMemo<T>(factory: () => T, deps: any[]): T;
   export function useState<T>(initialValue: T | (() => T)): [T, (value: T) => void];
 }
