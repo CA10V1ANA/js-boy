@@ -40,8 +40,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/login", "/api/health", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
-                .requestMatchers("/entregas/minhas-entregas").hasRole("ENTREGADOR")
-                .requestMatchers("/clientes/**", "/entregadores/**", "/dashboard/**", "/configuracoes/**", "/entregas/**").hasRole("PROPRIETARIO")
+                .requestMatchers("/entregas/minhas-entregas/**").hasRole("ENTREGADOR")
+                .requestMatchers("/clientes/**", "/entregadores/**", "/dashboard/**", "/configuracoes/**", "/entregas/**", "/pagamentos/**").hasRole("PROPRIETARIO")
                 .anyRequest().authenticated()
             )
             .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))

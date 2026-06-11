@@ -1,14 +1,19 @@
 package com.ravtec.delivery.service;
 
+import com.ravtec.delivery.dto.CriarAcessoEntregadorRequest;
 import com.ravtec.delivery.dto.EntregadorRequest;
 import com.ravtec.delivery.dto.EntregadorResponse;
 import com.ravtec.delivery.dto.StatusRequest;
+import com.ravtec.delivery.entity.PerfilAcesso;
+import com.ravtec.delivery.entity.Usuario;
 import com.ravtec.delivery.exception.RecursoNaoEncontradoException;
 import com.ravtec.delivery.mapper.EntregadorMapper;
 import com.ravtec.delivery.repository.EntregadorRepository;
+import com.ravtec.delivery.repository.UsuarioRepository;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class EntregadorService {
 
     private final EntregadorRepository entregadorRepository;
+    private final UsuarioRepository usuarioRepository;
     private final EntregadorMapper entregadorMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public List<EntregadorResponse> listar(String busca) {
@@ -53,9 +60,30 @@ public class EntregadorService {
         return entregadorMapper.toResponse(entregador);
     }
 
+    @Transactional
+    public EntregadorResponse criarAcesso(UUID id, CriarAcessoEntregadorRequest request) {
+        var entregador = buscarEntidade(id);
+        if (entregador.getUsuario() != null) {
+            throw new IllegalArgumentException("Entregador ja possui acesso ao sistema");
+        }
+        if (usuarioRepository.findByEmail(request.email()).isPresent()) {
+            throw new IllegalArgumentException("E-mail ja cadastrado");
+        }
+
+        var usuario = new Usuario();
+        usuario.setNome(entregador.getNome());
+        usuario.setEmail(request.email());
+        usuario.setSenhaHash(passwordEncoder.encode(request.senha()));
+        usuario.setPerfil(PerfilAcesso.ENTREGADOR);
+        usuario.setAtivo(true);
+
+        entregador.setEmail(request.email());
+        entregador.setUsuario(usuarioRepository.save(usuario));
+        return entregadorMapper.toResponse(entregador);
+    }
+
     private com.ravtec.delivery.entity.Entregador buscarEntidade(UUID id) {
         return entregadorRepository.findById(id)
             .orElseThrow(() -> new RecursoNaoEncontradoException("Entregador nao encontrado"));
     }
 }
-

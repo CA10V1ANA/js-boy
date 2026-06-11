@@ -49,6 +49,7 @@ export type Entregador = {
   placaVeiculo?: string;
   ativo: boolean;
   disponivel: boolean;
+  possuiAcesso: boolean;
   criadoEm: string;
 };
 
@@ -142,4 +143,44 @@ export type DashboardResumo = {
   valorTotal: number;
   clientes: number;
   entregadoresAtivos: number;
+};
+
+export type FormaPagamento = 'DINHEIRO' | 'PIX' | 'CARTAO' | 'BOLETO' | 'TRANSFERENCIA' | 'OUTRO';
+
+export type Pagamento = {
+  id: string;
+  entregaId: string;
+  entregaCodigo: string;
+  clienteNome: string;
+  valor: number;
+  formaPagamento: FormaPagamento;
+  pagoEm: string;
+  comprovante?: string;
+  observacoes?: string;
+  criadoEm: string;
+};
+
+export type PagamentoForm = {
+  entregaId: string;
+  valor: string;
+  formaPagamento: FormaPagamento;
+  comprovante: string;
+  observacoes: string;
+};
+
+export type PendenciaFinanceira = {
+  entregaId: string;
+  entregaCodigo: string;
+  clienteNome: string;
+  valorEntrega: number;
+  valorPago: number;
+  valorPendente: number;
+};
+
+export type RelatorioFinanceiro = {
+  valorEntregas: number;
+  valorRecebido: number;
+  valorPendente: number;
+  pagamentosRegistrados: number;
+  pendencias: PendenciaFinanceira[];
 };

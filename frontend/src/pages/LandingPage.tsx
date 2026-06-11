@@ -29,7 +29,7 @@ const navItems = [
 
 const benefits = [
   { icon: Zap, title: 'Agilidade', text: 'Coletas em ate 30 minutos na regiao central.' },
-  { icon: Shield, title: 'Seguranca', text: 'Motoboys cadastrados e entregas rastreadas.' },
+  { icon: Shield, title: 'Seguranca', text: 'Motoboys cadastrados e entregas acompanhadas no painel.' },
   { icon: Clock3, title: 'Pontualidade', text: '98% das entregas no prazo combinado.' },
   { icon: MapPin, title: 'Cobertura', text: 'Atendemos toda a grande Sao Paulo.' },
 ];
@@ -101,7 +101,7 @@ export function SiteFooter() {
       <div className="siteContainer footerGrid">
         <div>
           <Brand />
-          <p>Entregas empresariais ageis, seguras e rastreaveis.</p>
+          <p>Entregas empresariais ageis, seguras e organizadas.</p>
         </div>
         <div>
           <h3>Navegacao</h3>
@@ -146,7 +146,7 @@ export function LandingPage() {
           <div className="siteHeroText">
             <span className="sitePill"><Bike size={14} /> ENTREGAS EMPRESARIAIS</span>
             <h1>Sua entrega <mark>no tempo certo</mark>, todo dia.</h1>
-            <p>Motoboys profissionais para empresas que nao podem parar. Calcule, solicite e acompanhe em tempo real.</p>
+            <p>Motoboys profissionais para empresas que nao podem parar. Cadastre, organize e acompanhe suas entregas no painel.</p>
             <div className="siteHeroActions">
               <Link className="siteYellowButton" to="/contato">Calcular Entrega <span>→</span></Link>
               <a className="siteOutlineButton" href="https://wa.me/5511999999999" target="_blank" rel="noreferrer">
@@ -278,7 +278,7 @@ export function AboutPage() {
           <h3>Logistica para quem precisa resolver.</h3>
           <p>
             A JS Boy nasceu para apoiar empresas que precisam de entregas rapidas, seguras e bem organizadas.
-            O MVP do sistema ajuda a centralizar clientes, entregadores, valores e historico em um so painel.
+            O MVP do sistema ajuda a centralizar clientes, entregadores, entregas, valores, pagamentos e historico em um so painel.
           </p>
           <div className="aboutStats">
             <span><strong>24/7</strong> atendimento</span>
@@ -332,7 +332,7 @@ function SiteCta() {
     <section className="siteCta">
       <div className="siteContainer">
         <h2>Pronto para acelerar suas entregas?</h2>
-        <p>Faca um orcamento online em segundos ou fale com a gente direto no WhatsApp.</p>
+        <p>Solicite atendimento, organize entregas no painel e fale com a gente direto no WhatsApp.</p>
         <div className="siteCtaActions">
           <Link to="/contato">Calcular agora</Link>
           <Link to="/login">Sou cliente</Link>

@@ -49,7 +49,7 @@ export function DashboardPage() {
     <main className="page">
       <div className="pageHeader">
         <h1>Dashboard</h1>
-        <p>Resumo operacional e financeiro do MVP.</p>
+        <p>Resumo operacional e financeiro da base atual do sistema.</p>
       </div>
 
       {erro ? <p className="errorMessage">{erro}</p> : null}

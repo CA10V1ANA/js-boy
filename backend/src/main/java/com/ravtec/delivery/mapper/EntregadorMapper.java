@@ -36,8 +36,8 @@ public class EntregadorMapper {
             entregador.getPlacaVeiculo(),
             entregador.isAtivo(),
             entregador.isDisponivel(),
+            entregador.getUsuario() != null,
             entregador.getCriadoEm()
         );
     }
 }
-

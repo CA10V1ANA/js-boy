@@ -49,6 +49,14 @@ public class EntregaService {
         return entregaMapper.toResponse(buscarEntidade(id));
     }
 
+    @Transactional(readOnly = true)
+    public List<EntregaResponse> listarMinhasEntregas() {
+        var usuario = usuarioAtual();
+        return entregaRepository.findByEntregadorUsuarioId(usuario.getId()).stream()
+            .map(entregaMapper::toResponse)
+            .toList();
+    }
+
     @Transactional
     public EntregaResponse criar(EntregaRequest request) {
         var entrega = new Entrega();
@@ -73,6 +81,23 @@ public class EntregaService {
     @Transactional
     public EntregaResponse alterarStatus(UUID id, EntregaStatusRequest request) {
         var entrega = buscarEntidade(id);
+        var anterior = entrega.getStatus();
+        entrega.setStatus(request.status());
+        entrega.setConcluidaEm(request.status() == StatusEntrega.ENTREGUE ? OffsetDateTime.now() : null);
+        registrarHistorico(entrega, anterior, request.status());
+        return entregaMapper.toResponse(entrega);
+    }
+
+    @Transactional
+    public EntregaResponse alterarStatusMinhaEntrega(UUID id, EntregaStatusRequest request) {
+        var entrega = buscarEntidade(id);
+        var usuario = usuarioAtual();
+        if (entrega.getEntregador() == null
+            || entrega.getEntregador().getUsuario() == null
+            || !entrega.getEntregador().getUsuario().getId().equals(usuario.getId())) {
+            throw new RecursoNaoEncontradoException("Entrega nao encontrada para este entregador");
+        }
+
         var anterior = entrega.getStatus();
         entrega.setStatus(request.status());
         entrega.setConcluidaEm(request.status() == StatusEntrega.ENTREGUE ? OffsetDateTime.now() : null);

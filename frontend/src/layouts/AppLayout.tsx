@@ -1,4 +1,4 @@
-import { Bike, LayoutDashboard, MapPinned, Menu, Settings, Truck, Users } from 'lucide-react';
+import { Bike, CreditCard, LayoutDashboard, MapPinned, Menu, Settings, Truck, Users } from 'lucide-react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -7,6 +7,7 @@ const items = [
   { to: '/clientes', label: 'Clientes', icon: Users, perfis: ['PROPRIETARIO'] },
   { to: '/entregadores', label: 'Entregadores', icon: Truck, perfis: ['PROPRIETARIO'] },
   { to: '/entregas', label: 'Entregas', icon: MapPinned, perfis: ['PROPRIETARIO'] },
+  { to: '/pagamentos', label: 'Pagamentos', icon: CreditCard, perfis: ['PROPRIETARIO'] },
   { to: '/minhas-entregas', label: 'Minhas entregas', icon: MapPinned, perfis: ['ENTREGADOR'] },
   { to: '/configuracoes/preco', label: 'Precos', icon: Settings, perfis: ['PROPRIETARIO'] },
 ];

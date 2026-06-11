@@ -31,6 +31,11 @@ public class EntregaController {
         return entregaService.listar(busca);
     }
 
+    @GetMapping("/minhas-entregas")
+    public List<EntregaResponse> listarMinhasEntregas() {
+        return entregaService.listarMinhasEntregas();
+    }
+
     @GetMapping("/{id}")
     public EntregaResponse consultar(@PathVariable UUID id) {
         return entregaService.consultar(id);
@@ -49,6 +54,11 @@ public class EntregaController {
     @PatchMapping("/{id}/status")
     public EntregaResponse alterarStatus(@PathVariable UUID id, @Valid @RequestBody EntregaStatusRequest request) {
         return entregaService.alterarStatus(id, request);
+    }
+
+    @PatchMapping("/minhas-entregas/{id}/status")
+    public EntregaResponse alterarStatusMinhaEntrega(@PathVariable UUID id, @Valid @RequestBody EntregaStatusRequest request) {
+        return entregaService.alterarStatusMinhaEntrega(id, request);
     }
 
     @PatchMapping("/{id}/entregador")

@@ -1,5 +1,6 @@
 package com.ravtec.delivery.controller;
 
+import com.ravtec.delivery.dto.CriarAcessoEntregadorRequest;
 import com.ravtec.delivery.dto.EntregadorRequest;
 import com.ravtec.delivery.dto.EntregadorResponse;
 import com.ravtec.delivery.dto.StatusRequest;
@@ -49,5 +50,9 @@ public class EntregadorController {
     public EntregadorResponse alterarStatus(@PathVariable UUID id, @Valid @RequestBody StatusRequest request) {
         return entregadorService.alterarStatus(id, request);
     }
-}
 
+    @PostMapping("/{id}/acesso")
+    public EntregadorResponse criarAcesso(@PathVariable UUID id, @Valid @RequestBody CriarAcessoEntregadorRequest request) {
+        return entregadorService.criarAcesso(id, request);
+    }
+}

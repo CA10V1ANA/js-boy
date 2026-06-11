@@ -12,6 +12,7 @@ import { EntregadoresPage } from './pages/EntregadoresPage';
 import { EntregasPage } from './pages/EntregasPage';
 import { MinhasEntregasPage } from './pages/MinhasEntregasPage';
 import { ConfiguracaoPrecoPage } from './pages/ConfiguracaoPrecoPage';
+import { PagamentosPage } from './pages/PagamentosPage';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 import {
   AboutPage,
@@ -62,6 +63,7 @@ const router = createBrowserRouter([
           { path: '/clientes', element: <ClientesPage /> },
           { path: '/entregadores', element: <EntregadoresPage /> },
           { path: '/entregas', element: <EntregasPage /> },
+          { path: '/pagamentos', element: <PagamentosPage /> },
           { path: '/minhas-entregas', element: <MinhasEntregasPage /> },
           { path: '/configuracoes/preco', element: <ConfiguracaoPrecoPage /> },
         ],

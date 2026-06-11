@@ -22,6 +22,7 @@ export function EntregadoresPage() {
   const [mensagem, setMensagem] = useState('');
   const [erro, setErro] = useState('');
   const [carregando, setCarregando] = useState(false);
+  const [accessForm, setAccessForm] = useState({ entregadorId: '', email: '', senha: '123456' });
 
   useEffect(() => {
     carregarEntregadores();
@@ -91,6 +92,32 @@ export function EntregadoresPage() {
     }
   }
 
+  async function criarAcesso(event: FormEvent) {
+    event.preventDefault();
+    setErro('');
+    setMensagem('');
+
+    try {
+      await api.post(`/entregadores/${accessForm.entregadorId}/acesso`, {
+        email: accessForm.email,
+        senha: accessForm.senha,
+      });
+      setMensagem('Acesso do entregador criado.');
+      setAccessForm({ entregadorId: '', email: '', senha: '123456' });
+      await carregarEntregadores();
+    } catch {
+      setErro('Nao foi possivel criar o acesso. Verifique se o e-mail ja existe.');
+    }
+  }
+
+  function prepararAcesso(entregador: Entregador) {
+    setAccessForm({
+      entregadorId: entregador.id,
+      email: entregador.email || '',
+      senha: '123456',
+    });
+  }
+
   return (
     <main className="page">
       <div className="pageHeader">
@@ -128,6 +155,18 @@ export function EntregadoresPage() {
         </form>
 
         <section className="adminList">
+          <form className="inlineAccessForm" onSubmit={criarAcesso}>
+            <strong>Acesso do entregador</strong>
+            <select value={accessForm.entregadorId} onChange={(event: { target: { value: string } }) => setAccessForm({ ...accessForm, entregadorId: event.target.value })} required>
+              <option value="">Selecione um entregador</option>
+              {entregadores.filter((entregador) => !entregador.possuiAcesso).map((entregador) => (
+                <option key={entregador.id} value={entregador.id}>{entregador.nome}</option>
+              ))}
+            </select>
+            <input type="email" placeholder="E-mail de login" value={accessForm.email} onChange={(event: { target: { value: string } }) => setAccessForm({ ...accessForm, email: event.target.value })} required />
+            <input placeholder="Senha inicial" value={accessForm.senha} onChange={(event: { target: { value: string } }) => setAccessForm({ ...accessForm, senha: event.target.value })} required />
+            <button className="primaryButton" type="submit">Criar acesso</button>
+          </form>
           <div className="listToolbar">
             <input placeholder="Pesquisar por nome ou telefone" value={busca} onChange={(event: { target: { value: string } }) => setBusca(event.target.value)} />
             <button className="secondaryButton" onClick={() => carregarEntregadores()} type="button">Pesquisar</button>
@@ -142,6 +181,7 @@ export function EntregadoresPage() {
                   <th>Telefone</th>
                   <th>Veiculo</th>
                   <th>Disponibilidade</th>
+                  <th>Acesso</th>
                   <th>Status</th>
                   <th>Acoes</th>
                 </tr>
@@ -153,14 +193,16 @@ export function EntregadoresPage() {
                     <td>{entregador.telefone}</td>
                     <td>{entregador.tipoVeiculo}{entregador.placaVeiculo ? ` - ${entregador.placaVeiculo}` : ''}</td>
                     <td><span className={entregador.disponivel ? 'statusBadge active' : 'statusBadge'}>{entregador.disponivel ? 'Disponivel' : 'Indisponivel'}</span></td>
+                    <td><span className={entregador.possuiAcesso ? 'statusBadge active' : 'statusBadge'}>{entregador.possuiAcesso ? 'Criado' : 'Pendente'}</span></td>
                     <td><span className={entregador.ativo ? 'statusBadge active' : 'statusBadge'}>{entregador.ativo ? 'Ativo' : 'Inativo'}</span></td>
                     <td className="rowActions">
                       <button onClick={() => editar(entregador)}>Editar</button>
+                      {!entregador.possuiAcesso ? <button onClick={() => prepararAcesso(entregador)}>Acesso</button> : null}
                       <button onClick={() => alterarStatus(entregador)}>{entregador.ativo ? 'Desativar' : 'Ativar'}</button>
                     </td>
                   </tr>
                 ))}
-                {entregadores.length === 0 ? <tr><td colSpan={6}>Nenhum entregador encontrado.</td></tr> : null}
+                {entregadores.length === 0 ? <tr><td colSpan={7}>Nenhum entregador encontrado.</td></tr> : null}
               </tbody>
             </table>
           </div>

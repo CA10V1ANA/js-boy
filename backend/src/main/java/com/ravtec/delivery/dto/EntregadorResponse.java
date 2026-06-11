@@ -14,7 +14,7 @@ public record EntregadorResponse(
     String placaVeiculo,
     boolean ativo,
     boolean disponivel,
+    boolean possuiAcesso,
     OffsetDateTime criadoEm
 ) {
 }
-
