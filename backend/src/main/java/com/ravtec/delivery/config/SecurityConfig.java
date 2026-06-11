@@ -39,9 +39,12 @@ public class SecurityConfig {
             .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/login", "/api/health", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/entregas/minhas-entregas").hasRole("ENTREGADOR")
+                .requestMatchers("/clientes/**", "/entregadores/**", "/dashboard/**", "/configuracoes/**", "/entregas/**").hasRole("PROPRIETARIO")
                 .anyRequest().authenticated()
             )
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .build();
     }

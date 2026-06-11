@@ -1,7 +1,7 @@
-import { Bike } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { PublicHeader, SiteFooter } from './LandingPage';
 
 export function LoginPage() {
   const { autenticado, login } = useAuth();
@@ -33,43 +33,43 @@ export function LoginPage() {
   }
 
   return (
-    <main className="loginPage">
-      <section className="loginPanel">
-        <div className="loginBrand">
-          <span className="brandMark">
-            <Bike size={28} />
-          </span>
-          <div>
-            <h1>JS Boy</h1>
-            <p>Sistema de entregas</p>
-          </div>
-        </div>
+    <main className="sitePage">
+      <PublicHeader />
+      <section className="clientArea">
+        <div className="siteContainer">
+          <h1>Area do Cliente</h1>
+          <section className="clientLoginCard">
+            <div className="clientTabs" aria-label="Area do cliente">
+              <button className="active" type="button">Entrar</button>
+              <button type="button">Criar conta</button>
+            </div>
 
-        <form className="formStack" onSubmit={handleSubmit}>
-          <label>
-            E-mail
-            <input
-              type="email"
-              placeholder="proprietario@jsboy.com"
-              value={email}
-              onChange={(event: { target: { value: string } }) => setEmail(event.target.value)}
-            />
-          </label>
-          <label>
-            Senha
-            <input
-              type="password"
-              placeholder="Sua senha"
-              value={senha}
-              onChange={(event: { target: { value: string } }) => setSenha(event.target.value)}
-            />
-          </label>
-          {erro ? <p className="errorMessage">{erro}</p> : null}
-          <button type="submit" className="primaryButton" disabled={carregando}>
-            {carregando ? 'Entrando...' : 'Entrar'}
-          </button>
-        </form>
+            <form className="clientLoginForm" onSubmit={handleSubmit}>
+              <label>
+                E-mail
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(event: { target: { value: string } }) => setEmail(event.target.value)}
+                />
+              </label>
+              <label>
+                Senha
+                <input
+                  type="password"
+                  value={senha}
+                  onChange={(event: { target: { value: string } }) => setSenha(event.target.value)}
+                />
+              </label>
+              {erro ? <p className="errorMessage">{erro}</p> : null}
+              <button type="submit" disabled={carregando}>
+                {carregando ? 'Entrando...' : 'Entrar'}
+              </button>
+            </form>
+          </section>
+        </div>
       </section>
+      <SiteFooter />
     </main>
   );
 }

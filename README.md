@@ -184,6 +184,15 @@ cd backend
 mvn spring-boot:run
 ```
 
+Backend com banco local embutido para desenvolvimento:
+
+```bash
+cd backend
+mvn spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+Esse modo cria um banco H2 local em `backend/data/jsboy.mv.db`, sem mexer em outros bancos da maquina.
+
 Frontend:
 
 ```bash

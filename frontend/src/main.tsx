@@ -13,26 +13,57 @@ import { EntregasPage } from './pages/EntregasPage';
 import { MinhasEntregasPage } from './pages/MinhasEntregasPage';
 import { ConfiguracaoPrecoPage } from './pages/ConfiguracaoPrecoPage';
 import { ProtectedRoute } from './routes/ProtectedRoute';
+import {
+  AboutPage,
+  CompaniesPage,
+  ContactPage,
+  HowItWorksPage,
+  LandingPage,
+  PublicLayout,
+  ServicesPage,
+} from './pages/LandingPage';
 
 const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <PublicLayout />,
+    children: [
+      { index: true, element: <LandingPage /> },
+      { path: 'servicos', element: <ServicesPage /> },
+      { path: 'como-funciona', element: <HowItWorksPage /> },
+      { path: 'para-empresas', element: <CompaniesPage /> },
+      { path: 'sobre', element: <AboutPage /> },
+      { path: 'contato', element: <ContactPage /> },
+    ],
+  },
   {
     path: '/login',
     element: <LoginPage />,
   },
   {
-    path: '/',
+    path: '/app',
     element: <ProtectedRoute />,
     children: [
       {
         element: <AppLayout />,
         children: [
           { index: true, element: <Navigate to="/dashboard" replace /> },
-          { path: 'dashboard', element: <DashboardPage /> },
-          { path: 'clientes', element: <ClientesPage /> },
-          { path: 'entregadores', element: <EntregadoresPage /> },
-          { path: 'entregas', element: <EntregasPage /> },
-          { path: 'minhas-entregas', element: <MinhasEntregasPage /> },
-          { path: 'configuracoes/preco', element: <ConfiguracaoPrecoPage /> },
+        ],
+      },
+    ],
+  },
+  {
+    element: <ProtectedRoute />,
+    children: [
+      {
+        element: <AppLayout />,
+        children: [
+          { path: '/dashboard', element: <DashboardPage /> },
+          { path: '/clientes', element: <ClientesPage /> },
+          { path: '/entregadores', element: <EntregadoresPage /> },
+          { path: '/entregas', element: <EntregasPage /> },
+          { path: '/minhas-entregas', element: <MinhasEntregasPage /> },
+          { path: '/configuracoes/preco', element: <ConfiguracaoPrecoPage /> },
         ],
       },
     ],
