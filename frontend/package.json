@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "C:\\Progra~1\\nodejs\\node.exe -r ./vite-crypto-polyfill.cjs ./node_modules/vite/bin/vite.js --host 0.0.0.0",
-    "build": "C:\\Progra~1\\nodejs\\node.exe ./node_modules/typescript/bin/tsc && C:\\Progra~1\\nodejs\\node.exe -r ./vite-crypto-polyfill.cjs ./node_modules/vite/bin/vite.js build",
-    "preview": "C:\\Progra~1\\nodejs\\node.exe -r ./vite-crypto-polyfill.cjs ./node_modules/vite/bin/vite.js preview --host 0.0.0.0"
+    "dev": "node -r ./vite-crypto-polyfill.cjs ./node_modules/vite/bin/vite.js --host 0.0.0.0",
+    "build": "tsc && node -r ./vite-crypto-polyfill.cjs ./node_modules/vite/bin/vite.js build",
+    "preview": "node -r ./vite-crypto-polyfill.cjs ./node_modules/vite/bin/vite.js preview --host 0.0.0.0"
   },
   "engines": {
     "node": ">=18"
