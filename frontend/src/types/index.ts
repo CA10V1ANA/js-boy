@@ -1,4 +1,4 @@
-export type PerfilAcesso = 'PROPRIETARIO' | 'ENTREGADOR';
+export type PerfilAcesso = 'PROPRIETARIO' | 'ENTREGADOR' | 'FUNCIONARIO';
 
 export type StatusEntrega =
   | 'SOLICITADA'
@@ -132,6 +132,20 @@ export type SimulacaoPreco = {
   valorPorKm: number;
   valorMinimo: number;
   valorCalculado: number;
+};
+
+export type Funcionario = {
+  id: string;
+  nome: string;
+  email: string;
+  ativo: boolean;
+  criadoEm: string;
+};
+
+export type FuncionarioForm = {
+  nome: string;
+  email: string;
+  senha: string;
 };
 
 export type DashboardResumo = {

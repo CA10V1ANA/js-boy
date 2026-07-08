@@ -20,10 +20,12 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EntregaService {
@@ -68,6 +70,7 @@ public class EntregaService {
 
         var salva = entregaRepository.save(entrega);
         registrarHistorico(salva, null, salva.getStatus());
+        log.info("Entrega criada: codigo={} status={} valorFinal={}", salva.getCodigo(), salva.getStatus(), salva.getValorFinal());
         return entregaMapper.toResponse(salva);
     }
 
@@ -85,6 +88,7 @@ public class EntregaService {
         entrega.setStatus(request.status());
         entrega.setConcluidaEm(request.status() == StatusEntrega.ENTREGUE ? OffsetDateTime.now() : null);
         registrarHistorico(entrega, anterior, request.status());
+        log.info("Status da entrega alterado: codigo={} de={} para={}", entrega.getCodigo(), anterior, request.status());
         return entregaMapper.toResponse(entrega);
     }
 
@@ -115,6 +119,7 @@ public class EntregaService {
         entrega.setEntregador(entregador);
         entrega.setStatus(StatusEntrega.ENTREGADOR_DESIGNADO);
         registrarHistorico(entrega, anterior, StatusEntrega.ENTREGADOR_DESIGNADO);
+        log.info("Entregador designado: entrega={} entregador={}", entrega.getCodigo(), entregador.getNome());
         return entregaMapper.toResponse(entrega);
     }
 

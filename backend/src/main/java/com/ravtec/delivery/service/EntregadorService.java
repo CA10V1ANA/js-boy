@@ -13,10 +13,12 @@ import com.ravtec.delivery.repository.UsuarioRepository;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EntregadorService {
@@ -43,7 +45,9 @@ public class EntregadorService {
     @Transactional
     public EntregadorResponse criar(EntregadorRequest request) {
         var entregador = entregadorMapper.toEntity(request);
-        return entregadorMapper.toResponse(entregadorRepository.save(entregador));
+        var salvo = entregadorRepository.save(entregador);
+        log.info("Entregador criado: id={} nome={}", salvo.getId(), salvo.getNome());
+        return entregadorMapper.toResponse(salvo);
     }
 
     @Transactional
@@ -79,6 +83,7 @@ public class EntregadorService {
 
         entregador.setEmail(request.email());
         entregador.setUsuario(usuarioRepository.save(usuario));
+        log.info("Acesso criado para entregador: id={} email={}", entregador.getId(), request.email());
         return entregadorMapper.toResponse(entregador);
     }
 

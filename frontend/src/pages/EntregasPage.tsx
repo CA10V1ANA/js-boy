@@ -1,3 +1,4 @@
+import { MapPinned } from 'lucide-react';
 import { FormEvent, useEffect, useState } from 'react';
 import { api } from '../services/api';
 import { Cliente, Entrega, EntregaForm, Entregador, StatusEntrega } from '../types';
@@ -31,6 +32,13 @@ const statusOptions: StatusEntrega[] = [
 
 function labelStatus(status: StatusEntrega) {
   return status.replace(/_/g, ' ').toLowerCase().replace(/(^|\s)\S/g, (letter: string) => letter.toUpperCase());
+}
+
+function toneStatus(status: StatusEntrega) {
+  if (status === 'ENTREGUE') return 'statusBadge active';
+  if (status === 'CANCELADA') return 'statusBadge danger';
+  if (status === 'EM_ROTA' || status === 'COLETADA' || status === 'ENTREGADOR_DESIGNADO') return 'statusBadge progress';
+  return 'statusBadge';
 }
 
 function money(value: number) {
@@ -159,9 +167,12 @@ export function EntregasPage() {
   return (
     <main className="page">
       <div className="pageHeader">
-        <div>
-          <h1>Entregas</h1>
-          <p>Criacao, consulta, edicao, status, historico e designacao de entregador.</p>
+        <div className="pageHeaderTitle">
+          <span className="pageHeaderIcon"><MapPinned size={22} /></span>
+          <div>
+            <h1>Entregas</h1>
+            <p>Criacao, consulta, edicao, status, historico e designacao de entregador.</p>
+          </div>
         </div>
       </div>
 
@@ -220,7 +231,7 @@ export function EntregasPage() {
                     <td>{entrega.codigo}</td>
                     <td>{entrega.clienteNome}</td>
                     <td>{entrega.entregadorNome || 'Pendente'}</td>
-                    <td><span className={entrega.status === 'ENTREGUE' ? 'statusBadge active' : 'statusBadge'}>{labelStatus(entrega.status)}</span></td>
+                    <td><span className={toneStatus(entrega.status)}>{labelStatus(entrega.status)}</span></td>
                     <td>{money(entrega.valorFinal)}</td>
                     <td className="rowActions">
                       <button onClick={() => editar(entrega)}>Editar</button>

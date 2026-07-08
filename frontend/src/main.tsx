@@ -4,6 +4,7 @@ import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import './styles.css';
 import './services/authToken';
 import { AuthProvider } from './contexts/AuthContext';
+import { ToastProvider } from './contexts/ToastContext';
 import { AppLayout } from './layouts/AppLayout';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
@@ -14,6 +15,7 @@ import { MinhasEntregasPage } from './pages/MinhasEntregasPage';
 import { ConfiguracaoPrecoPage } from './pages/ConfiguracaoPrecoPage';
 import { PagamentosPage } from './pages/PagamentosPage';
 import { ProtectedRoute } from './routes/ProtectedRoute';
+import { RoleRoute } from './routes/RoleRoute';
 import {
   AboutPage,
   CompaniesPage,
@@ -59,13 +61,28 @@ const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
-          { path: '/dashboard', element: <DashboardPage /> },
-          { path: '/clientes', element: <ClientesPage /> },
-          { path: '/entregadores', element: <EntregadoresPage /> },
-          { path: '/entregas', element: <EntregasPage /> },
-          { path: '/pagamentos', element: <PagamentosPage /> },
-          { path: '/minhas-entregas', element: <MinhasEntregasPage /> },
-          { path: '/configuracoes/preco', element: <ConfiguracaoPrecoPage /> },
+          {
+            element: <RoleRoute perfis={['PROPRIETARIO', 'FUNCIONARIO']} />,
+            children: [
+              { path: '/dashboard', element: <DashboardPage /> },
+              { path: '/clientes', element: <ClientesPage /> },
+            ],
+          },
+          {
+            element: <RoleRoute perfis={['PROPRIETARIO']} />,
+            children: [
+              { path: '/entregadores', element: <EntregadoresPage /> },
+              { path: '/entregas', element: <EntregasPage /> },
+              { path: '/pagamentos', element: <PagamentosPage /> },
+              { path: '/configuracoes/preco', element: <ConfiguracaoPrecoPage /> },
+            ],
+          },
+          {
+            element: <RoleRoute perfis={['ENTREGADOR']} />,
+            children: [
+              { path: '/minhas-entregas', element: <MinhasEntregasPage /> },
+            ],
+          },
         ],
       },
     ],
@@ -74,8 +91,10 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </ToastProvider>
   </React.StrictMode>,
 );

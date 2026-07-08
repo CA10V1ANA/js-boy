@@ -15,9 +15,11 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PagamentoService {
@@ -46,7 +48,9 @@ public class PagamentoService {
         pagamento.setComprovante(request.comprovante());
         pagamento.setObservacoes(request.observacoes());
 
-        return pagamentoMapper.toResponse(pagamentoRepository.save(pagamento));
+        var salvo = pagamentoRepository.save(pagamento);
+        log.info("Pagamento registrado: entrega={} valor={} forma={}", entrega.getCodigo(), salvo.getValor(), salvo.getFormaPagamento());
+        return pagamentoMapper.toResponse(salvo);
     }
 
     @Transactional(readOnly = true)

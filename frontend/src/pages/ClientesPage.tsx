@@ -1,8 +1,12 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useToast } from '../contexts/ToastContext';
 import { api } from '../services/api';
-import { Cliente, ClienteForm } from '../types';
+import { ClienteFormData, clienteSchema } from '../schemas/clienteSchema';
+import { Cliente } from '../types';
 
-const emptyForm: ClienteForm = {
+const emptyForm: ClienteFormData = {
   nome: '',
   telefone: '',
   whatsapp: '',
@@ -15,59 +19,58 @@ const emptyForm: ClienteForm = {
 };
 
 export function ClientesPage() {
+  const { showToast } = useToast();
   const [clientes, setClientes] = useState<Cliente[]>([]);
-  const [form, setForm] = useState<ClienteForm>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [busca, setBusca] = useState('');
-  const [mensagem, setMensagem] = useState('');
-  const [erro, setErro] = useState('');
-  const [carregando, setCarregando] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<ClienteFormData>({
+    resolver: zodResolver(clienteSchema),
+    defaultValues: emptyForm,
+  });
 
   useEffect(() => {
     carregarClientes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function carregarClientes(search = busca) {
-    setErro('');
-
     try {
       const response = await api.get<Cliente[]>('/clientes', {
         params: search ? { busca: search } : undefined,
       });
       setClientes(response.data);
     } catch {
-      setErro('Nao foi possivel carregar clientes.');
+      showToast('Nao foi possivel carregar clientes.', 'error');
     }
   }
 
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault();
-    setCarregando(true);
-    setErro('');
-    setMensagem('');
-
+  async function onSubmit(data: ClienteFormData) {
     try {
       if (editingId) {
-        await api.put(`/clientes/${editingId}`, form);
-        setMensagem('Cliente atualizado com sucesso.');
+        await api.put(`/clientes/${editingId}`, data);
+        showToast('Cliente atualizado com sucesso.', 'success');
       } else {
-        await api.post('/clientes', form);
-        setMensagem('Cliente cadastrado com sucesso.');
+        await api.post('/clientes', data);
+        showToast('Cliente cadastrado com sucesso.', 'success');
       }
 
-      setForm(emptyForm);
+      reset(emptyForm);
       setEditingId(null);
       await carregarClientes();
     } catch {
-      setErro('Revise os dados do cliente e tente novamente.');
-    } finally {
-      setCarregando(false);
+      showToast('Revise os dados do cliente e tente novamente.', 'error');
     }
   }
 
   function editar(cliente: Cliente) {
     setEditingId(cliente.id);
-    setForm({
+    reset({
       nome: cliente.nome,
       telefone: cliente.telefone,
       whatsapp: cliente.whatsapp || '',
@@ -80,16 +83,18 @@ export function ClientesPage() {
     });
   }
 
-  async function alterarStatus(cliente: Cliente) {
-    setErro('');
-    setMensagem('');
+  function cancelarEdicao() {
+    setEditingId(null);
+    reset(emptyForm);
+  }
 
+  async function alterarStatus(cliente: Cliente) {
     try {
       await api.patch(`/clientes/${cliente.id}/status`, { ativo: !cliente.ativo });
-      setMensagem(cliente.ativo ? 'Cliente desativado.' : 'Cliente ativado.');
+      showToast(cliente.ativo ? 'Cliente desativado.' : 'Cliente ativado.', 'success');
       await carregarClientes();
     } catch {
-      setErro('Nao foi possivel alterar o status do cliente.');
+      showToast('Nao foi possivel alterar o status do cliente.', 'error');
     }
   }
 
@@ -103,26 +108,62 @@ export function ClientesPage() {
       </div>
 
       <section className="adminGrid">
-        <form className="adminForm" onSubmit={handleSubmit}>
+        <form className="adminForm" onSubmit={handleSubmit(onSubmit)} noValidate>
           <h2>{editingId ? 'Editar cliente' : 'Novo cliente'}</h2>
-          <label>Nome<input value={form.nome} onChange={(event: { target: { value: string } }) => setForm({ ...form, nome: event.target.value })} required /></label>
+          <label>
+            Nome
+            <input {...register('nome')} />
+            {errors.nome ? <span className="fieldError">{errors.nome.message}</span> : null}
+          </label>
           <div className="adminFormRow">
-            <label>Telefone<input value={form.telefone} onChange={(event: { target: { value: string } }) => setForm({ ...form, telefone: event.target.value })} required /></label>
-            <label>WhatsApp<input value={form.whatsapp} onChange={(event: { target: { value: string } }) => setForm({ ...form, whatsapp: event.target.value })} /></label>
+            <label>
+              Telefone
+              <input {...register('telefone')} />
+              {errors.telefone ? <span className="fieldError">{errors.telefone.message}</span> : null}
+            </label>
+            <label>
+              WhatsApp
+              <input {...register('whatsapp')} />
+              {errors.whatsapp ? <span className="fieldError">{errors.whatsapp.message}</span> : null}
+            </label>
           </div>
           <div className="adminFormRow">
-            <label>E-mail<input type="email" value={form.email} onChange={(event: { target: { value: string } }) => setForm({ ...form, email: event.target.value })} /></label>
-            <label>CPF/CNPJ<input value={form.documento} onChange={(event: { target: { value: string } }) => setForm({ ...form, documento: event.target.value })} /></label>
+            <label>
+              E-mail
+              <input type="email" {...register('email')} />
+              {errors.email ? <span className="fieldError">{errors.email.message}</span> : null}
+            </label>
+            <label>
+              CPF/CNPJ
+              <input {...register('documento')} />
+              {errors.documento ? <span className="fieldError">{errors.documento.message}</span> : null}
+            </label>
           </div>
-          <label>Endereco<input value={form.endereco} onChange={(event: { target: { value: string } }) => setForm({ ...form, endereco: event.target.value })} required /></label>
+          <label>
+            Endereco
+            <input {...register('endereco')} />
+            {errors.endereco ? <span className="fieldError">{errors.endereco.message}</span> : null}
+          </label>
           <div className="adminFormRow">
-            <label>Bairro<input value={form.bairro} onChange={(event: { target: { value: string } }) => setForm({ ...form, bairro: event.target.value })} required /></label>
-            <label>Cidade<input value={form.cidade} onChange={(event: { target: { value: string } }) => setForm({ ...form, cidade: event.target.value })} required /></label>
+            <label>
+              Bairro
+              <input {...register('bairro')} />
+              {errors.bairro ? <span className="fieldError">{errors.bairro.message}</span> : null}
+            </label>
+            <label>
+              Cidade
+              <input {...register('cidade')} />
+              {errors.cidade ? <span className="fieldError">{errors.cidade.message}</span> : null}
+            </label>
           </div>
-          <label>Observacoes<textarea rows={3} value={form.observacoes} onChange={(event: { target: { value: string } }) => setForm({ ...form, observacoes: event.target.value })} /></label>
+          <label>
+            Observacoes
+            <textarea rows={3} {...register('observacoes')} />
+            {errors.observacoes ? <span className="fieldError">{errors.observacoes.message}</span> : null}
+          </label>
           <div className="adminActions">
-            <button className="primaryButton" disabled={carregando} type="submit">{editingId ? 'Salvar' : 'Cadastrar'}</button>
-            {editingId ? <button className="secondaryButton" type="button" onClick={() => { setEditingId(null); setForm(emptyForm); }}>Cancelar</button> : null}
+            <button className="primaryButton" disabled={isSubmitting} type="submit">{editingId ? 'Salvar' : 'Cadastrar'}</button>
+            {editingId ? <button className="secondaryButton" type="button" onClick={cancelarEdicao}>Cancelar</button> : null}
           </div>
         </form>
 
@@ -131,8 +172,6 @@ export function ClientesPage() {
             <input placeholder="Pesquisar por nome ou telefone" value={busca} onChange={(event: { target: { value: string } }) => setBusca(event.target.value)} />
             <button className="secondaryButton" onClick={() => carregarClientes()} type="button">Pesquisar</button>
           </div>
-          {mensagem ? <p className="successMessage">{mensagem}</p> : null}
-          {erro ? <p className="errorMessage">{erro}</p> : null}
           <div className="tableWrap">
             <table>
               <thead>

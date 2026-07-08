@@ -1,34 +1,39 @@
-import { FormEvent, useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { LoginFormData, loginSchema } from '../schemas/loginSchema';
 import { PublicHeader, SiteFooter } from './LandingPage';
 
 export function LoginPage() {
   const { autenticado, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [email, setEmail] = useState('proprietario@jsboy.com');
-  const [senha, setSenha] = useState('admin123');
   const [erro, setErro] = useState('');
-  const [carregando, setCarregando] = useState(false);
   const redirectTo = (location.state as { from?: string } | null)?.from || '/dashboard';
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: 'proprietario@jsboy.com', senha: 'admin123' },
+  });
 
   if (autenticado) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault();
+  async function onSubmit(data: LoginFormData) {
     setErro('');
-    setCarregando(true);
 
     try {
-      await login(email, senha);
+      await login(data.email, data.senha);
       navigate(redirectTo, { replace: true });
     } catch {
       setErro('E-mail ou senha invalidos.');
-    } finally {
-      setCarregando(false);
     }
   }
 
@@ -44,26 +49,20 @@ export function LoginPage() {
               <button type="button">Criar conta</button>
             </div>
 
-            <form className="clientLoginForm" onSubmit={handleSubmit}>
+            <form className="clientLoginForm" onSubmit={handleSubmit(onSubmit)} noValidate>
               <label>
                 E-mail
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(event: { target: { value: string } }) => setEmail(event.target.value)}
-                />
+                <input type="email" {...register('email')} />
+                {errors.email ? <span className="fieldError">{errors.email.message}</span> : null}
               </label>
               <label>
                 Senha
-                <input
-                  type="password"
-                  value={senha}
-                  onChange={(event: { target: { value: string } }) => setSenha(event.target.value)}
-                />
+                <input type="password" {...register('senha')} />
+                {errors.senha ? <span className="fieldError">{errors.senha.message}</span> : null}
               </label>
               {erro ? <p className="errorMessage">{erro}</p> : null}
-              <button type="submit" disabled={carregando}>
-                {carregando ? 'Entrando...' : 'Entrar'}
+              <button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Entrando...' : 'Entrar'}
               </button>
             </form>
           </section>

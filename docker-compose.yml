@@ -20,27 +20,37 @@ services:
     build:
       context: ./backend
     container_name: js-boy-backend
+    restart: unless-stopped
     environment:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/delivery_app}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-delivery_user}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-delivery_pass}
       JWT_SECRET: ${JWT_SECRET:-change-me-with-a-long-random-secret}
+      JWT_EXPIRATION_MINUTES: ${JWT_EXPIRATION_MINUTES:-480}
     ports:
       - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8080/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   frontend:
     build:
       context: ./frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
     container_name: js-boy-frontend
-    environment:
-      VITE_API_URL: http://localhost:8080
+    restart: unless-stopped
     ports:
       - "5173:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
 volumes:
   postgres_data:

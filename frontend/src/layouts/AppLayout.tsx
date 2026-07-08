@@ -3,8 +3,8 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const items = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, perfis: ['PROPRIETARIO'] },
-  { to: '/clientes', label: 'Clientes', icon: Users, perfis: ['PROPRIETARIO'] },
+  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, perfis: ['PROPRIETARIO', 'FUNCIONARIO'] },
+  { to: '/clientes', label: 'Clientes', icon: Users, perfis: ['PROPRIETARIO', 'FUNCIONARIO'] },
   { to: '/entregadores', label: 'Entregadores', icon: Truck, perfis: ['PROPRIETARIO'] },
   { to: '/entregas', label: 'Entregas', icon: MapPinned, perfis: ['PROPRIETARIO'] },
   { to: '/pagamentos', label: 'Pagamentos', icon: CreditCard, perfis: ['PROPRIETARIO'] },

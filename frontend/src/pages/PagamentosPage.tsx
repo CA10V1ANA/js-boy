@@ -1,3 +1,4 @@
+import { CheckCircle2, Clock, CreditCard, Receipt, Wallet } from 'lucide-react';
 import { FormEvent, useEffect, useState } from 'react';
 import { api } from '../services/api';
 import { Entrega, FormaPagamento, Pagamento, PagamentoForm, RelatorioFinanceiro } from '../types';
@@ -89,17 +90,32 @@ export function PagamentosPage() {
   return (
     <main className="page">
       <div className="pageHeader">
-        <div>
-          <h1>Pagamentos</h1>
-          <p>Registro de recebimentos, comprovantes simples e pendencias financeiras.</p>
+        <div className="pageHeaderTitle">
+          <span className="pageHeaderIcon"><CreditCard size={22} /></span>
+          <div>
+            <h1>Pagamentos</h1>
+            <p>Registro de recebimentos, comprovantes simples e pendencias financeiras.</p>
+          </div>
         </div>
       </div>
 
       <section className="metricGrid">
-        <article className="metricCard"><span>Valor em entregas</span><strong>{money(relatorio.valorEntregas)}</strong></article>
-        <article className="metricCard"><span>Recebido</span><strong>{money(relatorio.valorRecebido)}</strong></article>
-        <article className="metricCard"><span>Pendente</span><strong>{money(relatorio.valorPendente)}</strong></article>
-        <article className="metricCard"><span>Pagamentos</span><strong>{relatorio.pagamentosRegistrados}</strong></article>
+        <article className="metricCard">
+          <span className="metricIcon tone-blue"><Wallet size={20} /></span>
+          <div><span>Valor em entregas</span><strong>{money(relatorio.valorEntregas)}</strong></div>
+        </article>
+        <article className="metricCard">
+          <span className="metricIcon tone-green"><CheckCircle2 size={20} /></span>
+          <div><span>Recebido</span><strong>{money(relatorio.valorRecebido)}</strong></div>
+        </article>
+        <article className="metricCard">
+          <span className="metricIcon tone-yellow"><Clock size={20} /></span>
+          <div><span>Pendente</span><strong>{money(relatorio.valorPendente)}</strong></div>
+        </article>
+        <article className="metricCard">
+          <span className="metricIcon tone-blue"><Receipt size={20} /></span>
+          <div><span>Pagamentos</span><strong>{relatorio.pagamentosRegistrados}</strong></div>
+        </article>
       </section>
 
       <section className="adminGrid">
@@ -108,7 +124,7 @@ export function PagamentosPage() {
           <label>Entrega<select value={form.entregaId} onChange={(event: { target: { value: string } }) => setForm({ ...form, entregaId: event.target.value })} required><option value="">Selecione</option>{entregas.map((entrega) => <option key={entrega.id} value={entrega.id}>{entrega.codigo} - {entrega.clienteNome}</option>)}</select></label>
           <div className="adminFormRow">
             <label>Valor<input type="number" min="0.01" step="0.01" value={form.valor} onChange={(event: { target: { value: string } }) => setForm({ ...form, valor: event.target.value })} required /></label>
-            <label>Forma<select value={form.formaPagamento} onChange={(event: { target: { value: FormaPagamento } }) => setForm({ ...form, formaPagamento: event.target.value })}>{formas.map((forma) => <option key={forma} value={forma}>{labelForma(forma)}</option>)}</select></label>
+            <label>Forma<select value={form.formaPagamento} onChange={(event) => setForm({ ...form, formaPagamento: event.target.value as FormaPagamento })}>{formas.map((forma) => <option key={forma} value={forma}>{labelForma(forma)}</option>)}</select></label>
           </div>
           <label>Comprovante<input value={form.comprovante} onChange={(event: { target: { value: string } }) => setForm({ ...form, comprovante: event.target.value })} placeholder="Codigo, link ou observacao do comprovante" /></label>
           <label>Observacoes<textarea rows={3} value={form.observacoes} onChange={(event: { target: { value: string } }) => setForm({ ...form, observacoes: event.target.value })} /></label>

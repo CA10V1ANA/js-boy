@@ -25,9 +25,16 @@ Frontend:
 - TypeScript
 - Vite
 - React Router
-- Axios
+- React Hook Form + Zod (validacao de formularios)
+- Axios (com interceptor global de erros)
 - Lucide React
 - CSS responsivo
+
+Testes:
+
+- JUnit 5 + Mockito (testes unitarios do backend)
+- Testcontainers (testes de integracao com PostgreSQL real)
+- Vitest + React Testing Library (frontend)
 
 ## Estrutura
 
@@ -44,17 +51,24 @@ backend/
     security/
     service/
   src/main/resources/db/migration/
+  src/test/java/com/ravtec/delivery/
+    controller/   (testes de integracao *IT com Testcontainers)
+    service/      (testes unitarios com Mockito)
 
 frontend/
   src/
     components/
     contexts/
     layouts/
-    pages/
+    pages/        (paginas e seus testes *.test.tsx)
     routes/
+    schemas/      (validacao com Zod)
     services/
+    test/         (setup do Vitest)
     types/
 ```
+
+Variaveis de ambiente estao documentadas em `.env.example` na raiz do projeto.
 
 ## Banco de dados
 
@@ -82,25 +96,12 @@ Migrations atuais:
 
 ## Como rodar
 
-Backend:
+### Opcao 1: Docker Compose (recomendado)
 
-```bat
-cd C:\Users\ravtec\js-boy\backend
-mvn spring-boot:run
-```
+Sobe PostgreSQL, backend e frontend com um comando so:
 
-Se o `mvn` nao estiver no PATH:
-
-```bat
-cd C:\Users\ravtec\js-boy\backend
-"C:\ProgramData\chocolatey\lib\maven\apache-maven-3.9.16\bin\mvn.cmd" spring-boot:run
-```
-
-Frontend:
-
-```bat
-cd C:\Users\ravtec\js-boy\frontend
-npm run dev
+```bash
+docker compose up --build
 ```
 
 URLs:
@@ -109,6 +110,25 @@ URLs:
 - Backend: `http://localhost:8080`
 - Swagger: `http://localhost:8080/swagger-ui/index.html`
 - Health: `http://localhost:8080/api/health`
+
+### Opcao 2: Rodando localmente
+
+Backend (requer PostgreSQL na porta `5433`, ver secao "Banco de dados"):
+
+```bash
+cd backend
+mvn spring-boot:run
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+URLs identicas as da opcao com Docker.
 
 ## Login inicial
 
@@ -175,14 +195,24 @@ Fase 7 - Dashboards:
 - Dashboard do proprietario.
 - Area operacional do entregador.
 
-Fase 8 - Testes e documentacao:
+Fase 8 - Testes, observabilidade e producao:
 
-Status: nao iniciada. Ficou para a proxima etapa.
-
-- Testes automatizados.
+- Testes unitarios de backend (JUnit 5 + Mockito) cobrindo as regras de
+  negocio de clientes, entregas e calculo de precos.
+- Testes de integracao (Testcontainers + PostgreSQL) para autenticacao
+  e CRUD de clientes, subindo o banco real via Docker.
+- Testes de frontend (Vitest + React Testing Library) para validacao
+  de formularios e fluxo de login.
+- Validacao de formularios no frontend com React Hook Form + Zod.
+- `GlobalExceptionHandler` padronizado (`timestamp`, `status`, `error`,
+  `message`, `path`), com tratamento de autenticacao, acesso negado e
+  erros inesperados.
+- Interceptor global do Axios com notificacoes toast para erros de API.
+- Logging estruturado (SLF4J) em login, criacao/edicao de registros e
+  mudancas de status.
+- Docker Compose corrigido (fallback de SPA no nginx, variaveis de
+  build do Vite, healthchecks).
 - Revisao do Swagger.
-- Revisao de Docker.
-- Revisao final do README.
 - Revisao de seguranca.
 - Revisao da interface.
 
@@ -234,19 +264,42 @@ Dashboard:
 
 - `GET /dashboard/resumo`
 
+## Testes
+
+Backend (testes unitarios):
+
+```bash
+cd backend
+mvn test
+```
+
+Backend (testes de integracao com Testcontainers, requer Docker rodando):
+
+```bash
+cd backend
+mvn verify
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm test
+```
+
 ## Comandos de validacao manual
 
 Frontend:
 
-```bat
-cd C:\Users\ravtec\js-boy\frontend
+```bash
+cd frontend
 npm run build
 ```
 
 Backend:
 
-```bat
-cd C:\Users\ravtec\js-boy\backend
+```bash
+cd backend
 mvn -DskipTests compile
 ```
 

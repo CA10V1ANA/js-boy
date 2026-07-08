@@ -1,3 +1,4 @@
+import { Truck } from 'lucide-react';
 import { FormEvent, useEffect, useState } from 'react';
 import { api } from '../services/api';
 import { Entregador, EntregadorForm, TipoVeiculo } from '../types';
@@ -121,9 +122,12 @@ export function EntregadoresPage() {
   return (
     <main className="page">
       <div className="pageHeader">
-        <div>
-          <h1>Entregadores</h1>
-          <p>Cadastro, consulta, edicao, disponibilidade e desativacao de entregadores.</p>
+        <div className="pageHeaderTitle">
+          <span className="pageHeaderIcon"><Truck size={22} /></span>
+          <div>
+            <h1>Entregadores</h1>
+            <p>Cadastro, consulta, edicao, disponibilidade e desativacao de entregadores.</p>
+          </div>
         </div>
       </div>
 
@@ -138,7 +142,7 @@ export function EntregadoresPage() {
           <label>E-mail<input type="email" value={form.email} onChange={(event: { target: { value: string } }) => setForm({ ...form, email: event.target.value })} /></label>
           <div className="adminFormRow">
             <label>Tipo de veiculo
-              <select value={form.tipoVeiculo} onChange={(event: { target: { value: TipoVeiculo } }) => setForm({ ...form, tipoVeiculo: event.target.value })}>
+              <select value={form.tipoVeiculo} onChange={(event) => setForm({ ...form, tipoVeiculo: event.target.value as TipoVeiculo })}>
                 {vehicleOptions.map((option) => <option key={option} value={option}>{option}</option>)}
               </select>
             </label>
