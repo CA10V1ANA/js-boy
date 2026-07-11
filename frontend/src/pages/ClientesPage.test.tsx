@@ -45,6 +45,7 @@ describe('ClientesPage', () => {
     render(<ClientesPage />);
 
     await waitFor(() => expect(mockedApi.get).toHaveBeenCalled());
+    await user.click(screen.getByRole('button', { name: 'Novo cliente' }));
     await user.click(screen.getByRole('button', { name: 'Cadastrar' }));
 
     expect(await screen.findByText('Informe o nome')).toBeInTheDocument();
@@ -57,6 +58,7 @@ describe('ClientesPage', () => {
     render(<ClientesPage />);
 
     await waitFor(() => expect(mockedApi.get).toHaveBeenCalled());
+    await user.click(screen.getByRole('button', { name: 'Novo cliente' }));
 
     await user.type(screen.getByLabelText('Nome'), 'Joao Silva');
     await user.type(screen.getByLabelText('Telefone'), '11999990000');

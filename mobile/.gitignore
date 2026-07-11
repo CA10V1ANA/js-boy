@@ -1,0 +1,20 @@
+# Flutter/Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+
+# Plataformas (regenerados por `flutter create .`)
+# Remova estas linhas se quiser versionar as pastas de plataforma
+# android/
+# ios/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Ambiente
+*.env

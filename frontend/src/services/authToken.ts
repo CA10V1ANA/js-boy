@@ -1,7 +1,8 @@
 import { api } from './api';
+import { getStoredToken } from './authStorage';
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('jsboy.token');
+  const token = getStoredToken();
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -9,4 +10,3 @@ api.interceptors.request.use((config) => {
 
   return config;
 });
-

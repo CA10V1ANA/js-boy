@@ -1,5 +1,6 @@
-import { CheckCircle2, Clock, CreditCard, Receipt, Wallet } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { FormEvent, useEffect, useState } from 'react';
+import { Modal } from '../components/Modal';
 import { api } from '../services/api';
 import { Entrega, FormaPagamento, Pagamento, PagamentoForm, RelatorioFinanceiro } from '../types';
 
@@ -29,11 +30,16 @@ function labelForma(forma: FormaPagamento) {
   return forma.replace(/_/g, ' ').toLowerCase().replace(/(^|\s)\S/g, (letter: string) => letter.toUpperCase());
 }
 
+function formatarData(iso: string) {
+  return new Date(iso).toLocaleDateString('pt-BR');
+}
+
 export function PagamentosPage() {
   const [pagamentos, setPagamentos] = useState<Pagamento[]>([]);
   const [entregas, setEntregas] = useState<Entrega[]>([]);
   const [relatorio, setRelatorio] = useState<RelatorioFinanceiro>(emptyRelatorio);
   const [form, setForm] = useState<PagamentoForm>(emptyForm);
+  const [modalOpen, setModalOpen] = useState(false);
   const [mensagem, setMensagem] = useState('');
   const [erro, setErro] = useState('');
 
@@ -58,6 +64,11 @@ export function PagamentosPage() {
     }
   }
 
+  function abrirNovoPagamento() {
+    setForm(emptyForm);
+    setModalOpen(true);
+  }
+
   async function registrar(event: FormEvent) {
     event.preventDefault();
     setErro('');
@@ -73,6 +84,7 @@ export function PagamentosPage() {
       });
       setMensagem('Pagamento registrado.');
       setForm(emptyForm);
+      setModalOpen(false);
       await carregarTudo();
     } catch {
       setErro('Revise os dados do pagamento e tente novamente.');
@@ -80,115 +92,129 @@ export function PagamentosPage() {
   }
 
   function preencherPendente(entregaId: string, valor: number) {
-    setForm({
-      ...form,
-      entregaId,
-      valor: String(valor),
-    });
+    setForm({ ...form, entregaId, valor: String(valor) });
+    setModalOpen(true);
   }
+
+  const cards = [
+    { label: 'Recebido no mes', value: money(relatorio.valorRecebido), cor: 'var(--ink)' },
+    { label: 'Pendente', value: money(relatorio.valorPendente), cor: relatorio.valorPendente > 0 ? '#C67A15' : 'var(--ink)' },
+    { label: 'Transacoes', value: String(relatorio.pagamentosRegistrados).padStart(2, '0'), cor: 'var(--ink)' },
+  ] as const;
 
   return (
     <main className="page">
-      <div className="pageHeader">
-        <div className="pageHeaderTitle">
-          <span className="pageHeaderIcon"><CreditCard size={22} /></span>
-          <div>
-            <h1>Pagamentos</h1>
-            <p>Registro de recebimentos, comprovantes simples e pendencias financeiras.</p>
-          </div>
-        </div>
+      <div className="filterBar">
+        <span style={{ flex: 1 }} />
+        <button className="primaryButton" onClick={abrirNovoPagamento} type="button">
+          <Plus size={17} /> Novo pagamento
+        </button>
       </div>
 
-      <section className="metricGrid">
-        <article className="metricCard">
-          <span className="metricIcon tone-blue"><Wallet size={20} /></span>
-          <div><span>Valor em entregas</span><strong>{money(relatorio.valorEntregas)}</strong></div>
-        </article>
-        <article className="metricCard">
-          <span className="metricIcon tone-green"><CheckCircle2 size={20} /></span>
-          <div><span>Recebido</span><strong>{money(relatorio.valorRecebido)}</strong></div>
-        </article>
-        <article className="metricCard">
-          <span className="metricIcon tone-yellow"><Clock size={20} /></span>
-          <div><span>Pendente</span><strong>{money(relatorio.valorPendente)}</strong></div>
-        </article>
-        <article className="metricCard">
-          <span className="metricIcon tone-blue"><Receipt size={20} /></span>
-          <div><span>Pagamentos</span><strong>{relatorio.pagamentosRegistrados}</strong></div>
-        </article>
+      <section className="metricGrid cols-3">
+        {cards.map((card) => (
+          <article className="metricCard" key={card.label} style={{ padding: '18px 20px' }}>
+            <span>{card.label}</span>
+            <strong className="smaller" style={{ color: card.cor }}>{card.value}</strong>
+          </article>
+        ))}
       </section>
 
-      <section className="adminGrid">
-        <form className="adminForm" onSubmit={registrar}>
-          <h2>Registrar pagamento</h2>
-          <label>Entrega<select value={form.entregaId} onChange={(event: { target: { value: string } }) => setForm({ ...form, entregaId: event.target.value })} required><option value="">Selecione</option>{entregas.map((entrega) => <option key={entrega.id} value={entrega.id}>{entrega.codigo} - {entrega.clienteNome}</option>)}</select></label>
-          <div className="adminFormRow">
-            <label>Valor<input type="number" min="0.01" step="0.01" value={form.valor} onChange={(event: { target: { value: string } }) => setForm({ ...form, valor: event.target.value })} required /></label>
-            <label>Forma<select value={form.formaPagamento} onChange={(event) => setForm({ ...form, formaPagamento: event.target.value as FormaPagamento })}>{formas.map((forma) => <option key={forma} value={forma}>{labelForma(forma)}</option>)}</select></label>
+      {mensagem ? <p className="successMessage" style={{ marginBottom: 16 }}>{mensagem}</p> : null}
+      {erro ? <p className="errorMessage" style={{ marginBottom: 16 }}>{erro}</p> : null}
+
+      <section className="adminList" style={{ marginBottom: 20, overflow: 'visible' }}>
+        <h2 className="listTitle">Pendencias</h2>
+        <div className="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Entrega</th>
+                <th>Cliente</th>
+                <th>Pago</th>
+                <th>Pendente</th>
+                <th>Acoes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {relatorio.pendencias.map((item) => (
+                <tr key={item.entregaId}>
+                  <td>{item.entregaCodigo}</td>
+                  <td>{item.clienteNome}</td>
+                  <td>{money(item.valorPago)}</td>
+                  <td style={{ color: '#B4791A', fontWeight: 700 }}>{money(item.valorPendente)}</td>
+                  <td className="rowActions"><button onClick={() => preencherPendente(item.entregaId, item.valorPendente)} type="button">Receber</button></td>
+                </tr>
+              ))}
+              {relatorio.pendencias.length === 0 ? <tr><td colSpan={5}>Nenhuma pendencia encontrada.</td></tr> : null}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="adminList" style={{ overflow: 'visible' }}>
+        <h2 className="listTitle">Historico de pagamentos</h2>
+        <div className="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Entrega</th>
+                <th>Cliente</th>
+                <th>Forma</th>
+                <th>Data</th>
+                <th>Valor</th>
+                <th>Comprovante</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pagamentos.map((pagamento) => (
+                <tr key={pagamento.id}>
+                  <td>{pagamento.entregaCodigo}</td>
+                  <td>{pagamento.clienteNome}</td>
+                  <td><span className="formaChip">{labelForma(pagamento.formaPagamento)}</span></td>
+                  <td>{formatarData(pagamento.pagoEm)}</td>
+                  <td>{money(pagamento.valor)}</td>
+                  <td>{pagamento.comprovante || '-'}</td>
+                </tr>
+              ))}
+              {pagamentos.length === 0 ? <tr><td colSpan={6}>Nenhum pagamento registrado.</td></tr> : null}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Novo pagamento" maxWidth={520}>
+        <form onSubmit={registrar} style={{ display: 'grid', gap: 14 }}>
+          <label style={{ display: 'grid', gap: 7 }}>
+            Entrega
+            <select value={form.entregaId} onChange={(event) => setForm({ ...form, entregaId: event.target.value })} required>
+              <option value="">Selecione</option>
+              {entregas.map((entrega) => <option key={entrega.id} value={entrega.id}>{entrega.codigo} - {entrega.clienteNome}</option>)}
+            </select>
+          </label>
+          <div className="modalFormGrid" style={{ marginBottom: 0 }}>
+            <label>
+              Valor
+              <input type="number" min="0.01" step="0.01" value={form.valor} onChange={(event) => setForm({ ...form, valor: event.target.value })} required />
+            </label>
+            <label>
+              Forma
+              <select value={form.formaPagamento} onChange={(event) => setForm({ ...form, formaPagamento: event.target.value as FormaPagamento })}>
+                {formas.map((forma) => <option key={forma} value={forma}>{labelForma(forma)}</option>)}
+              </select>
+            </label>
           </div>
-          <label>Comprovante<input value={form.comprovante} onChange={(event: { target: { value: string } }) => setForm({ ...form, comprovante: event.target.value })} placeholder="Codigo, link ou observacao do comprovante" /></label>
-          <label>Observacoes<textarea rows={3} value={form.observacoes} onChange={(event: { target: { value: string } }) => setForm({ ...form, observacoes: event.target.value })} /></label>
+          <label style={{ display: 'grid', gap: 7 }}>
+            Comprovante
+            <input value={form.comprovante} onChange={(event) => setForm({ ...form, comprovante: event.target.value })} placeholder="Codigo, link ou observacao" />
+          </label>
+          <label style={{ display: 'grid', gap: 7 }}>
+            Observacoes
+            <textarea rows={3} value={form.observacoes} onChange={(event) => setForm({ ...form, observacoes: event.target.value })} />
+          </label>
           <button className="primaryButton" type="submit">Registrar</button>
-          {mensagem ? <p className="successMessage">{mensagem}</p> : null}
-          {erro ? <p className="errorMessage">{erro}</p> : null}
         </form>
-
-        <section className="adminList">
-          <h2>Pendencias</h2>
-          <div className="tableWrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Entrega</th>
-                  <th>Cliente</th>
-                  <th>Pago</th>
-                  <th>Pendente</th>
-                  <th>Acoes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {relatorio.pendencias.map((item) => (
-                  <tr key={item.entregaId}>
-                    <td>{item.entregaCodigo}</td>
-                    <td>{item.clienteNome}</td>
-                    <td>{money(item.valorPago)}</td>
-                    <td>{money(item.valorPendente)}</td>
-                    <td className="rowActions"><button onClick={() => preencherPendente(item.entregaId, item.valorPendente)}>Receber</button></td>
-                  </tr>
-                ))}
-                {relatorio.pendencias.length === 0 ? <tr><td colSpan={5}>Nenhuma pendencia encontrada.</td></tr> : null}
-              </tbody>
-            </table>
-          </div>
-
-          <h2>Pagamentos recentes</h2>
-          <div className="tableWrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Entrega</th>
-                  <th>Cliente</th>
-                  <th>Forma</th>
-                  <th>Valor</th>
-                  <th>Comprovante</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pagamentos.map((pagamento) => (
-                  <tr key={pagamento.id}>
-                    <td>{pagamento.entregaCodigo}</td>
-                    <td>{pagamento.clienteNome}</td>
-                    <td>{labelForma(pagamento.formaPagamento)}</td>
-                    <td>{money(pagamento.valor)}</td>
-                    <td>{pagamento.comprovante || '-'}</td>
-                  </tr>
-                ))}
-                {pagamentos.length === 0 ? <tr><td colSpan={5}>Nenhum pagamento registrado.</td></tr> : null}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </section>
+      </Modal>
     </main>
   );
 }

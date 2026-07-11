@@ -1,10 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Plus, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { Modal } from '../components/Modal';
+import { RowMenu } from '../components/RowMenu';
 import { useToast } from '../contexts/ToastContext';
 import { api } from '../services/api';
 import { ClienteFormData, clienteSchema } from '../schemas/clienteSchema';
-import { Cliente } from '../types';
+import { Cliente, Entrega } from '../types';
 
 const emptyForm: ClienteFormData = {
   nome: '',
@@ -18,11 +21,18 @@ const emptyForm: ClienteFormData = {
   observacoes: '',
 };
 
+function iniciais(nome: string) {
+  const partes = nome.trim().split(/\s+/);
+  return ((partes[0]?.[0] || '') + (partes[1]?.[0] || '')).toUpperCase();
+}
+
 export function ClientesPage() {
   const { showToast } = useToast();
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [entregasPorCliente, setEntregasPorCliente] = useState<Record<string, number>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
   const [busca, setBusca] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
 
   const {
     register,
@@ -36,6 +46,7 @@ export function ClientesPage() {
 
   useEffect(() => {
     carregarClientes();
+    carregarContagemEntregas();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -50,6 +61,25 @@ export function ClientesPage() {
     }
   }
 
+  async function carregarContagemEntregas() {
+    try {
+      const response = await api.get<Entrega[]>('/entregas');
+      const contagem: Record<string, number> = {};
+      response.data.forEach((entrega) => {
+        contagem[entrega.clienteId] = (contagem[entrega.clienteId] || 0) + 1;
+      });
+      setEntregasPorCliente(contagem);
+    } catch {
+      setEntregasPorCliente({});
+    }
+  }
+
+  function abrirNovo() {
+    setEditingId(null);
+    reset(emptyForm);
+    setModalOpen(true);
+  }
+
   async function onSubmit(data: ClienteFormData) {
     try {
       if (editingId) {
@@ -62,6 +92,7 @@ export function ClientesPage() {
 
       reset(emptyForm);
       setEditingId(null);
+      setModalOpen(false);
       await carregarClientes();
     } catch {
       showToast('Revise os dados do cliente e tente novamente.', 'error');
@@ -81,11 +112,7 @@ export function ClientesPage() {
       cidade: cliente.cidade,
       observacoes: cliente.observacoes || '',
     });
-  }
-
-  function cancelarEdicao() {
-    setEditingId(null);
-    reset(emptyForm);
+    setModalOpen(true);
   }
 
   async function alterarStatus(cliente: Cliente) {
@@ -100,22 +127,75 @@ export function ClientesPage() {
 
   return (
     <main className="page">
-      <div className="pageHeader">
-        <div>
-          <h1>Clientes</h1>
-          <p>Cadastro, consulta, edicao, pesquisa e desativacao de clientes.</p>
+      <div className="filterBar">
+        <div className="filterSearch">
+          <Search size={17} color="#ABA89B" />
+          <input
+            placeholder="Pesquisar por nome ou telefone"
+            value={busca}
+            onChange={(event) => setBusca(event.target.value)}
+            onKeyDown={(event) => event.key === 'Enter' && carregarClientes()}
+          />
+        </div>
+        <span style={{ flex: 1 }} />
+        <button className="primaryButton" onClick={abrirNovo} type="button">
+          <Plus size={17} /> Novo cliente
+        </button>
+      </div>
+
+      <div className="adminList" style={{ overflow: 'visible' }}>
+        <div className="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Telefone</th>
+                <th>Endereco</th>
+                <th style={{ textAlign: 'right' }}>Entregas</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {clientes.map((cliente) => (
+                <tr key={cliente.id}>
+                  <td>
+                    <div className="nameCell">
+                      <span className="avatarTile">{iniciais(cliente.nome)}</span>
+                      {cliente.nome}
+                    </div>
+                  </td>
+                  <td>{cliente.telefone}</td>
+                  <td>{cliente.endereco} - {cliente.bairro}</td>
+                  <td style={{ textAlign: 'right', fontFamily: 'var(--font-display)', fontWeight: 700 }}>{entregasPorCliente[cliente.id] || 0}</td>
+                  <td>
+                    <RowMenu
+                      items={[
+                        { label: 'Editar', onClick: () => editar(cliente) },
+                        { label: cliente.ativo ? 'Desativar' : 'Ativar', onClick: () => alterarStatus(cliente), danger: cliente.ativo },
+                      ]}
+                    />
+                  </td>
+                </tr>
+              ))}
+              {clientes.length === 0 ? <tr><td colSpan={5}>Nenhum cliente encontrado.</td></tr> : null}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <section className="adminGrid">
-        <form className="adminForm" onSubmit={handleSubmit(onSubmit)} noValidate>
-          <h2>{editingId ? 'Editar cliente' : 'Novo cliente'}</h2>
-          <label>
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={editingId ? 'Editar cliente' : 'Novo cliente'}
+        maxWidth={620}
+      >
+        <form onSubmit={handleSubmit(onSubmit)} noValidate style={{ display: 'grid', gap: 14 }}>
+          <label style={{ display: 'grid', gap: 7 }}>
             Nome
             <input {...register('nome')} />
             {errors.nome ? <span className="fieldError">{errors.nome.message}</span> : null}
           </label>
-          <div className="adminFormRow">
+          <div className="modalFormGrid" style={{ marginBottom: 0 }}>
             <label>
               Telefone
               <input {...register('telefone')} />
@@ -127,7 +207,7 @@ export function ClientesPage() {
               {errors.whatsapp ? <span className="fieldError">{errors.whatsapp.message}</span> : null}
             </label>
           </div>
-          <div className="adminFormRow">
+          <div className="modalFormGrid" style={{ marginBottom: 0 }}>
             <label>
               E-mail
               <input type="email" {...register('email')} />
@@ -139,12 +219,12 @@ export function ClientesPage() {
               {errors.documento ? <span className="fieldError">{errors.documento.message}</span> : null}
             </label>
           </div>
-          <label>
+          <label style={{ display: 'grid', gap: 7 }}>
             Endereco
             <input {...register('endereco')} />
             {errors.endereco ? <span className="fieldError">{errors.endereco.message}</span> : null}
           </label>
-          <div className="adminFormRow">
+          <div className="modalFormGrid" style={{ marginBottom: 0 }}>
             <label>
               Bairro
               <input {...register('bairro')} />
@@ -156,52 +236,14 @@ export function ClientesPage() {
               {errors.cidade ? <span className="fieldError">{errors.cidade.message}</span> : null}
             </label>
           </div>
-          <label>
+          <label style={{ display: 'grid', gap: 7 }}>
             Observacoes
             <textarea rows={3} {...register('observacoes')} />
             {errors.observacoes ? <span className="fieldError">{errors.observacoes.message}</span> : null}
           </label>
-          <div className="adminActions">
-            <button className="primaryButton" disabled={isSubmitting} type="submit">{editingId ? 'Salvar' : 'Cadastrar'}</button>
-            {editingId ? <button className="secondaryButton" type="button" onClick={cancelarEdicao}>Cancelar</button> : null}
-          </div>
+          <button className="primaryButton" disabled={isSubmitting} type="submit">{editingId ? 'Salvar' : 'Cadastrar'}</button>
         </form>
-
-        <section className="adminList">
-          <div className="listToolbar">
-            <input placeholder="Pesquisar por nome ou telefone" value={busca} onChange={(event: { target: { value: string } }) => setBusca(event.target.value)} />
-            <button className="secondaryButton" onClick={() => carregarClientes()} type="button">Pesquisar</button>
-          </div>
-          <div className="tableWrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Nome</th>
-                  <th>Telefone</th>
-                  <th>Cidade</th>
-                  <th>Status</th>
-                  <th>Acoes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {clientes.map((cliente) => (
-                  <tr key={cliente.id}>
-                    <td>{cliente.nome}</td>
-                    <td>{cliente.telefone}</td>
-                    <td>{cliente.cidade}</td>
-                    <td><span className={cliente.ativo ? 'statusBadge active' : 'statusBadge'}>{cliente.ativo ? 'Ativo' : 'Inativo'}</span></td>
-                    <td className="rowActions">
-                      <button onClick={() => editar(cliente)}>Editar</button>
-                      <button onClick={() => alterarStatus(cliente)}>{cliente.ativo ? 'Desativar' : 'Ativar'}</button>
-                    </td>
-                  </tr>
-                ))}
-                {clientes.length === 0 ? <tr><td colSpan={5}>Nenhum cliente encontrado.</td></tr> : null}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </section>
+      </Modal>
     </main>
   );
 }

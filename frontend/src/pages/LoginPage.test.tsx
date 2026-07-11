@@ -26,7 +26,7 @@ describe('LoginPage', () => {
   });
 
   it('exibe erros de validacao quando o formulario e enviado vazio', async () => {
-    mockedUseAuth.mockReturnValue({ autenticado: false, login: vi.fn(), usuario: null, token: null, logout: vi.fn() });
+    mockedUseAuth.mockReturnValue({ autenticado: false, carregando: false, login: vi.fn(), usuario: null, token: null, logout: vi.fn() });
     const user = userEvent.setup();
     const form = renderLoginPage();
 
@@ -40,7 +40,7 @@ describe('LoginPage', () => {
 
   it('chama login e nao mostra erro quando as credenciais sao validas', async () => {
     const login = vi.fn().mockResolvedValue(undefined);
-    mockedUseAuth.mockReturnValue({ autenticado: false, login, usuario: null, token: null, logout: vi.fn() });
+    mockedUseAuth.mockReturnValue({ autenticado: false, carregando: false, login, usuario: null, token: null, logout: vi.fn() });
     const user = userEvent.setup();
     const form = renderLoginPage();
 
@@ -52,7 +52,7 @@ describe('LoginPage', () => {
 
   it('mostra mensagem de erro quando o login falha', async () => {
     const login = vi.fn().mockRejectedValue(new Error('unauthorized'));
-    mockedUseAuth.mockReturnValue({ autenticado: false, login, usuario: null, token: null, logout: vi.fn() });
+    mockedUseAuth.mockReturnValue({ autenticado: false, carregando: false, login, usuario: null, token: null, logout: vi.fn() });
     const user = userEvent.setup();
     const form = renderLoginPage();
 

@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "node -r ./vite-crypto-polyfill.cjs ./node_modules/vite/bin/vite.js --host 0.0.0.0",
     "build": "tsc && node -r ./vite-crypto-polyfill.cjs ./node_modules/vite/bin/vite.js build",
-    "preview": "node -r ./vite-crypto-polyfill.cjs ./node_modules/vite/bin/vite.js preview --host 0.0.0.0"
+    "preview": "node -r ./vite-crypto-polyfill.cjs ./node_modules/vite/bin/vite.js preview --host 0.0.0.0",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "engines": {
     "node": ">=18"
