@@ -1,313 +1,103 @@
-# JS Boy - MVP do Sistema de Entregas
+# JS BOY Mobile
 
-MVP de uma aplicacao web para a JS Boy organizar clientes, entregadores, entregas, pagamentos, status e valores.
+App operacional do JS BOY (entregas empresariais) em **Flutter**, consumindo a mesma API Spring Boot do painel web.
 
-O projeto foi pensado para rodar de forma simples no notebook, com PostgreSQL isolado na porta `5433` para nao mexer em outros bancos da maquina.
+- **Navegação**: Tab Bar inferior + FAB âmbar "Nova entrega" (padrão iOS/Android)
+- **Perfis**: PROPRIETARIO (operação completa), FUNCIONARIO (dashboard + clientes), ENTREGADOR (minhas entregas com avanço de status)
+- **Design**: mesmos tokens do painel web v4 (creme `#F4F2EC`, âmbar `#E9A81C`, Archivo + Hanken Grotesk)
+- **Sessão**: token JWT no armazenamento seguro (Keystore/Keychain), revalidado no arranque via `GET /auth/me`; 401 encerra a sessão automaticamente
 
-## Tecnologias
+## Requisitos
 
-Backend:
+1. [Flutter SDK](https://docs.flutter.dev/get-started/install) 3.19+ (`flutter doctor` sem erros)
+2. Backend JS BOY rodando (`docker-compose up` na raiz do projeto web)
 
-- Java 21
-- Spring Boot 3
-- Spring Web
-- Spring Data JPA
-- Spring Security
-- JWT
-- Flyway
-- PostgreSQL
-- Swagger/OpenAPI
-- Maven
+## Primeira execução
 
-Frontend:
+Este diretório contém `lib/` e `pubspec.yaml`. As pastas de plataforma (`android/`, `ios/`) são geradas na sua máquina:
 
-- React
-- TypeScript
-- Vite
-- React Router
-- React Hook Form + Zod (validacao de formularios)
-- Axios (com interceptor global de erros)
-- Lucide React
-- CSS responsivo
+```bash
+cd mobile
 
-Testes:
+# 1. Gera android/, ios/ etc. (rode UMA vez)
+flutter create . --org com.ravtec --project-name js_boy_mobile
 
-- JUnit 5 + Mockito (testes unitarios do backend)
-- Testcontainers (testes de integracao com PostgreSQL real)
-- Vitest + React Testing Library (frontend)
+# 2. Baixa as dependências
+flutter pub get
+
+# 3. Roda o app
+flutter run
+```
+
+### Apontando para a API
+
+A URL da API entra por `--dart-define` (padrão: `http://10.0.2.2:8080`):
+
+| Onde você roda | Comando |
+|---|---|
+| **Emulador Android** | `flutter run` (o padrão `10.0.2.2` já aponta pro localhost do seu PC) |
+| **Celular físico** (mesma rede Wi-Fi) | `flutter run --dart-define=API_URL=http://SEU_IP_LOCAL:8080` |
+| **Simulador iOS / desktop** | `flutter run --dart-define=API_URL=http://localhost:8080` |
+
+> Descubra seu IP local com `ipconfig` (Windows) ou `ifconfig` (Mac/Linux). No celular físico, o backend precisa aceitar conexões da rede (o docker-compose já publica a porta 8080).
+
+> **Android + HTTP**: em desenvolvimento, se a API for `http://` (sem TLS), adicione `android:usesCleartextTraffic="true"` na tag `<application>` de `android/app/src/main/AndroidManifest.xml` (a pasta existe após o passo 1).
+
+Login de teste (seed do backend): `proprietario@jsboy.com` / `admin123`.
+
+### Rodar direto no celular físico (Windows)
+
+Com o celular conectado por USB e "Depuração USB" ativada, dê duplo clique em `run.bat` (ou rode no `cmd`). Ele só localiza o celular físico conectado (ignorando emuladores) e chama `flutter run` nele — não mexe em Docker nem instala nada. Lembre-se de configurar o `API_URL` (seção acima) antes, se necessário.
 
 ## Estrutura
 
-```text
-backend/
-  src/main/java/com/ravtec/delivery/
-    config/
-    controller/
-    dto/
-    entity/
-    exception/
-    mapper/
-    repository/
-    security/
-    service/
-  src/main/resources/db/migration/
-  src/test/java/com/ravtec/delivery/
-    controller/   (testes de integracao *IT com Testcontainers)
-    service/      (testes unitarios com Mockito)
-
-frontend/
-  src/
-    components/
-    contexts/
-    layouts/
-    pages/        (paginas e seus testes *.test.tsx)
-    routes/
-    schemas/      (validacao com Zod)
-    services/
-    test/         (setup do Vitest)
-    types/
+```
+lib/
+├── main.dart              # bootstrap
+├── app.dart               # providers + roteamento por estado de auth
+├── core/
+│   ├── api/               # ApiClient (Dio): Bearer token + tratamento de 401
+│   ├── config/            # API_URL via --dart-define
+│   ├── format/            # dinheiro, datas, iniciais
+│   ├── storage/           # token no armazenamento seguro
+│   └── theme/             # tokens do design v4
+├── models/                # espelho dos DTOs do backend (fromJson manual)
+├── services/              # um service por recurso da API
+├── state/                 # AuthController (ChangeNotifier)
+├── widgets/               # StatusBadge, AvatarTile, PanelCard, KpiCard…
+└── features/              # uma pasta por tela
+    ├── auth/  shell/  dashboard/  entregas/  clientes/
+    ├── entregadores/  pagamentos/  relatorios/
+    ├── funcionarios/  config/  minhas_entregas/  mais/
 ```
 
-Variaveis de ambiente estao documentadas em `.env.example` na raiz do projeto.
+Decisões para quem está começando:
+- **provider + ChangeNotifier** (sem Riverpod/Bloc): o mínimo de conceitos novos.
+- **fromJson manual** (sem build_runner): você vê exatamente como o JSON vira objeto.
+- **Navigator simples** (sem go_router): telas secundárias são `push`, o shell é `IndexedStack`.
 
-## Banco de dados
-
-Configuracao padrao do PostgreSQL:
-
-```text
-Host: localhost
-Porta: 5433
-Database: delivery_app
-Usuario: delivery_user
-Senha: delivery_pass
-```
-
-As migrations ficam em:
-
-```text
-backend/src/main/resources/db/migration/
-```
-
-Migrations atuais:
-
-- `V1__create_initial_schema.sql`: usuarios, clientes, entregadores, entregas, historico e configuracao de preco.
-- `V2__create_pagamentos.sql`: pagamentos.
-- `V3__add_entregador_usuario_unique.sql`: vinculo unico entre entregador e usuario.
-
-## Como rodar
-
-### Opcao 1: Docker Compose (recomendado)
-
-Sobe PostgreSQL, backend e frontend com um comando so:
+## Comandos úteis
 
 ```bash
-docker compose up --build
+flutter analyze          # lint/erros estáticos
+flutter test             # testes
+flutter build apk        # APK de release (Android)
 ```
 
-URLs:
+## Publicando este app em um repositório próprio
 
-- Frontend: `http://localhost:5173`
-- Backend: `http://localhost:8080`
-- Swagger: `http://localhost:8080/swagger-ui/index.html`
-- Health: `http://localhost:8080/api/health`
-
-### Opcao 2: Rodando localmente
-
-Backend (requer PostgreSQL na porta `5433`, ver secao "Banco de dados"):
+Este diretório é autossuficiente. Para extrair para um repositório separado:
 
 ```bash
-cd backend
-mvn spring-boot:run
+# fora da pasta js-boy
+cp -r js-boy/mobile js-boy-mobile
+cd js-boy-mobile
+git init
+git add .
+git commit -m "JS BOY Mobile: app Flutter inicial"
+
+# crie o repositório vazio no GitHub (ex.: ca10v1ana/js-boy-mobile) e:
+git remote add origin https://github.com/SEU_USUARIO/js-boy-mobile.git
+git branch -M main
+git push -u origin main
 ```
-
-Frontend:
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-URLs identicas as da opcao com Docker.
-
-## Login inicial
-
-O backend cria automaticamente um usuario proprietario inicial:
-
-```text
-E-mail: proprietario@jsboy.com
-Senha: admin123
-Perfil: PROPRIETARIO
-```
-
-## Funcionalidades implementadas
-
-Fase 1 - Planejamento e estrutura:
-
-- Projeto backend Spring Boot.
-- Projeto frontend React/Vite.
-- PostgreSQL configurado por ambiente.
-- Docker Compose preparado.
-- README.
-- Entidades principais.
-
-Fase 2 - Autenticacao:
-
-- Login com JWT.
-- Spring Security.
-- Perfis `PROPRIETARIO` e `ENTREGADOR`.
-- Rotas protegidas no frontend.
-- Usuario proprietario inicial.
-
-Fase 3 - Cadastros:
-
-- Clientes.
-- Entregadores.
-- Criacao de acesso para entregador.
-- Ativacao/desativacao.
-- Disponibilidade do entregador.
-
-Fase 4 - Entregas:
-
-- Criacao.
-- Consulta.
-- Edicao.
-- Mudanca de status.
-- Historico.
-- Designacao de entregador.
-- Tela "Minhas entregas" para entregador.
-
-Fase 5 - Rotas e precos:
-
-- Configuracao de taxa inicial, valor por km e valor minimo.
-- Simulacao de valor por distancia.
-- Calculo automatico no cadastro da entrega.
-
-Fase 6 - Pagamentos:
-
-- Registro de pagamentos.
-- Comprovante como texto/link/codigo.
-- Valores pendentes.
-- Relatorio financeiro basico.
-
-Fase 7 - Dashboards:
-
-- Dashboard do proprietario.
-- Area operacional do entregador.
-
-Fase 8 - Testes, observabilidade e producao:
-
-- Testes unitarios de backend (JUnit 5 + Mockito) cobrindo as regras de
-  negocio de clientes, entregas e calculo de precos.
-- Testes de integracao (Testcontainers + PostgreSQL) para autenticacao
-  e CRUD de clientes, subindo o banco real via Docker.
-- Testes de frontend (Vitest + React Testing Library) para validacao
-  de formularios e fluxo de login.
-- Validacao de formularios no frontend com React Hook Form + Zod.
-- `GlobalExceptionHandler` padronizado (`timestamp`, `status`, `error`,
-  `message`, `path`), com tratamento de autenticacao, acesso negado e
-  erros inesperados.
-- Interceptor global do Axios com notificacoes toast para erros de API.
-- Logging estruturado (SLF4J) em login, criacao/edicao de registros e
-  mudancas de status.
-- Docker Compose corrigido (fallback de SPA no nginx, variaveis de
-  build do Vite, healthchecks).
-- Revisao do Swagger.
-- Revisao de seguranca.
-- Revisao da interface.
-
-## Endpoints principais
-
-Autenticacao:
-
-- `POST /auth/login`
-
-Clientes:
-
-- `GET /clientes`
-- `POST /clientes`
-- `PUT /clientes/{id}`
-- `PATCH /clientes/{id}/status`
-
-Entregadores:
-
-- `GET /entregadores`
-- `POST /entregadores`
-- `PUT /entregadores/{id}`
-- `PATCH /entregadores/{id}/status`
-- `POST /entregadores/{id}/acesso`
-
-Entregas:
-
-- `GET /entregas`
-- `POST /entregas`
-- `PUT /entregas/{id}`
-- `PATCH /entregas/{id}/status`
-- `PATCH /entregas/{id}/entregador`
-- `GET /entregas/minhas-entregas`
-- `PATCH /entregas/minhas-entregas/{id}/status`
-
-Precos:
-
-- `GET /configuracoes/preco`
-- `PUT /configuracoes/preco`
-- `POST /configuracoes/preco/simular`
-
-Pagamentos:
-
-- `GET /pagamentos`
-- `POST /pagamentos`
-- `GET /pagamentos/relatorio`
-- `GET /pagamentos/entrega/{entregaId}`
-
-Dashboard:
-
-- `GET /dashboard/resumo`
-
-## Testes
-
-Backend (testes unitarios):
-
-```bash
-cd backend
-mvn test
-```
-
-Backend (testes de integracao com Testcontainers, requer Docker rodando):
-
-```bash
-cd backend
-mvn verify
-```
-
-Frontend:
-
-```bash
-cd frontend
-npm test
-```
-
-## Comandos de validacao manual
-
-Frontend:
-
-```bash
-cd frontend
-npm run build
-```
-
-Backend:
-
-```bash
-cd backend
-mvn -DskipTests compile
-```
-
-## Proximas melhorias
-
-- Integracao real com mapas para distancia e tempo.
-- Upload real de comprovantes.
-- Relatorios em PDF/Excel.
-- Perfil `OPERADOR`, caso a empresa precise separar atendimento do proprietario.
-- Notificacoes por WhatsApp.
-- Auditoria mais detalhada de alteracoes.

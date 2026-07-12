@@ -9,13 +9,23 @@ echo.
 
 cd /d "%~dp0"
 
+REM --- Usa o JDK moderno do Android Studio quando existir (Gradle precisa de Java 17+) ---
+if exist "C:\Program Files\Android\Android Studio\jbr\bin\java.exe" (
+    set "JAVA_HOME=C:\Program Files\Android\Android Studio\jbr"
+    set "PATH=%JAVA_HOME%\bin;%PATH%"
+)
+
 REM --- Verifica se o adb esta disponivel (parte do Android SDK/platform-tools) ---
 where adb >nul 2>nul
 if errorlevel 1 (
-    echo [ERRO] "adb" nao encontrado no PATH.
-    echo Instale o Android Studio e garanta que a pasta platform-tools
-    echo do Android SDK esteja no PATH.
-    goto :fim_com_erro
+    if exist "%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe" (
+        set "PATH=%LOCALAPPDATA%\Android\Sdk\platform-tools;%PATH%"
+    ) else (
+        echo [ERRO] "adb" nao encontrado no PATH.
+        echo Instale o Android Studio e garanta que a pasta platform-tools
+        echo do Android SDK esteja no PATH.
+        goto :fim_com_erro
+    )
 )
 
 REM --- Procura um celular fisico conectado (ignora emuladores) ---
@@ -45,6 +55,17 @@ if "%PHYSICAL_ID%"=="" (
 
 echo Celular fisico detectado: %PHYSICAL_ID%
 echo.
+
+for /f "delims=" %%M in ('adb -s %PHYSICAL_ID% shell getprop ro.product.manufacturer') do set "MANUFACTURER=%%M"
+if /i "%MANUFACTURER%"=="Xiaomi" (
+    echo [AVISO] Aparelho Xiaomi/MIUI detectado.
+    echo Se aparecer INSTALL_FAILED_USER_RESTRICTED, ative no celular:
+    echo   Opcoes do desenvolvedor ^> Instalar via USB
+    echo   Opcoes do desenvolvedor ^> Depuracao USB ^(configuracoes de seguranca^)
+    echo Depois aceite qualquer popup de permissao na tela do celular.
+    echo.
+)
+
 echo Iniciando o app (flutter run)...
 echo ============================================
 call flutter run -d %PHYSICAL_ID%
