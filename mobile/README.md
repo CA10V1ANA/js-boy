@@ -47,7 +47,13 @@ Login de teste (seed do backend): `proprietario@jsboy.com` / `admin123`.
 
 ### Rodar direto no celular físico (Windows)
 
-Com o celular conectado por USB e "Depuração USB" ativada, dê duplo clique em `run.bat` (ou rode no `cmd`). Ele só localiza o celular físico conectado (ignorando emuladores) e chama `flutter run` nele — não mexe em Docker nem instala nada. Lembre-se de configurar o `API_URL` (seção acima) antes, se necessário.
+Com o celular conectado por USB e "Depuração USB" ativada, dê duplo clique em `run.bat` (ou rode no `cmd`). Ele:
+
+1. Localiza o celular físico conectado via `adb` (ignorando emuladores)
+2. Detecta automaticamente o IP local do notebook na rede Wi-Fi
+3. Chama `flutter run` já apontando `API_URL` para esse IP (`http://SEU_IP:8080`)
+
+Não mexe em Docker nem instala nada — só o backend (`docker-compose up`) precisa estar rodando. Celular e notebook precisam estar na **mesma rede Wi-Fi**. Se a detecção automática do IP falhar, o script pede para digitar manualmente.
 
 ## Estrutura
 

@@ -56,19 +56,57 @@ if "%PHYSICAL_ID%"=="" (
 echo Celular fisico detectado: %PHYSICAL_ID%
 echo.
 
-for /f "delims=" %%M in ('adb -s %PHYSICAL_ID% shell getprop ro.product.manufacturer') do set "MANUFACTURER=%%M"
-if /i "%MANUFACTURER%"=="Xiaomi" (
-    echo [AVISO] Aparelho Xiaomi/MIUI detectado.
-    echo Se aparecer INSTALL_FAILED_USER_RESTRICTED, ative no celular:
-    echo   Opcoes do desenvolvedor ^> Instalar via USB
-    echo   Opcoes do desenvolvedor ^> Depuracao USB ^(configuracoes de seguranca^)
-    echo Depois aceite qualquer popup de permissao na tela do celular.
-    echo.
+REM --- Detecta o IP local do notebook (para o celular acessar a API) ---
+set "LOCAL_IP="
+set "WIFI_IP="
+set "ETH_IP="
+set "CURRENT_ADAPTER="
+
+for /f "delims=" %%L in ('ipconfig') do (
+    set "LINE=%%L"
+    echo !LINE! | findstr /C:"adapter" /C:"Adaptador" >nul
+    if not errorlevel 1 (
+        set "CURRENT_ADAPTER=!LINE!"
+    )
+    echo !LINE! | findstr /C:"IPv4" >nul
+    if not errorlevel 1 (
+        for /f "tokens=2 delims=:" %%a in ("!LINE!") do (
+            set "IP_TMP=%%a"
+            set "IP_TMP=!IP_TMP: =!"
+            echo !CURRENT_ADAPTER! | findstr /I /C:"Wi-Fi" >nul
+            if not errorlevel 1 (
+                set "WIFI_IP=!IP_TMP!"
+            ) else (
+                echo !CURRENT_ADAPTER! | findstr /I /C:"vEthernet" >nul
+                if errorlevel 1 (
+                    echo !CURRENT_ADAPTER! | findstr /I /C:"Ethernet" >nul
+                    if not errorlevel 1 (
+                        set "ETH_IP=!IP_TMP!"
+                    )
+                )
+            )
+        )
+    )
 )
 
+if defined WIFI_IP (
+    set "LOCAL_IP=!WIFI_IP!"
+) else if defined ETH_IP (
+    set "LOCAL_IP=!ETH_IP!"
+)
+
+if not defined LOCAL_IP (
+    echo [AVISO] Nao foi possivel detectar o IP local automaticamente.
+    set /p LOCAL_IP="Digite o IP do seu notebook na rede (ex: 192.168.1.10): "
+)
+
+echo IP local detectado: %LOCAL_IP%
+echo A API sera acessada em: http://%LOCAL_IP%:8080
+echo (celular e notebook precisam estar na MESMA rede Wi-Fi)
+echo.
 echo Iniciando o app (flutter run)...
 echo ============================================
-call flutter run -d %PHYSICAL_ID%
+call flutter run -d %PHYSICAL_ID% --dart-define=API_URL=http://%LOCAL_IP%:8080
 goto :fim
 
 :fim_com_erro

@@ -6,6 +6,12 @@ build/
 .flutter-plugins-dependencies
 pubspec.lock
 
+# Dependencias/builds
+node_modules/
+target/
+dist/
+graphify-out/
+
 # Plataformas (regenerados por `flutter create .`)
 # Remova estas linhas se quiser versionar as pastas de plataforma
 # android/
