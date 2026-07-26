@@ -1,0 +1,12 @@
+<configuration>
+    <springProperty scope="context" name="environment" source="spring.profiles.active" defaultValue="default"/>
+    <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"service":"js-boy-api"}</customFields>
+            <includeMdc>true</includeMdc>
+        </encoder>
+    </appender>
+    <root level="INFO">
+        <appender-ref ref="JSON"/>
+    </root>
+</configuration>

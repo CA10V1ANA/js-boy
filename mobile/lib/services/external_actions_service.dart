@@ -16,8 +16,8 @@ class ExternalActionsService {
 
   Future<bool> ligar(String telefone) =>
       _launch(Uri(scheme: 'tel', path: telefone));
-  Future<bool> whatsapp(String telefone) => _launch(Uri.parse(
-      'https://wa.me/${telefone.replaceAll(RegExp(r'\D'), '')}'));
+  Future<bool> whatsapp(String telefone) => _launch(
+      Uri.parse('https://wa.me/${telefone.replaceAll(RegExp(r'\D'), '')}'));
   Future<void> copiarEndereco(String endereco) =>
       Clipboard.setData(ClipboardData(text: endereco));
   Future<bool> _launch(Uri uri) =>

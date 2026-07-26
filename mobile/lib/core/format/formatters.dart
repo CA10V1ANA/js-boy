@@ -13,7 +13,8 @@ String horaCurta(DateTime value) => _time.format(value.toLocal());
 /// Primeira letra dos dois primeiros nomes, em maiusculas ("Caio Viana" -> "CV").
 String iniciais(String nome) {
   final partes = nome.trim().split(RegExp(r'\s+'));
-  final primeira = partes.isNotEmpty && partes[0].isNotEmpty ? partes[0][0] : '';
+  final primeira =
+      partes.isNotEmpty && partes[0].isNotEmpty ? partes[0][0] : '';
   final segunda = partes.length > 1 && partes[1].isNotEmpty ? partes[1][0] : '';
   return (primeira + segunda).toUpperCase();
 }

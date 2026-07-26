@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -54,6 +55,12 @@ public class GlobalExceptionHandler {
         var body = new ApiErrorResponse(OffsetDateTime.now(), 429, "Limite de requisicoes",
             e.getMessage(), request.getRequestURI());
         return ResponseEntity.status(429).header(HttpHeaders.RETRY_AFTER, "600").body(body);
+    }
+    @ExceptionHandler(LockedException.class)
+    ResponseEntity<ApiErrorResponse> handleLocked(LockedException e, HttpServletRequest request) {
+        var body = new ApiErrorResponse(OffsetDateTime.now(), 429, "Acesso temporariamente bloqueado",
+            "Aguarde antes de tentar novamente", request.getRequestURI());
+        return ResponseEntity.status(429).header(HttpHeaders.RETRY_AFTER, "900").body(body);
     }
     @ExceptionHandler(AuthenticationException.class)
     ResponseEntity<ApiErrorResponse> handleAuthentication(AuthenticationException e, HttpServletRequest request) {

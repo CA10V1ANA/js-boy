@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface NotificacaoOutboxRepository extends JpaRepository<NotificacaoOutbox, UUID> {
     boolean existsByChaveIdempotencia(String chave);
+    long countByStatus(StatusNotificacao status);
     List<NotificacaoOutbox> findTop50ByStatusAndProximaTentativaEmLessThanEqualOrderByCriadoEm(
         StatusNotificacao status, OffsetDateTime agora
     );

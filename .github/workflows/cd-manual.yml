@@ -1,0 +1,48 @@
+name: Prepare release (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        options: [staging, production]
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality-gate:
+    uses: ./.github/workflows/ci.yml
+
+  prepare:
+    needs: quality-gate
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "21", cache: maven }
+      - uses: actions/setup-node@v4
+        with: { node-version: "20", cache: npm, cache-dependency-path: frontend/package-lock.json }
+      - name: Gerar artefato backend
+        working-directory: backend
+        run: mvn -B -ntp -DskipTests package
+      - name: Gerar artefato frontend
+        working-directory: frontend
+        env: { VITE_API_URL: "https://api.example.invalid" }
+        run: npm ci && npm run build
+      - name: Empacotar manifesto sem deploy
+        run: |
+          mkdir release
+          cp backend/target/js-boy-api-*.jar release/
+          tar -czf release/frontend.tgz -C frontend/dist .
+          cp docker-compose.prod.yml release/
+          sha256sum release/* > release/SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jsboy-${{ inputs.environment }}-${{ github.sha }}
+          path: release/
+          retention-days: 30
+      - name: Parar antes de implantação
+        run: echo "Artefatos preparados. A implantação exige uma ação manual separada e autorização do proprietário."

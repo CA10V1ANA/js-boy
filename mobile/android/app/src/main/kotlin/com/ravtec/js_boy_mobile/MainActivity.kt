@@ -1,4 +1,4 @@
-package com.ravtec.js_boy_mobile
+package br.com.jsboy.entregas
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -51,7 +51,8 @@ class _PagamentosPageState extends State<PagamentosPage> {
     final salvou = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         fullscreenDialog: true,
-        builder: (_) => PagamentoFormPage(entregaIdInicial: entregaId, valorInicial: valor),
+        builder: (_) =>
+            PagamentoFormPage(entregaIdInicial: entregaId, valorInicial: valor),
       ),
     );
     if (salvou == true) {
@@ -67,7 +68,8 @@ class _PagamentosPageState extends State<PagamentosPage> {
         actions: [
           IconButton(
             onPressed: () => _abrirForm(),
-            icon: const Icon(Icons.add_circle, color: AppColors.amber, size: 28),
+            icon:
+                const Icon(Icons.add_circle, color: AppColors.amber, size: 28),
             tooltip: 'Novo pagamento',
           ),
           const SizedBox(width: 8),
@@ -77,7 +79,8 @@ class _PagamentosPageState extends State<PagamentosPage> {
         color: AppColors.amber,
         onRefresh: _carregar,
         child: _carregando
-            ? const Center(child: CircularProgressIndicator(color: AppColors.amber))
+            ? const Center(
+                child: CircularProgressIndicator(color: AppColors.amber))
             : ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
@@ -90,9 +93,11 @@ class _PagamentosPageState extends State<PagamentosPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text('Recebido',
-                                  style: GoogleFonts.hankenGrotesk(fontSize: 11.5, color: AppColors.muted)),
+                                  style: GoogleFonts.hankenGrotesk(
+                                      fontSize: 11.5, color: AppColors.muted)),
                               const SizedBox(height: 4),
-                              Text(money(_relatorio.valorRecebido), style: AppTheme.display(size: 17)),
+                              Text(money(_relatorio.valorRecebido),
+                                  style: AppTheme.display(size: 17)),
                             ],
                           ),
                         ),
@@ -105,13 +110,16 @@ class _PagamentosPageState extends State<PagamentosPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text('Pendente',
-                                  style: GoogleFonts.hankenGrotesk(fontSize: 11.5, color: AppColors.muted)),
+                                  style: GoogleFonts.hankenGrotesk(
+                                      fontSize: 11.5, color: AppColors.muted)),
                               const SizedBox(height: 4),
                               Text(
                                 money(_relatorio.valorPendente),
                                 style: AppTheme.display(
                                   size: 17,
-                                  color: _relatorio.valorPendente > 0 ? const Color(0xFFC67A15) : AppColors.ink,
+                                  color: _relatorio.valorPendente > 0
+                                      ? const Color(0xFFC67A15)
+                                      : AppColors.ink,
                                 ),
                               ),
                             ],
@@ -128,29 +136,43 @@ class _PagamentosPageState extends State<PagamentosPage> {
                       padding: EdgeInsets.zero,
                       child: Column(
                         children: [
-                          for (var i = 0; i < _relatorio.pendencias.length; i++) ...[
+                          for (var i = 0;
+                              i < _relatorio.pendencias.length;
+                              i++) ...[
                             if (i > 0) const Divider(height: 1),
                             ListTile(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 2),
                               title: Text(_relatorio.pendencias[i].clienteNome,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.hankenGrotesk(
-                                      fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.ink)),
-                              subtitle: Text(_relatorio.pendencias[i].entregaCodigo,
-                                  style: GoogleFonts.hankenGrotesk(fontSize: 11.5, color: AppColors.faint)),
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.ink)),
+                              subtitle: Text(
+                                  _relatorio.pendencias[i].entregaCodigo,
+                                  style: GoogleFonts.hankenGrotesk(
+                                      fontSize: 11.5, color: AppColors.faint)),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text(money(_relatorio.pendencias[i].valorPendente),
-                                      style: AppTheme.display(size: 14, color: const Color(0xFFC67A15))),
+                                  Text(
+                                      money(_relatorio
+                                          .pendencias[i].valorPendente),
+                                      style: AppTheme.display(
+                                          size: 14,
+                                          color: const Color(0xFFC67A15))),
                                   const SizedBox(width: 8),
                                   IconButton(
-                                    icon: const Icon(Icons.add_circle_outline, color: AppColors.amberText),
+                                    icon: const Icon(Icons.add_circle_outline,
+                                        color: AppColors.amberText),
                                     tooltip: 'Receber',
                                     onPressed: () => _abrirForm(
-                                      entregaId: _relatorio.pendencias[i].entregaId,
-                                      valor: _relatorio.pendencias[i].valorPendente,
+                                      entregaId:
+                                          _relatorio.pendencias[i].entregaId,
+                                      valor: _relatorio
+                                          .pendencias[i].valorPendente,
                                     ),
                                   ),
                                 ],
@@ -165,7 +187,8 @@ class _PagamentosPageState extends State<PagamentosPage> {
                   const SectionTitle('Historico'),
                   const SizedBox(height: 10),
                   if (_pagamentos.isEmpty)
-                    const PanelCard(child: EmptyState('Nenhum pagamento registrado.'))
+                    const PanelCard(
+                        child: EmptyState('Nenhum pagamento registrado.'))
                   else
                     PanelCard(
                       padding: EdgeInsets.zero,
@@ -174,17 +197,22 @@ class _PagamentosPageState extends State<PagamentosPage> {
                           for (var i = 0; i < _pagamentos.length; i++) ...[
                             if (i > 0) const Divider(height: 1),
                             ListTile(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 2),
                               title: Text(_pagamentos[i].clienteNome,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.hankenGrotesk(
-                                      fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.ink)),
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.ink)),
                               subtitle: Text(
                                 '${_pagamentos[i].entregaCodigo} · ${_pagamentos[i].formaPagamento.label} · ${dataCurta(_pagamentos[i].pagoEm)}',
-                                style: GoogleFonts.hankenGrotesk(fontSize: 11.5, color: AppColors.faint),
+                                style: GoogleFonts.hankenGrotesk(
+                                    fontSize: 11.5, color: AppColors.faint),
                               ),
-                              trailing: Text(money(_pagamentos[i].valor), style: AppTheme.display(size: 14)),
+                              trailing: Text(money(_pagamentos[i].valor),
+                                  style: AppTheme.display(size: 14)),
                             ),
                           ],
                         ],

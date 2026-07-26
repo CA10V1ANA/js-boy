@@ -9,6 +9,7 @@ spring:
     hikari:
       maximum-pool-size: ${DB_POOL_MAX_SIZE:10}
       minimum-idle: ${DB_POOL_MIN_IDLE:2}
+      connection-timeout: ${DB_CONNECTION_TIMEOUT_MS:10000}
   h2:
     console:
       enabled: false
@@ -16,6 +17,8 @@ spring:
     properties:
       hibernate:
         format_sql: false
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
 
 springdoc:
   api-docs:
@@ -24,9 +27,8 @@ springdoc:
     enabled: false
 
 server:
-  # O modo nativo usa a lista de proxies internos do Tomcat; a API deve
-  # permanecer em rede privada atrás do reverse proxy.
   forward-headers-strategy: native
+  shutdown: graceful
   tomcat:
     remoteip:
       protocol-header: X-Forwarded-Proto
@@ -36,11 +38,37 @@ app:
   security:
     jwt-secret: ${JWT_SECRET}
     jwt-expiration-minutes: ${JWT_EXPIRATION_MINUTES:15}
+    refresh-days: ${REFRESH_TOKEN_DAYS:30}
+    login:
+      max-failures: ${LOGIN_MAX_FAILURES:5}
+      lock-minutes: ${LOGIN_LOCK_MINUTES:15}
     cors:
       allowed-origins: ${CORS_ALLOWED_ORIGINS}
     swagger-enabled: false
     h2-console-enabled: false
     require-https: true
+  storage:
+    provider: ${APP_STORAGE_PROVIDER}
+    max-file-bytes: ${APP_STORAGE_MAX_FILE_BYTES:5242880}
+  notifications:
+    provider: ${APP_NOTIFICATIONS_PROVIDER}
+    poll-ms: ${APP_NOTIFICATIONS_POLL_MS:30000}
+  password-reset:
+    provider: ${APP_PASSWORD_RESET_PROVIDER}
+  business-zone: ${BUSINESS_TIME_ZONE:America/Fortaleza}
+
+management:
+  server:
+    port: ${MANAGEMENT_PORT:9090}
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
 
 logging:
   level:

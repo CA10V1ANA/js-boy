@@ -1,0 +1,55 @@
+name: Backup restore rehearsal
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 1 * *"
+
+permissions:
+  contents: read
+
+jobs:
+  rehearse:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16.6-alpine
+        env:
+          POSTGRES_DB: jsboy_source_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: rehearsal-only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar age e cliente PostgreSQL
+        run: sudo apt-get update && sudo apt-get install -y age postgresql-client
+      - name: Preparar dados e chave efêmera
+        env: { PGPASSWORD: rehearsal-only }
+        run: |
+          psql -h localhost -U postgres -d jsboy_source_test -c 'create table flyway_schema_history(version varchar(20)); insert into flyway_schema_history values (''10'');'
+          age-keygen -o /tmp/rehearsal.agekey 2>/tmp/recipient
+          createdb -h localhost -U postgres jsboy_restore_rehearsal
+      - name: Criar backup criptografado
+        env:
+          PGHOST: localhost
+          PGDATABASE: jsboy_source_test
+          PGUSER: postgres
+          PGPASSWORD: rehearsal-only
+          BACKUP_DIR: /tmp/backups
+        run: |
+          export BACKUP_ENCRYPTION_RECIPIENT="$(grep 'public key:' /tmp/recipient | awk '{print $4}')"
+          sh ops/backup-postgres.sh
+      - name: Restaurar em banco isolado
+        env:
+          PGHOST: localhost
+          PGUSER: postgres
+          PGPASSWORD: rehearsal-only
+          RESTORE_TARGET_ENV: test
+          RESTORE_DATABASE: jsboy_restore_rehearsal
+          AGE_IDENTITY_FILE: /tmp/rehearsal.agekey
+        run: |
+          export BACKUP_FILE="$(find /tmp/backups -name '*.dump.age' | head -1)"
+          sh ops/restore-rehearsal.sh

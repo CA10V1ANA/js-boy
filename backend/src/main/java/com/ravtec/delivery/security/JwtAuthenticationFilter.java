@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.MDC;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -56,6 +57,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
-        filterChain.doFilter(request, response);
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        var authenticatedPrincipal = authentication == null ? null : authentication.getPrincipal();
+
+        try {
+            if (authenticatedPrincipal instanceof UsuarioPrincipal principal) {
+                MDC.put("user_id", principal.getId().toString());
+            }
+            filterChain.doFilter(request, response);
+        } finally {
+            MDC.remove("user_id");
+        }
     }
 }

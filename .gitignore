@@ -37,3 +37,5 @@ Thumbs.db
 *.keystore
 *.p12
 *.pem
+
+**/key.properties

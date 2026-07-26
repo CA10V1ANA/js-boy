@@ -35,7 +35,9 @@ class _ClientesPageState extends State<ClientesPage> {
 
   Future<void> _carregar() async {
     try {
-      final clientes = await context.read<ClienteService>().listar(busca: _buscaController.text.trim());
+      final clientes = await context
+          .read<ClienteService>()
+          .listar(busca: _buscaController.text.trim());
       if (!mounted) return;
       setState(() {
         _clientes = clientes;
@@ -50,7 +52,9 @@ class _ClientesPageState extends State<ClientesPage> {
 
   Future<void> _abrirForm({Cliente? cliente}) async {
     final salvou = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(fullscreenDialog: true, builder: (_) => ClienteFormPage(cliente: cliente)),
+      MaterialPageRoute(
+          fullscreenDialog: true,
+          builder: (_) => ClienteFormPage(cliente: cliente)),
     );
     if (salvou == true) {
       _carregar();
@@ -59,9 +63,12 @@ class _ClientesPageState extends State<ClientesPage> {
 
   Future<void> _alterarStatus(Cliente cliente) async {
     try {
-      await context.read<ClienteService>().alterarStatus(cliente.id, !cliente.ativo);
+      await context
+          .read<ClienteService>()
+          .alterarStatus(cliente.id, !cliente.ativo);
       if (!mounted) return;
-      mostrarMensagem(context, cliente.ativo ? 'Cliente desativado.' : 'Cliente ativado.');
+      mostrarMensagem(
+          context, cliente.ativo ? 'Cliente desativado.' : 'Cliente ativado.');
       _carregar();
     } on ApiException catch (error) {
       if (mounted) mostrarMensagem(context, error.message, erro: true);
@@ -76,7 +83,8 @@ class _ClientesPageState extends State<ClientesPage> {
         actions: [
           IconButton(
             onPressed: () => _abrirForm(),
-            icon: const Icon(Icons.add_circle, color: AppColors.amber, size: 28),
+            icon:
+                const Icon(Icons.add_circle, color: AppColors.amber, size: 28),
             tooltip: 'Novo cliente',
           ),
           const SizedBox(width: 8),
@@ -95,46 +103,63 @@ class _ClientesPageState extends State<ClientesPage> {
                 textInputAction: TextInputAction.search,
                 decoration: const InputDecoration(
                   hintText: 'Pesquisar por nome ou telefone',
-                  prefixIcon: Icon(Icons.search, size: 20, color: AppColors.faint),
+                  prefixIcon:
+                      Icon(Icons.search, size: 20, color: AppColors.faint),
                 ),
               ),
             ),
             Expanded(
               child: _carregando
-                  ? const Center(child: CircularProgressIndicator(color: AppColors.amber))
+                  ? const Center(
+                      child: CircularProgressIndicator(color: AppColors.amber))
                   : _clientes.isEmpty
                       ? const EmptyState('Nenhum cliente encontrado.')
                       : ListView.separated(
                           padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
                           itemCount: _clientes.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 10),
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 10),
                           itemBuilder: (context, index) {
                             final cliente = _clientes[index];
                             return PanelCard(
                               padding: EdgeInsets.zero,
                               child: ListTile(
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 4),
                                 leading: AvatarTile(cliente.nome),
                                 title: Text(cliente.nome,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: GoogleFonts.hankenGrotesk(
-                                        fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.ink)),
-                                subtitle: Text('${cliente.telefone} · ${cliente.endereco}, ${cliente.bairro}',
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.ink)),
+                                subtitle: Text(
+                                    '${cliente.telefone} · ${cliente.endereco}, ${cliente.bairro}',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.hankenGrotesk(fontSize: 11.5, color: AppColors.faint)),
+                                    style: GoogleFonts.hankenGrotesk(
+                                        fontSize: 11.5,
+                                        color: AppColors.faint)),
                                 trailing: PopupMenuButton<String>(
-                                  icon: const Icon(Icons.more_horiz, color: AppColors.faint),
+                                  icon: const Icon(Icons.more_horiz,
+                                      color: AppColors.faint),
                                   onSelected: (acao) {
-                                    if (acao == 'editar') _abrirForm(cliente: cliente);
-                                    if (acao == 'status') _alterarStatus(cliente);
+                                    if (acao == 'editar') {
+                                      _abrirForm(cliente: cliente);
+                                    }
+                                    if (acao == 'status') {
+                                      _alterarStatus(cliente);
+                                    }
                                   },
                                   itemBuilder: (_) => [
-                                    const PopupMenuItem(value: 'editar', child: Text('Editar')),
+                                    const PopupMenuItem(
+                                        value: 'editar', child: Text('Editar')),
                                     PopupMenuItem(
                                       value: 'status',
-                                      child: Text(cliente.ativo ? 'Desativar' : 'Ativar'),
+                                      child: Text(cliente.ativo
+                                          ? 'Desativar'
+                                          : 'Ativar'),
                                     ),
                                   ],
                                 ),

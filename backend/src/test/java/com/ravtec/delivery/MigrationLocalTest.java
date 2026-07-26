@@ -29,7 +29,7 @@ class MigrationLocalTest {
              );
              var result = statement.executeQuery()) {
             assertThat(result.next()).isTrue();
-            assertThat(result.getInt(1)).isGreaterThanOrEqualTo(6);
+            assertThat(result.getInt(1)).isGreaterThanOrEqualTo(10);
         }
     }
 }

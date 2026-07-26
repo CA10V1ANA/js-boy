@@ -35,9 +35,9 @@ class _EntregaDetalheSheet extends StatefulWidget {
 }
 
 class _EntregaDetalheSheetState extends State<_EntregaDetalheSheet> {
-
   bool get _ehProprietario =>
-      context.read<AuthController>().usuario?.perfil == PerfilAcesso.proprietario;
+      context.read<AuthController>().usuario?.perfil ==
+      PerfilAcesso.proprietario;
 
   Future<void> _alterarStatus() async {
     final status = await showModalBottomSheet<StatusEntrega>(
@@ -54,8 +54,12 @@ class _EntregaDetalheSheetState extends State<_EntregaDetalheSheet> {
             for (final opcao in StatusEntrega.values)
               ListTile(
                 leading: Icon(Icons.circle, size: 10, color: opcao.cor),
-                title: Text(opcao.label, style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.w600)),
-                trailing: opcao == widget.entrega.status ? const Icon(Icons.check, size: 18) : null,
+                title: Text(opcao.label,
+                    style:
+                        GoogleFonts.hankenGrotesk(fontWeight: FontWeight.w600)),
+                trailing: opcao == widget.entrega.status
+                    ? const Icon(Icons.check, size: 18)
+                    : null,
                 onTap: () => Navigator.pop(sheetContext, opcao),
               ),
           ],
@@ -66,7 +70,9 @@ class _EntregaDetalheSheetState extends State<_EntregaDetalheSheet> {
     if (status == null || !mounted) return;
 
     try {
-      await context.read<EntregaService>().alterarStatus(widget.entrega.id, status);
+      await context
+          .read<EntregaService>()
+          .alterarStatus(widget.entrega.id, status);
       if (mounted) {
         mostrarMensagem(context, 'Status atualizado.');
         Navigator.pop(context, true);
@@ -106,9 +112,11 @@ class _EntregaDetalheSheetState extends State<_EntregaDetalheSheet> {
                     ListTile(
                       leading: AvatarTile(entregador.nome, size: 34),
                       title: Text(entregador.nome,
-                          style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.w600)),
+                          style: GoogleFonts.hankenGrotesk(
+                              fontWeight: FontWeight.w600)),
                       subtitle: Text(entregador.tipoVeiculo.label,
-                          style: GoogleFonts.hankenGrotesk(fontSize: 12, color: AppColors.muted)),
+                          style: GoogleFonts.hankenGrotesk(
+                              fontSize: 12, color: AppColors.muted)),
                       onTap: () => Navigator.pop(sheetContext, entregador),
                     ),
                 ],
@@ -119,7 +127,9 @@ class _EntregaDetalheSheetState extends State<_EntregaDetalheSheet> {
     if (escolhido == null || !mounted) return;
 
     try {
-      await context.read<EntregaService>().designarEntregador(widget.entrega.id, escolhido.id);
+      await context
+          .read<EntregaService>()
+          .designarEntregador(widget.entrega.id, escolhido.id);
       if (mounted) {
         mostrarMensagem(context, 'Entregador designado.');
         Navigator.pop(context, true);
@@ -136,10 +146,13 @@ class _EntregaDetalheSheetState extends State<_EntregaDetalheSheet> {
         title: const Text('Cancelar entrega'),
         content: Text('Cancelar a entrega ${widget.entrega.codigo}?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Voltar')),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Voltar')),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Cancelar entrega', style: TextStyle(color: AppColors.red)),
+            child: const Text('Cancelar entrega',
+                style: TextStyle(color: AppColors.red)),
           ),
         ],
       ),
@@ -148,7 +161,9 @@ class _EntregaDetalheSheetState extends State<_EntregaDetalheSheet> {
     if (confirmar != true || !mounted) return;
 
     try {
-      await context.read<EntregaService>().alterarStatus(widget.entrega.id, StatusEntrega.cancelada);
+      await context
+          .read<EntregaService>()
+          .alterarStatus(widget.entrega.id, StatusEntrega.cancelada);
       if (mounted) {
         mostrarMensagem(context, 'Entrega cancelada.');
         Navigator.pop(context, true);
@@ -163,140 +178,153 @@ class _EntregaDetalheSheetState extends State<_EntregaDetalheSheet> {
     final entrega = widget.entrega;
 
     return DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.72,
-        maxChildSize: 0.95,
-        builder: (context, scrollController) => ListView(
-          controller: scrollController,
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-          children: [
-            Center(
-              child: Container(
-                width: 38,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.fieldBorder,
-                  borderRadius: BorderRadius.circular(99),
-                ),
+      expand: false,
+      initialChildSize: 0.72,
+      maxChildSize: 0.95,
+      builder: (context, scrollController) => ListView(
+        controller: scrollController,
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        children: [
+          Center(
+            child: Container(
+              width: 38,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.fieldBorder,
+                borderRadius: BorderRadius.circular(99),
               ),
             ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(entrega.codigo,
+                        style: GoogleFonts.hankenGrotesk(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.muted)),
+                    const SizedBox(height: 2),
+                    Text(entrega.destinatarioNome,
+                        style: AppTheme.display(size: 19)),
+                  ],
+                ),
+              ),
+              StatusBadge.entrega(entrega.status),
+            ],
+          ),
+          const SizedBox(height: 16),
+          PanelCard(
+            child: Column(
+              children: [
+                _linha('Cliente', entrega.clienteNome),
+                _linha('Origem',
+                    '${entrega.enderecoOrigem} · ${entrega.bairroOrigem}'),
+                _linha('Destino',
+                    '${entrega.enderecoDestino} · ${entrega.bairroDestino}'),
+                _linha('Telefone', entrega.destinatarioTelefone),
+                _linha('Mercadoria', entrega.descricaoMercadoria),
+                if ((entrega.observacoes ?? '').isNotEmpty)
+                  _linha('Observacoes', entrega.observacoes!),
+                _linha(
+                    'Entregador', entrega.entregadorNome ?? 'Sem entregador'),
+                _linha('Distancia', '${entrega.distanciaKm} km'),
+                _linha('Valor', money(entrega.valorFinal), destaque: true),
+              ],
+            ),
+          ),
+          if (_ehProprietario) ...[
             const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(entrega.codigo,
-                          style: GoogleFonts.hankenGrotesk(
-                              fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted)),
-                      const SizedBox(height: 2),
-                      Text(entrega.destinatarioNome, style: AppTheme.display(size: 19)),
-                    ],
+                  child: OutlinedButton.icon(
+                    onPressed: _alterarStatus,
+                    icon: const Icon(Icons.sync, size: 18),
+                    label: const Text('Status'),
                   ),
                 ),
-                StatusBadge.entrega(entrega.status),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _designarEntregador,
+                    icon: const Icon(Icons.person_add_alt, size: 18),
+                    label: const Text('Designar'),
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 16),
-            PanelCard(
-              child: Column(
-                children: [
-                  _linha('Cliente', entrega.clienteNome),
-                  _linha('Origem', '${entrega.enderecoOrigem} · ${entrega.bairroOrigem}'),
-                  _linha('Destino', '${entrega.enderecoDestino} · ${entrega.bairroDestino}'),
-                  _linha('Telefone', entrega.destinatarioTelefone),
-                  _linha('Mercadoria', entrega.descricaoMercadoria),
-                  if ((entrega.observacoes ?? '').isNotEmpty) _linha('Observacoes', entrega.observacoes!),
-                  _linha('Entregador', entrega.entregadorNome ?? 'Sem entregador'),
-                  _linha('Distancia', '${entrega.distanciaKm} km'),
-                  _linha('Valor', money(entrega.valorFinal), destaque: true),
-                ],
-              ),
-            ),
-            if (_ehProprietario) ...[
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _alterarStatus,
-                      icon: const Icon(Icons.sync, size: 18),
-                      label: const Text('Status'),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _designarEntregador,
-                      icon: const Icon(Icons.person_add_alt, size: 18),
-                      label: const Text('Designar'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () async {
-                        final alterado = await abrirEntregaWizard(context, entrega: entrega);
-                        if (alterado == true && context.mounted) {
-                          Navigator.pop(context, true);
-                        }
-                      },
-                      icon: const Icon(Icons.edit_outlined, size: 18),
-                      label: const Text('Editar'),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _cancelar,
-                      style: OutlinedButton.styleFrom(foregroundColor: AppColors.red),
-                      icon: const Icon(Icons.cancel_outlined, size: 18),
-                      label: const Text('Cancelar'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-            if (entrega.historico.isNotEmpty) ...[
-              const SizedBox(height: 20),
-              const SectionTitle('Historico'),
-              const SizedBox(height: 10),
-              for (final item in entrega.historico)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Icon(Icons.circle, size: 9, color: item.novoStatus.cor),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(item.novoStatus.label,
-                                style: GoogleFonts.hankenGrotesk(
-                                    fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.ink)),
-                            Text(
-                              '${item.usuarioResponsavelNome} · ${dataCurta(item.alteradoEm)} ${horaCurta(item.alteradoEm)}',
-                              style: GoogleFonts.hankenGrotesk(fontSize: 11.5, color: AppColors.faint),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      final alterado =
+                          await abrirEntregaWizard(context, entrega: entrega);
+                      if (alterado == true && context.mounted) {
+                        Navigator.pop(context, true);
+                      }
+                    },
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                    label: const Text('Editar'),
                   ),
                 ),
-            ],
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _cancelar,
+                    style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.red),
+                    icon: const Icon(Icons.cancel_outlined, size: 18),
+                    label: const Text('Cancelar'),
+                  ),
+                ),
+              ],
+            ),
           ],
-        ),
+          if (entrega.historico.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            const SectionTitle('Historico'),
+            const SizedBox(height: 10),
+            for (final item in entrega.historico)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Icon(Icons.circle,
+                          size: 9, color: item.novoStatus.cor),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(item.novoStatus.label,
+                              style: GoogleFonts.hankenGrotesk(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.ink)),
+                          Text(
+                            '${item.usuarioResponsavelNome} · ${dataCurta(item.alteradoEm)} ${horaCurta(item.alteradoEm)}',
+                            style: GoogleFonts.hankenGrotesk(
+                                fontSize: 11.5, color: AppColors.faint),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -309,13 +337,21 @@ class _EntregaDetalheSheetState extends State<_EntregaDetalheSheet> {
           SizedBox(
             width: 96,
             child: Text(rotulo,
-                style: GoogleFonts.hankenGrotesk(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted)),
+                style: GoogleFonts.hankenGrotesk(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.muted)),
           ),
           Expanded(
             child: destaque
-                ? Text(valor, style: AppTheme.display(size: 15, color: AppColors.amberText))
+                ? Text(valor,
+                    style:
+                        AppTheme.display(size: 15, color: AppColors.amberText))
                 : Text(valor,
-                    style: GoogleFonts.hankenGrotesk(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.ink2)),
+                    style: GoogleFonts.hankenGrotesk(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.ink2)),
           ),
         ],
       ),

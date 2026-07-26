@@ -8,7 +8,7 @@ class AuthService {
   final ApiClient client;
   AuthService(this.client);
 
-  Future<({String token, Usuario usuario})> login(
+  Future<({String token, String refreshToken, Usuario usuario})> login(
       String email, String senha) async {
     try {
       final response = await client.dio
@@ -16,11 +16,16 @@ class AuthService {
       final data = response.data as Map<String, dynamic>;
       return (
         token: data['token'] as String,
+        refreshToken: data['refreshToken'] as String,
         usuario: Usuario.fromJson(data['usuario'] as Map<String, dynamic>),
       );
     } catch (error) {
       throw client.translate(error);
     }
+  }
+
+  Future<void> logout(String refreshToken) async {
+    await client.dio.post('/auth/logout', data: {'refreshToken': refreshToken});
   }
 
   Future<Usuario> me() async {

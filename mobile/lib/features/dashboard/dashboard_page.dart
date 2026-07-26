@@ -25,7 +25,8 @@ class _DashboardPageState extends State<DashboardPage> {
   bool _carregando = true;
 
   bool get _ehProprietario =>
-      context.read<AuthController>().usuario?.perfil == PerfilAcesso.proprietario;
+      context.read<AuthController>().usuario?.perfil ==
+      PerfilAcesso.proprietario;
 
   @override
   void initState() {
@@ -94,7 +95,8 @@ class _DashboardPageState extends State<DashboardPage> {
         color: AppColors.amber,
         onRefresh: _carregar,
         child: _carregando
-            ? const Center(child: CircularProgressIndicator(color: AppColors.amber))
+            ? const Center(
+                child: CircularProgressIndicator(color: AppColors.amber))
             : ListView(
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
                 children: [
@@ -145,7 +147,8 @@ class _DashboardPageState extends State<DashboardPage> {
                     const SectionTitle('Entregas em andamento'),
                     const SizedBox(height: 12),
                     if (_emAndamento.isEmpty)
-                      const PanelCard(child: EmptyState('Nenhuma entrega em andamento.'))
+                      const PanelCard(
+                          child: EmptyState('Nenhuma entrega em andamento.'))
                     else
                       PanelCard(
                         padding: EdgeInsets.zero,
@@ -201,10 +204,13 @@ class _DashboardPageState extends State<DashboardPage> {
           const SizedBox(height: 14),
           Row(
             children: [
-              _itemFaixa('ENTREGAS', '${_resumo.totalEntregas}'.padLeft(2, '0'), const Color(0xFFEDE8DC)),
-              _itemFaixa('EM ROTA', '${_resumo.emAndamento}'.padLeft(2, '0'), const Color(0xFF4FB477)),
+              _itemFaixa('ENTREGAS', '${_resumo.totalEntregas}'.padLeft(2, '0'),
+                  const Color(0xFFEDE8DC)),
+              _itemFaixa('EM ROTA', '${_resumo.emAndamento}'.padLeft(2, '0'),
+                  const Color(0xFF4FB477)),
               if (_ehProprietario)
-                _itemFaixa('RECEBIDO', money(_relatorio.valorRecebido), const Color(0xFFE9B84A)),
+                _itemFaixa('RECEBIDO', money(_relatorio.valorRecebido),
+                    const Color(0xFFE9B84A)),
             ],
           ),
         ],
@@ -238,19 +244,22 @@ class _DashboardPageState extends State<DashboardPage> {
       title: Text(entrega.destinatarioNome,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.hankenGrotesk(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.ink)),
+          style: GoogleFonts.hankenGrotesk(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w700,
+              color: AppColors.ink)),
       subtitle: Text('${entrega.codigo} · ${entrega.bairroDestino}',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.hankenGrotesk(fontSize: 11.5, color: AppColors.faint)),
+          style: GoogleFonts.hankenGrotesk(
+              fontSize: 11.5, color: AppColors.faint)),
       trailing: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           StatusBadge.entrega(entrega.status),
           const SizedBox(height: 4),
-          Text(money(entrega.valorFinal),
-              style: AppTheme.display(size: 13)),
+          Text(money(entrega.valorFinal), style: AppTheme.display(size: 13)),
         ],
       ),
       onTap: () => abrirEntregaDetalhe(context, entrega),

@@ -52,7 +52,9 @@ class _FuncionariosPageState extends State<FuncionariosPage> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: nomeController, decoration: const InputDecoration(labelText: 'Nome')),
+            TextField(
+                controller: nomeController,
+                decoration: const InputDecoration(labelText: 'Nome')),
             const SizedBox(height: 12),
             TextField(
               controller: emailController,
@@ -63,12 +65,15 @@ class _FuncionariosPageState extends State<FuncionariosPage> {
             TextField(
               controller: senhaController,
               obscureText: true,
-              decoration: const InputDecoration(labelText: 'Senha inicial (min. 6)'),
+              decoration:
+                  const InputDecoration(labelText: 'Senha inicial (min. 6)'),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancelar')),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancelar')),
           FilledButton(
             style: FilledButton.styleFrom(minimumSize: const Size(0, 40)),
             onPressed: () => Navigator.pop(dialogContext, true),
@@ -106,9 +111,15 @@ class _FuncionariosPageState extends State<FuncionariosPage> {
 
   Future<void> _alterarStatus(Funcionario funcionario) async {
     try {
-      await context.read<FuncionarioService>().alterarStatus(funcionario.id, !funcionario.ativo);
+      await context
+          .read<FuncionarioService>()
+          .alterarStatus(funcionario.id, !funcionario.ativo);
       if (!mounted) return;
-      mostrarMensagem(context, funcionario.ativo ? 'Funcionario desativado.' : 'Funcionario ativado.');
+      mostrarMensagem(
+          context,
+          funcionario.ativo
+              ? 'Funcionario desativado.'
+              : 'Funcionario ativado.');
       _carregar();
     } on ApiException catch (error) {
       if (mounted) mostrarMensagem(context, error.message, erro: true);
@@ -123,7 +134,8 @@ class _FuncionariosPageState extends State<FuncionariosPage> {
         actions: [
           IconButton(
             onPressed: _criar,
-            icon: const Icon(Icons.add_circle, color: AppColors.amber, size: 28),
+            icon:
+                const Icon(Icons.add_circle, color: AppColors.amber, size: 28),
             tooltip: 'Novo funcionario',
           ),
           const SizedBox(width: 8),
@@ -133,9 +145,12 @@ class _FuncionariosPageState extends State<FuncionariosPage> {
         color: AppColors.amber,
         onRefresh: _carregar,
         child: _carregando
-            ? const Center(child: CircularProgressIndicator(color: AppColors.amber))
+            ? const Center(
+                child: CircularProgressIndicator(color: AppColors.amber))
             : _funcionarios.isEmpty
-                ? ListView(children: const [EmptyState('Nenhum funcionario cadastrado.')])
+                ? ListView(children: const [
+                    EmptyState('Nenhum funcionario cadastrado.')
+                  ])
                 : ListView.separated(
                     padding: const EdgeInsets.all(16),
                     itemCount: _funcionarios.length,
@@ -145,24 +160,31 @@ class _FuncionariosPageState extends State<FuncionariosPage> {
                       return PanelCard(
                         padding: EdgeInsets.zero,
                         child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 4),
                           leading: AvatarTile(funcionario.nome),
                           title: Text(funcionario.nome,
                               style: GoogleFonts.hankenGrotesk(
-                                  fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.ink)),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.ink)),
                           subtitle: Text(funcionario.email,
-                              style: GoogleFonts.hankenGrotesk(fontSize: 11.5, color: AppColors.faint)),
+                              style: GoogleFonts.hankenGrotesk(
+                                  fontSize: 11.5, color: AppColors.faint)),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               StatusBadge.ativo(funcionario.ativo),
                               PopupMenuButton<String>(
-                                icon: const Icon(Icons.more_horiz, color: AppColors.faint),
+                                icon: const Icon(Icons.more_horiz,
+                                    color: AppColors.faint),
                                 onSelected: (_) => _alterarStatus(funcionario),
                                 itemBuilder: (_) => [
                                   PopupMenuItem(
                                     value: 'status',
-                                    child: Text(funcionario.ativo ? 'Desativar' : 'Ativar'),
+                                    child: Text(funcionario.ativo
+                                        ? 'Desativar'
+                                        : 'Ativar'),
                                   ),
                                 ],
                               ),

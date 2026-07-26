@@ -31,7 +31,12 @@ class _ConfiguracoesPageState extends State<ConfiguracoesPage> {
 
   @override
   void dispose() {
-    for (final controller in [_taxaInicial, _valorPorKm, _valorMinimo, _distanciaSimulacao]) {
+    for (final controller in [
+      _taxaInicial,
+      _valorPorKm,
+      _valorMinimo,
+      _distanciaSimulacao
+    ]) {
       controller.dispose();
     }
     super.dispose();
@@ -59,7 +64,9 @@ class _ConfiguracoesPageState extends State<ConfiguracoesPage> {
     final km = _parse(_valorPorKm);
     final minimo = _parse(_valorMinimo);
     final distancia = _parse(_distanciaSimulacao);
-    if (taxa == null || km == null || minimo == null || distancia == null) return null;
+    if (taxa == null || km == null || minimo == null || distancia == null) {
+      return null;
+    }
     final bruto = taxa + km * distancia;
     return bruto < minimo ? minimo : bruto;
   }
@@ -112,8 +119,10 @@ class _ConfiguracoesPageState extends State<ConfiguracoesPage> {
                   Expanded(
                     child: TextFormField(
                       controller: _taxaInicial,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(labelText: 'Valor inicial'),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      decoration:
+                          const InputDecoration(labelText: 'Valor inicial'),
                       validator: _numero,
                       onChanged: (_) => setState(() {}),
                     ),
@@ -122,8 +131,10 @@ class _ConfiguracoesPageState extends State<ConfiguracoesPage> {
                   Expanded(
                     child: TextFormField(
                       controller: _valorPorKm,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(labelText: 'Preco por km'),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      decoration:
+                          const InputDecoration(labelText: 'Preco por km'),
                       validator: _numero,
                       onChanged: (_) => setState(() {}),
                     ),
@@ -136,8 +147,10 @@ class _ConfiguracoesPageState extends State<ConfiguracoesPage> {
                   Expanded(
                     child: TextFormField(
                       controller: _valorMinimo,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(labelText: 'Valor minimo'),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      decoration:
+                          const InputDecoration(labelText: 'Valor minimo'),
                       validator: _numero,
                       onChanged: (_) => setState(() {}),
                     ),
@@ -146,8 +159,10 @@ class _ConfiguracoesPageState extends State<ConfiguracoesPage> {
                   Expanded(
                     child: TextFormField(
                       controller: _distanciaSimulacao,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(labelText: 'Simular km'),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      decoration:
+                          const InputDecoration(labelText: 'Simular km'),
                       onChanged: (_) => setState(() {}),
                     ),
                   ),
@@ -166,8 +181,11 @@ class _ConfiguracoesPageState extends State<ConfiguracoesPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('Ex.: entrega de ${_distanciaSimulacao.text} km',
-                          style: GoogleFonts.hankenGrotesk(fontSize: 13, color: AppColors.body)),
-                      Text(money(_preview!), style: AppTheme.display(size: 17, color: AppColors.amberText)),
+                          style: GoogleFonts.hankenGrotesk(
+                              fontSize: 13, color: AppColors.body)),
+                      Text(money(_preview!),
+                          style: AppTheme.display(
+                              size: 17, color: AppColors.amberText)),
                     ],
                   ),
                 ),
@@ -176,7 +194,11 @@ class _ConfiguracoesPageState extends State<ConfiguracoesPage> {
               FilledButton(
                 onPressed: _salvando ? null : _salvar,
                 child: _salvando
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.amberInk))
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2.4, color: AppColors.amberInk))
                     : const Text('Salvar tarifa'),
               ),
               const SizedBox(height: 28),
@@ -191,16 +213,21 @@ class _ConfiguracoesPageState extends State<ConfiguracoesPage> {
                       ListTile(
                         title: Text(_veiculos[i].$1,
                             style: GoogleFonts.hankenGrotesk(
-                                fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.ink)),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.ink)),
                         subtitle: Text(_veiculos[i].$2,
-                            style: GoogleFonts.hankenGrotesk(fontSize: 12, color: AppColors.faint)),
+                            style: GoogleFonts.hankenGrotesk(
+                                fontSize: 12, color: AppColors.faint)),
                         trailing: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: AppColors.iconTile,
                             borderRadius: BorderRadius.circular(9),
                           ),
-                          child: Text(_veiculos[i].$3, style: AppTheme.display(size: 14)),
+                          child: Text(_veiculos[i].$3,
+                              style: AppTheme.display(size: 14)),
                         ),
                       ),
                     ],

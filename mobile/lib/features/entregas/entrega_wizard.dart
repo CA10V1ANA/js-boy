@@ -30,7 +30,12 @@ class _EntregaWizardPage extends StatefulWidget {
 }
 
 class _EntregaWizardPageState extends State<_EntregaWizardPage> {
-  static const _titulos = ['Origem da coleta', 'Destino da entrega', 'Carga', 'Valor da entrega'];
+  static const _titulos = [
+    'Origem da coleta',
+    'Destino da entrega',
+    'Carga',
+    'Valor da entrega'
+  ];
   static const _rotulos = ['ORIGEM', 'DESTINO', 'CARGA', 'VALOR'];
 
   final _formKeys = List.generate(4, (_) => GlobalKey<FormState>());
@@ -43,18 +48,30 @@ class _EntregaWizardPageState extends State<_EntregaWizardPage> {
 
   String? _clienteId;
   String? _entregadorId;
-  late final _enderecoOrigem = TextEditingController(text: widget.entrega?.enderecoOrigem ?? '');
-  late final _bairroOrigem = TextEditingController(text: widget.entrega?.bairroOrigem ?? '');
-  late final _enderecoDestino = TextEditingController(text: widget.entrega?.enderecoDestino ?? '');
-  late final _bairroDestino = TextEditingController(text: widget.entrega?.bairroDestino ?? '');
-  late final _destinatarioNome = TextEditingController(text: widget.entrega?.destinatarioNome ?? '');
-  late final _destinatarioTelefone = TextEditingController(text: widget.entrega?.destinatarioTelefone ?? '');
-  late final _mercadoria = TextEditingController(text: widget.entrega?.descricaoMercadoria ?? '');
-  late final _observacoes = TextEditingController(text: widget.entrega?.observacoes ?? '');
-  late final _distanciaKm = TextEditingController(text: widget.entrega?.distanciaKm.toString() ?? '0');
+  late final _enderecoOrigem =
+      TextEditingController(text: widget.entrega?.enderecoOrigem ?? '');
+  late final _bairroOrigem =
+      TextEditingController(text: widget.entrega?.bairroOrigem ?? '');
+  late final _enderecoDestino =
+      TextEditingController(text: widget.entrega?.enderecoDestino ?? '');
+  late final _bairroDestino =
+      TextEditingController(text: widget.entrega?.bairroDestino ?? '');
+  late final _destinatarioNome =
+      TextEditingController(text: widget.entrega?.destinatarioNome ?? '');
+  late final _destinatarioTelefone =
+      TextEditingController(text: widget.entrega?.destinatarioTelefone ?? '');
+  late final _mercadoria =
+      TextEditingController(text: widget.entrega?.descricaoMercadoria ?? '');
+  late final _observacoes =
+      TextEditingController(text: widget.entrega?.observacoes ?? '');
+  late final _distanciaKm = TextEditingController(
+      text: widget.entrega?.distanciaKm.toString() ?? '0');
   late final _valorFinal = TextEditingController(
-      text: widget.entrega != null ? widget.entrega!.valorFinal.toStringAsFixed(2) : '');
-  late final _motivoValorManual = TextEditingController(text: widget.entrega?.observacaoValorManual ?? '');
+      text: widget.entrega != null
+          ? widget.entrega!.valorFinal.toStringAsFixed(2)
+          : '');
+  late final _motivoValorManual =
+      TextEditingController(text: widget.entrega?.observacaoValorManual ?? '');
 
   @override
   void initState() {
@@ -67,9 +84,17 @@ class _EntregaWizardPageState extends State<_EntregaWizardPage> {
   @override
   void dispose() {
     for (final controller in [
-      _enderecoOrigem, _bairroOrigem, _enderecoDestino, _bairroDestino,
-      _destinatarioNome, _destinatarioTelefone, _mercadoria, _observacoes,
-      _distanciaKm, _valorFinal, _motivoValorManual,
+      _enderecoOrigem,
+      _bairroOrigem,
+      _enderecoDestino,
+      _bairroDestino,
+      _destinatarioNome,
+      _destinatarioTelefone,
+      _mercadoria,
+      _observacoes,
+      _distanciaKm,
+      _valorFinal,
+      _motivoValorManual,
     ]) {
       controller.dispose();
     }
@@ -94,8 +119,12 @@ class _EntregaWizardPageState extends State<_EntregaWizardPage> {
 
       if (!mounted) return;
       setState(() {
-        _clientes = (resultados[0] as List<Cliente>).where((cliente) => cliente.ativo).toList();
-        _entregadores = (resultados[1] as List<Entregador>).where((entregador) => entregador.ativo).toList();
+        _clientes = (resultados[0] as List<Cliente>)
+            .where((cliente) => cliente.ativo)
+            .toList();
+        _entregadores = (resultados[1] as List<Entregador>)
+            .where((entregador) => entregador.ativo)
+            .toList();
         _config = config;
       });
     } on ApiException catch (error) {
@@ -124,7 +153,8 @@ class _EntregaWizardPageState extends State<_EntregaWizardPage> {
   Future<void> _salvar() async {
     setState(() => _salvando = true);
 
-    final valorDigitado = double.tryParse(_valorFinal.text.replaceAll(',', '.'));
+    final valorDigitado =
+        double.tryParse(_valorFinal.text.replaceAll(',', '.'));
 
     try {
       await context.read<EntregaService>().salvar(
@@ -140,14 +170,16 @@ class _EntregaWizardPageState extends State<_EntregaWizardPage> {
           'destinatarioTelefone': _destinatarioTelefone.text.trim(),
           'descricaoMercadoria': _mercadoria.text.trim(),
           'observacoes': _observacoes.text.trim(),
-          'distanciaKm': double.tryParse(_distanciaKm.text.replaceAll(',', '.')) ?? 0,
+          'distanciaKm':
+              double.tryParse(_distanciaKm.text.replaceAll(',', '.')) ?? 0,
           'valorFinal': valorDigitado,
           'observacaoValorManual': _motivoValorManual.text.trim(),
         },
       );
 
       if (!mounted) return;
-      mostrarMensagem(context, widget.entrega != null ? 'Entrega atualizada.' : 'Entrega criada.');
+      mostrarMensagem(context,
+          widget.entrega != null ? 'Entrega atualizada.' : 'Entrega criada.');
       Navigator.pop(context, true);
     } on ApiException catch (error) {
       if (mounted) {
@@ -174,7 +206,10 @@ class _EntregaWizardPageState extends State<_EntregaWizardPage> {
               ),
             ),
             Text(_titulos[_etapa],
-                style: GoogleFonts.archivo(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.ink)),
+                style: GoogleFonts.archivo(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink)),
           ],
         ),
       ),
@@ -191,7 +226,9 @@ class _EntregaWizardPageState extends State<_EntregaWizardPage> {
                       child: Container(
                         height: 5,
                         decoration: BoxDecoration(
-                          color: i <= _etapa ? AppColors.amber : const Color(0xFFEEEAE0),
+                          color: i <= _etapa
+                              ? AppColors.amber
+                              : const Color(0xFFEEEAE0),
                           borderRadius: BorderRadius.circular(99),
                         ),
                       ),
@@ -211,7 +248,9 @@ class _EntregaWizardPageState extends State<_EntregaWizardPage> {
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 0.5,
-                          color: i <= _etapa ? AppColors.amberText : const Color(0xFFC6C1B4),
+                          color: i <= _etapa
+                              ? AppColors.amberText
+                              : const Color(0xFFC6C1B4),
                         )),
                 ],
               ),
@@ -233,7 +272,8 @@ class _EntregaWizardPageState extends State<_EntregaWizardPage> {
                   if (_etapa > 0)
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: _salvando ? null : () => setState(() => _etapa--),
+                        onPressed:
+                            _salvando ? null : () => setState(() => _etapa--),
                         child: const Text('Voltar'),
                       ),
                     ),
@@ -246,11 +286,14 @@ class _EntregaWizardPageState extends State<_EntregaWizardPage> {
                           ? const SizedBox(
                               width: 20,
                               height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.amberInk),
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2.4, color: AppColors.amberInk),
                             )
                           : Text(_etapa < 3
                               ? 'Proximo'
-                              : (widget.entrega != null ? 'Salvar entrega' : 'Cadastrar entrega')),
+                              : (widget.entrega != null
+                                  ? 'Salvar entrega'
+                                  : 'Cadastrar entrega')),
                     ),
                   ),
                 ],
@@ -271,27 +314,36 @@ class _EntregaWizardPageState extends State<_EntregaWizardPage> {
               decoration: const InputDecoration(labelText: 'Cliente'),
               items: [
                 for (final cliente in _clientes)
-                  DropdownMenuItem(value: cliente.id, child: Text(cliente.nome, overflow: TextOverflow.ellipsis)),
+                  DropdownMenuItem(
+                      value: cliente.id,
+                      child:
+                          Text(cliente.nome, overflow: TextOverflow.ellipsis)),
               ],
               onChanged: (value) => setState(() => _clienteId = value),
-              validator: (value) => value == null ? 'Selecione o cliente' : null,
+              validator: (value) =>
+                  value == null ? 'Selecione o cliente' : null,
             ),
             const SizedBox(height: 14),
             DropdownButtonFormField<String?>(
               initialValue: _entregadorId,
-              decoration: const InputDecoration(labelText: 'Entregador (opcional)'),
+              decoration:
+                  const InputDecoration(labelText: 'Entregador (opcional)'),
               items: [
-                const DropdownMenuItem<String?>(value: null, child: Text('Sem entregador')),
+                const DropdownMenuItem<String?>(
+                    value: null, child: Text('Sem entregador')),
                 for (final entregador in _entregadores)
                   DropdownMenuItem<String?>(
-                      value: entregador.id, child: Text(entregador.nome, overflow: TextOverflow.ellipsis)),
+                      value: entregador.id,
+                      child: Text(entregador.nome,
+                          overflow: TextOverflow.ellipsis)),
               ],
               onChanged: (value) => setState(() => _entregadorId = value),
             ),
             const SizedBox(height: 14),
             TextFormField(
               controller: _enderecoOrigem,
-              decoration: const InputDecoration(labelText: 'Endereco de origem', hintText: 'Rua, numero'),
+              decoration: const InputDecoration(
+                  labelText: 'Endereco de origem', hintText: 'Rua, numero'),
               validator: _obrigatorio,
             ),
             const SizedBox(height: 14),
@@ -306,7 +358,8 @@ class _EntregaWizardPageState extends State<_EntregaWizardPage> {
           children: [
             TextFormField(
               controller: _enderecoDestino,
-              decoration: const InputDecoration(labelText: 'Endereco de destino', hintText: 'Rua, numero'),
+              decoration: const InputDecoration(
+                  labelText: 'Endereco de destino', hintText: 'Rua, numero'),
               validator: _obrigatorio,
             ),
             const SizedBox(height: 14),
@@ -318,14 +371,16 @@ class _EntregaWizardPageState extends State<_EntregaWizardPage> {
             const SizedBox(height: 14),
             TextFormField(
               controller: _destinatarioNome,
-              decoration: const InputDecoration(labelText: 'Destinatario', hintText: 'Nome de quem recebe'),
+              decoration: const InputDecoration(
+                  labelText: 'Destinatario', hintText: 'Nome de quem recebe'),
               validator: _obrigatorio,
             ),
             const SizedBox(height: 14),
             TextFormField(
               controller: _destinatarioTelefone,
               keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(labelText: 'Telefone', hintText: '(00) 00000-0000'),
+              decoration: const InputDecoration(
+                  labelText: 'Telefone', hintText: '(00) 00000-0000'),
               validator: _obrigatorio,
             ),
           ],
@@ -334,7 +389,8 @@ class _EntregaWizardPageState extends State<_EntregaWizardPage> {
           children: [
             TextFormField(
               controller: _mercadoria,
-              decoration: const InputDecoration(labelText: 'Mercadoria', hintText: 'O que sera transportado'),
+              decoration: const InputDecoration(
+                  labelText: 'Mercadoria', hintText: 'O que sera transportado'),
               validator: _obrigatorio,
             ),
             const SizedBox(height: 14),
@@ -356,8 +412,10 @@ class _EntregaWizardPageState extends State<_EntregaWizardPage> {
                 Expanded(
                   child: TextFormField(
                     controller: _distanciaKm,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(labelText: 'Distancia (km)'),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    decoration:
+                        const InputDecoration(labelText: 'Distancia (km)'),
                     validator: _obrigatorio,
                     onChanged: (_) => setState(() {}),
                   ),
@@ -366,10 +424,13 @@ class _EntregaWizardPageState extends State<_EntregaWizardPage> {
                 Expanded(
                   child: TextFormField(
                     controller: _valorFinal,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     decoration: InputDecoration(
                       labelText: 'Valor final',
-                      hintText: _previewValor != null ? money(_previewValor!) : 'R\$ 0,00',
+                      hintText: _previewValor != null
+                          ? money(_previewValor!)
+                          : 'R\$ 0,00',
                     ),
                   ),
                 ),
@@ -388,8 +449,11 @@ class _EntregaWizardPageState extends State<_EntregaWizardPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('Tarifa + ${_distanciaKm.text} km',
-                        style: GoogleFonts.hankenGrotesk(fontSize: 13, color: AppColors.body)),
-                    Text(money(_previewValor!), style: AppTheme.display(size: 17, color: AppColors.amberText)),
+                        style: GoogleFonts.hankenGrotesk(
+                            fontSize: 13, color: AppColors.body)),
+                    Text(money(_previewValor!),
+                        style: AppTheme.display(
+                            size: 17, color: AppColors.amberText)),
                   ],
                 ),
               ),
@@ -397,7 +461,8 @@ class _EntregaWizardPageState extends State<_EntregaWizardPage> {
             const SizedBox(height: 14),
             TextFormField(
               controller: _motivoValorManual,
-              decoration: const InputDecoration(labelText: 'Motivo do valor manual (opcional)'),
+              decoration: const InputDecoration(
+                  labelText: 'Motivo do valor manual (opcional)'),
             ),
           ],
         ),

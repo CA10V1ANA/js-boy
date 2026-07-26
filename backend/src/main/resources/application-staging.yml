@@ -1,0 +1,40 @@
+spring:
+  config:
+    activate:
+      on-profile: staging
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:8}
+      minimum-idle: ${DB_POOL_MIN_IDLE:2}
+
+server:
+  forward-headers-strategy: native
+
+app:
+  security:
+    jwt-secret: ${JWT_SECRET}
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS}
+    require-https: true
+  storage:
+    provider: ${APP_STORAGE_PROVIDER}
+  notifications:
+    provider: ${APP_NOTIFICATIONS_PROVIDER}
+  password-reset:
+    provider: ${APP_PASSWORD_RESET_PROVIDER}
+
+management:
+  server:
+    port: ${MANAGEMENT_PORT:9090}
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never

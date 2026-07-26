@@ -41,8 +41,11 @@ class _LoginPageState extends State<LoginPage> {
           );
     } on ApiException catch (error) {
       if (mounted) {
-        final mensagem = error.statusCode == 401 ? 'E-mail ou senha invalidos.' : error.message;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensagem)));
+        final mensagem = error.statusCode == 401
+            ? 'E-mail ou senha invalidos.'
+            : error.message;
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(mensagem)));
       }
     } finally {
       if (mounted) {
@@ -73,7 +76,8 @@ class _LoginPageState extends State<LoginPage> {
                           color: AppColors.amber,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(Icons.inventory_2_outlined, color: AppColors.amberInk),
+                        child: const Icon(Icons.inventory_2_outlined,
+                            color: AppColors.amberInk),
                       ),
                       const SizedBox(width: 12),
                       Column(
@@ -116,15 +120,19 @@ class _LoginPageState extends State<LoginPage> {
                               )),
                           const SizedBox(height: 4),
                           Text('Use o mesmo acesso do painel web.',
-                              style: GoogleFonts.hankenGrotesk(fontSize: 13, color: AppColors.muted)),
+                              style: GoogleFonts.hankenGrotesk(
+                                  fontSize: 13, color: AppColors.muted)),
                           const SizedBox(height: 20),
                           TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
                             autofillHints: const [AutofillHints.username],
-                            decoration: const InputDecoration(labelText: 'E-mail'),
+                            decoration:
+                                const InputDecoration(labelText: 'E-mail'),
                             validator: (value) =>
-                                (value == null || value.trim().isEmpty) ? 'Informe o e-mail' : null,
+                                (value == null || value.trim().isEmpty)
+                                    ? 'Informe o e-mail'
+                                    : null,
                           ),
                           const SizedBox(height: 14),
                           TextFormField(
@@ -136,15 +144,20 @@ class _LoginPageState extends State<LoginPage> {
                               labelText: 'Senha',
                               suffixIcon: IconButton(
                                 icon: Icon(
-                                  _mostrarSenha ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                  _mostrarSenha
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
                                   color: AppColors.muted,
                                   size: 20,
                                 ),
-                                onPressed: () => setState(() => _mostrarSenha = !_mostrarSenha),
+                                onPressed: () => setState(
+                                    () => _mostrarSenha = !_mostrarSenha),
                               ),
                             ),
                             validator: (value) =>
-                                (value == null || value.isEmpty) ? 'Informe a senha' : null,
+                                (value == null || value.isEmpty)
+                                    ? 'Informe a senha'
+                                    : null,
                           ),
                           const SizedBox(height: 20),
                           FilledButton(
@@ -153,7 +166,9 @@ class _LoginPageState extends State<LoginPage> {
                                 ? const SizedBox(
                                     width: 20,
                                     height: 20,
-                                    child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.amberInk),
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2.4,
+                                        color: AppColors.amberInk),
                                   )
                                 : const Text('Entrar'),
                           ),

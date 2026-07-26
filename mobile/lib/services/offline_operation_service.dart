@@ -11,7 +11,8 @@ class OfflineLoadResult {
   final List<Entrega> entregas;
   final bool offline;
   final int acoesPendentes;
-  const OfflineLoadResult(this.entregas, {required this.offline, required this.acoesPendentes});
+  const OfflineLoadResult(this.entregas,
+      {required this.offline, required this.acoesPendentes});
 }
 
 class OfflineOperationService {
@@ -30,7 +31,9 @@ class OfflineOperationService {
       final raw = response.data as List<dynamic>;
       await storage.write(key: _cacheKey, value: jsonEncode(raw));
       return OfflineLoadResult(
-        raw.map((item) => Entrega.fromJson(item as Map<String, dynamic>)).toList(),
+        raw
+            .map((item) => Entrega.fromJson(item as Map<String, dynamic>))
+            .toList(),
         offline: false,
         acoesPendentes: await quantidadePendente(),
       );
@@ -40,7 +43,9 @@ class OfflineOperationService {
       if (cached == null) throw client.translate(error);
       final raw = jsonDecode(cached) as List<dynamic>;
       return OfflineLoadResult(
-        raw.map((item) => Entrega.fromJson(item as Map<String, dynamic>)).toList(),
+        raw
+            .map((item) => Entrega.fromJson(item as Map<String, dynamic>))
+            .toList(),
         offline: true,
         acoesPendentes: await quantidadePendente(),
       );
@@ -54,7 +59,8 @@ class OfflineOperationService {
       'status': status.api,
       'criadaEm': DateTime.now().toUtc().toIso8601String(),
     };
-    final queue = await _queue()..add(action);
+    final queue = await _queue()
+      ..add(action);
     await _saveQueue(queue);
     try {
       await sincronizar();
@@ -98,15 +104,18 @@ class OfflineOperationService {
     final value = await storage.read(key: _queueKey);
     if (value == null) return [];
     return (jsonDecode(value) as List<dynamic>)
-        .map((item) => Map<String, dynamic>.from(item as Map)).toList();
+        .map((item) => Map<String, dynamic>.from(item as Map))
+        .toList();
   }
+
   Future<void> _saveQueue(List<Map<String, dynamic>> queue) =>
       storage.write(key: _queueKey, value: jsonEncode(queue));
   bool _isNetwork(DioException error) => {
-    DioExceptionType.connectionError,
-    DioExceptionType.connectionTimeout,
-    DioExceptionType.receiveTimeout,
-    DioExceptionType.sendTimeout,
-  }.contains(error.type);
-  String _key() => '${DateTime.now().microsecondsSinceEpoch}-${Random.secure().nextInt(1 << 32)}';
+        DioExceptionType.connectionError,
+        DioExceptionType.connectionTimeout,
+        DioExceptionType.receiveTimeout,
+        DioExceptionType.sendTimeout,
+      }.contains(error.type);
+  String _key() =>
+      '${DateTime.now().microsecondsSinceEpoch}-${Random.secure().nextInt(1 << 32)}';
 }

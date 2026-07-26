@@ -10,7 +10,8 @@ import 'package:flutter/foundation.dart';
 /// - Simulador iOS / desktop: localhost funciona direto.
 /// - Celular fisico: use o IP da sua maquina na rede local (ex.: 192.168.x.x).
 class AppConfig {
-  static const mapsProvider = String.fromEnvironment('MAPS_PROVIDER', defaultValue: 'google');
+  static const mapsProvider =
+      String.fromEnvironment('MAPS_PROVIDER', defaultValue: 'google');
   static const _configuredApiUrl = String.fromEnvironment(
     'API_URL',
     defaultValue: 'http://10.0.2.2:8080',

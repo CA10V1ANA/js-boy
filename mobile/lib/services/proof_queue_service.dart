@@ -15,7 +15,8 @@ class ProofQueueService {
   final FlutterSecureStorage storage;
   final ImagePicker picker;
 
-  ProofQueueService(this.client, [FlutterSecureStorage? storage, ImagePicker? picker])
+  ProofQueueService(this.client,
+      [FlutterSecureStorage? storage, ImagePicker? picker])
       : storage = storage ?? const FlutterSecureStorage(),
         picker = picker ?? ImagePicker();
 
@@ -28,12 +29,20 @@ class ProofQueueService {
     );
     if (image == null) return false;
     final directory = await getApplicationSupportDirectory();
-    final proofDirectory = Directory('${directory.path}${Platform.pathSeparator}proof-queue');
+    final proofDirectory =
+        Directory('${directory.path}${Platform.pathSeparator}proof-queue');
     await proofDirectory.create(recursive: true);
-    final id = '${DateTime.now().microsecondsSinceEpoch}-${Random.secure().nextInt(1 << 32)}';
-    final saved = await File(image.path).copy('${proofDirectory.path}${Platform.pathSeparator}$id.jpg');
+    final id =
+        '${DateTime.now().microsecondsSinceEpoch}-${Random.secure().nextInt(1 << 32)}';
+    final saved = await File(image.path)
+        .copy('${proofDirectory.path}${Platform.pathSeparator}$id.jpg');
     final queue = await _queue();
-    queue.add({'id': id, 'entregaId': entregaId, 'path': saved.path, 'recebedorNome': recebedorNome});
+    queue.add({
+      'id': id,
+      'entregaId': entregaId,
+      'path': saved.path,
+      'recebedorNome': recebedorNome
+    });
     await _save(queue);
     try {
       await sincronizar();
@@ -56,7 +65,8 @@ class ProofQueueService {
         final form = FormData.fromMap({
           'tipo': 'ENTREGA',
           'recebedorNome': proof['recebedorNome'],
-          'arquivo': await MultipartFile.fromFile(file.path, filename: 'comprovante.jpg'),
+          'arquivo': await MultipartFile.fromFile(file.path,
+              filename: 'comprovante.jpg'),
         });
         await client.dio.post(
           '/operacao-entregador/entregas/${proof['entregaId']}/comprovantes',
@@ -77,8 +87,11 @@ class ProofQueueService {
   Future<List<Map<String, dynamic>>> _queue() async {
     final raw = await storage.read(key: _queueKey);
     if (raw == null) return [];
-    return (jsonDecode(raw) as List<dynamic>).map((item) => Map<String, dynamic>.from(item as Map)).toList();
+    return (jsonDecode(raw) as List<dynamic>)
+        .map((item) => Map<String, dynamic>.from(item as Map))
+        .toList();
   }
+
   Future<void> _save(List<Map<String, dynamic>> queue) =>
       storage.write(key: _queueKey, value: jsonEncode(queue));
 }

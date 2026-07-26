@@ -59,7 +59,9 @@ class _EntregasPageState extends State<EntregasPage> {
 
   Future<void> _carregar() async {
     try {
-      final entregas = await context.read<EntregaService>().listar(busca: _buscaController.text.trim());
+      final entregas = await context
+          .read<EntregaService>()
+          .listar(busca: _buscaController.text.trim());
       if (!mounted) return;
       setState(() {
         _entregas = entregas;
@@ -74,7 +76,8 @@ class _EntregasPageState extends State<EntregasPage> {
 
   @override
   Widget build(BuildContext context) {
-    final filtradas = _entregas.where((entrega) => _filtro.aceita(entrega.status)).toList();
+    final filtradas =
+        _entregas.where((entrega) => _filtro.aceita(entrega.status)).toList();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Entregas')),
@@ -91,7 +94,8 @@ class _EntregasPageState extends State<EntregasPage> {
                 textInputAction: TextInputAction.search,
                 decoration: const InputDecoration(
                   hintText: 'Pesquisar por codigo ou cliente',
-                  prefixIcon: Icon(Icons.search, size: 20, color: AppColors.faint),
+                  prefixIcon:
+                      Icon(Icons.search, size: 20, color: AppColors.faint),
                 ),
               ),
             ),
@@ -99,7 +103,8 @@ class _EntregasPageState extends State<EntregasPage> {
               height: 52,
               child: ListView(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 children: [
                   for (final filtro in _Filtro.values)
                     Padding(
@@ -111,12 +116,16 @@ class _EntregasPageState extends State<EntregasPage> {
                         labelStyle: GoogleFonts.hankenGrotesk(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w600,
-                          color: _filtro == filtro ? AppColors.ink : AppColors.muted,
+                          color: _filtro == filtro
+                              ? AppColors.ink
+                              : AppColors.muted,
                         ),
                         selectedColor: Colors.white,
                         backgroundColor: const Color(0xFFEAE6DC),
                         side: BorderSide(
-                          color: _filtro == filtro ? AppColors.cardBorder : Colors.transparent,
+                          color: _filtro == filtro
+                              ? AppColors.cardBorder
+                              : Colors.transparent,
                         ),
                         showCheckmark: false,
                       ),
@@ -126,31 +135,37 @@ class _EntregasPageState extends State<EntregasPage> {
             ),
             Expanded(
               child: _carregando
-                  ? const Center(child: CircularProgressIndicator(color: AppColors.amber))
+                  ? const Center(
+                      child: CircularProgressIndicator(color: AppColors.amber))
                   : filtradas.isEmpty
                       ? const EmptyState('Nenhuma entrega encontrada.')
                       : ListView.separated(
                           padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
                           itemCount: filtradas.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 10),
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 10),
                           itemBuilder: (context, index) {
                             final entrega = filtradas[index];
                             return PanelCard(
                               padding: EdgeInsets.zero,
                               child: ListTile(
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 6),
                                 leading: AvatarTile(entrega.destinatarioNome),
                                 title: Text(entrega.destinatarioNome,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: GoogleFonts.hankenGrotesk(
-                                        fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.ink)),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.ink)),
                                 subtitle: Text(
                                   '${entrega.codigo} · ${entrega.clienteNome}\n'
                                   '${entrega.entregadorNome ?? 'Sem entregador'}',
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.hankenGrotesk(fontSize: 11.5, color: AppColors.faint),
+                                  style: GoogleFonts.hankenGrotesk(
+                                      fontSize: 11.5, color: AppColors.faint),
                                 ),
                                 isThreeLine: true,
                                 trailing: Column(
@@ -159,11 +174,13 @@ class _EntregasPageState extends State<EntregasPage> {
                                   children: [
                                     StatusBadge.entrega(entrega.status),
                                     const SizedBox(height: 4),
-                                    Text(money(entrega.valorFinal), style: AppTheme.display(size: 13.5)),
+                                    Text(money(entrega.valorFinal),
+                                        style: AppTheme.display(size: 13.5)),
                                   ],
                                 ),
                                 onTap: () async {
-                                  final alterou = await abrirEntregaDetalhe(context, entrega);
+                                  final alterou = await abrirEntregaDetalhe(
+                                      context, entrega);
                                   if (alterou == true) {
                                     _carregar();
                                   }

@@ -11,7 +11,11 @@ class StatusBadge extends StatelessWidget {
   final Color cor;
   final Color corFundo;
 
-  const StatusBadge({super.key, required this.texto, required this.cor, required this.corFundo});
+  const StatusBadge(
+      {super.key,
+      required this.texto,
+      required this.cor,
+      required this.corFundo});
 
   StatusBadge.entrega(StatusEntrega status, {super.key})
       : texto = status.label,
@@ -27,7 +31,8 @@ class StatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-      decoration: BoxDecoration(color: corFundo, borderRadius: BorderRadius.circular(7)),
+      decoration: BoxDecoration(
+          color: corFundo, borderRadius: BorderRadius.circular(7)),
       child: Text(
         texto.toUpperCase(),
         style: GoogleFonts.hankenGrotesk(
@@ -54,7 +59,8 @@ class AvatarTile extends StatelessWidget {
       width: size,
       height: size,
       alignment: Alignment.center,
-      decoration: const BoxDecoration(color: AppColors.iconTile, shape: BoxShape.circle),
+      decoration: const BoxDecoration(
+          color: AppColors.iconTile, shape: BoxShape.circle),
       child: Text(
         iniciais(nome),
         style: GoogleFonts.hankenGrotesk(
@@ -72,7 +78,10 @@ class PanelCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
 
-  const PanelCard({super.key, required this.child, this.padding = const EdgeInsets.all(16)});
+  const PanelCard(
+      {super.key,
+      required this.child,
+      this.padding = const EdgeInsets.all(16)});
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +128,9 @@ class KpiCard extends StatelessWidget {
             child: Icon(icone, size: 18, color: cor),
           ),
           const SizedBox(height: 12),
-          Text(rotulo, style: GoogleFonts.hankenGrotesk(fontSize: 11.5, color: AppColors.muted)),
+          Text(rotulo,
+              style: GoogleFonts.hankenGrotesk(
+                  fontSize: 11.5, color: AppColors.muted)),
           const SizedBox(height: 2),
           Text(valor, style: AppTheme.display(size: 20)),
         ],
@@ -140,12 +151,16 @@ class SectionTitle extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(texto,
-            style: GoogleFonts.hankenGrotesk(fontSize: 15.5, fontWeight: FontWeight.w700, color: AppColors.ink)),
+            style: GoogleFonts.hankenGrotesk(
+                fontSize: 15.5,
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink)),
         const SizedBox(height: 6),
         Container(
           width: 26,
           height: 3,
-          decoration: BoxDecoration(color: AppColors.amber, borderRadius: BorderRadius.circular(2)),
+          decoration: BoxDecoration(
+              color: AppColors.amber, borderRadius: BorderRadius.circular(2)),
         ),
       ],
     );
@@ -162,7 +177,9 @@ class EmptyState extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 40),
       child: Center(
-        child: Text(mensagem, style: GoogleFonts.hankenGrotesk(fontSize: 13.5, color: AppColors.faint)),
+        child: Text(mensagem,
+            style: GoogleFonts.hankenGrotesk(
+                fontSize: 13.5, color: AppColors.faint)),
       ),
     );
   }

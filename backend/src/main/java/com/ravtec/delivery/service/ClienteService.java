@@ -56,7 +56,7 @@ public class ClienteService {
         }
         var salvo = clienteRepository.save(clienteMapper.toEntity(request));
         auditar("CLIENTE_CRIADO", salvo.getId(), null, resumo(salvo), null);
-        log.info("Cliente criado: id={} nome={}", salvo.getId(), salvo.getNome());
+        log.info("customer_event=created customer_id={} result=success", salvo.getId());
         return clienteMapper.toResponse(salvo);
     }
 

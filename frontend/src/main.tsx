@@ -23,6 +23,8 @@ import { AuditoriaPage } from './pages/AuditoriaPage';
 import { UsuariosPage } from './pages/UsuariosPage';
 import { ConfiguracaoEmpresaPage } from './pages/ConfiguracaoEmpresaPage';
 import { RastreamentoPage } from './pages/RastreamentoPage';
+import { PrivacidadePage } from './pages/PrivacidadePage';
+import { RazaoFinanceiraPage } from './pages/RazaoFinanceiraPage';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 import { RoleRoute } from './routes/RoleRoute';
 import { roleHomePath } from './routes/roleHome';
@@ -63,6 +65,8 @@ const router = createBrowserRouter([
             { path: '/auditoria', element: <AuditoriaPage /> }, { path: '/usuarios', element: <UsuariosPage /> },
             { path: '/configuracoes/preco', element: <ConfiguracaoPrecoPage /> },
             { path: '/configuracoes/empresa', element: <ConfiguracaoEmpresaPage /> },
+            { path: '/privacidade', element: <PrivacidadePage /> },
+            { path: '/financeiro', element: <RazaoFinanceiraPage /> },
           ],
         },
         {

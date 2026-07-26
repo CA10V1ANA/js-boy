@@ -1,6 +1,6 @@
 import {
   BarChart3, Building2, CreditCard, FileClock, Home, LogOut, MapPinned, Menu, Package,
-  Settings, Sun, Truck, User, UserCog, Users, X,
+  Settings, ShieldCheck, Landmark, Sun, Truck, User, UserCog, Users, X,
 } from 'lucide-react';
 import { useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
@@ -19,6 +19,8 @@ const items: Array<{ to: string; label: string; icon: typeof Home; perfis: Perfi
   { to: '/usuarios', label: 'Usuarios', icon: UserCog, perfis: ['PROPRIETARIO'] },
   { to: '/configuracoes/preco', label: 'Precos', icon: Settings, perfis: ['PROPRIETARIO'] },
   { to: '/configuracoes/empresa', label: 'Empresa', icon: Building2, perfis: ['PROPRIETARIO'] },
+  { to: '/financeiro', label: 'Razão financeira', icon: Landmark, perfis: ['PROPRIETARIO'] },
+  { to: '/privacidade', label: 'Privacidade', icon: ShieldCheck, perfis: ['PROPRIETARIO'] },
   { to: '/minhas-entregas', label: 'Minhas entregas', icon: MapPinned, perfis: ['ENTREGADOR', 'FUNCIONARIO'] },
   { to: '/portal', label: 'Minha conta', icon: User, perfis: ['CLIENTE'] },
 ];

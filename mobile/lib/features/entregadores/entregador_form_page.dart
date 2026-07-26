@@ -22,10 +22,14 @@ class _EntregadorFormPageState extends State<EntregadorFormPage> {
 
   late final _nome = TextEditingController(text: widget.entregador?.nome ?? '');
   late final _cpf = TextEditingController(text: widget.entregador?.cpf ?? '');
-  late final _telefone = TextEditingController(text: widget.entregador?.telefone ?? '');
-  late final _email = TextEditingController(text: widget.entregador?.email ?? '');
-  late final _placa = TextEditingController(text: widget.entregador?.placaVeiculo ?? '');
-  late TipoVeiculo _tipoVeiculo = widget.entregador?.tipoVeiculo ?? TipoVeiculo.moto;
+  late final _telefone =
+      TextEditingController(text: widget.entregador?.telefone ?? '');
+  late final _email =
+      TextEditingController(text: widget.entregador?.email ?? '');
+  late final _placa =
+      TextEditingController(text: widget.entregador?.placaVeiculo ?? '');
+  late TipoVeiculo _tipoVeiculo =
+      widget.entregador?.tipoVeiculo ?? TipoVeiculo.moto;
   late bool _disponivel = widget.entregador?.disponivel ?? true;
 
   @override
@@ -56,7 +60,11 @@ class _EntregadorFormPageState extends State<EntregadorFormPage> {
       );
 
       if (!mounted) return;
-      mostrarMensagem(context, widget.entregador != null ? 'Entregador atualizado.' : 'Entregador cadastrado.');
+      mostrarMensagem(
+          context,
+          widget.entregador != null
+              ? 'Entregador atualizado.'
+              : 'Entregador cadastrado.');
       Navigator.pop(context, true);
     } on ApiException catch (error) {
       if (mounted) {
@@ -72,37 +80,62 @@ class _EntregadorFormPageState extends State<EntregadorFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.entregador != null ? 'Editar entregador' : 'Novo entregador')),
+      appBar: AppBar(
+          title: Text(widget.entregador != null
+              ? 'Editar entregador'
+              : 'Novo entregador')),
       body: SafeArea(
         child: Form(
           key: _formKey,
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              TextFormField(controller: _nome, decoration: const InputDecoration(labelText: 'Nome'), validator: _obrigatorio),
+              TextFormField(
+                  controller: _nome,
+                  decoration: const InputDecoration(labelText: 'Nome'),
+                  validator: _obrigatorio),
               const SizedBox(height: 14),
               Row(children: [
-                Expanded(child: TextFormField(controller: _cpf, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'CPF'), validator: _obrigatorio)),
+                Expanded(
+                    child: TextFormField(
+                        controller: _cpf,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: 'CPF'),
+                        validator: _obrigatorio)),
                 const SizedBox(width: 12),
-                Expanded(child: TextFormField(controller: _telefone, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Telefone'), validator: _obrigatorio)),
+                Expanded(
+                    child: TextFormField(
+                        controller: _telefone,
+                        keyboardType: TextInputType.phone,
+                        decoration:
+                            const InputDecoration(labelText: 'Telefone'),
+                        validator: _obrigatorio)),
               ]),
               const SizedBox(height: 14),
-              TextFormField(controller: _email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'E-mail')),
+              TextFormField(
+                  controller: _email,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(labelText: 'E-mail')),
               const SizedBox(height: 14),
               Row(children: [
                 Expanded(
                   child: DropdownButtonFormField<TipoVeiculo>(
                     initialValue: _tipoVeiculo,
-                    decoration: const InputDecoration(labelText: 'Tipo de veiculo'),
+                    decoration:
+                        const InputDecoration(labelText: 'Tipo de veiculo'),
                     items: [
                       for (final tipo in TipoVeiculo.values)
                         DropdownMenuItem(value: tipo, child: Text(tipo.label)),
                     ],
-                    onChanged: (value) => setState(() => _tipoVeiculo = value ?? TipoVeiculo.moto),
+                    onChanged: (value) => setState(
+                        () => _tipoVeiculo = value ?? TipoVeiculo.moto),
                   ),
                 ),
                 const SizedBox(width: 12),
-                Expanded(child: TextFormField(controller: _placa, decoration: const InputDecoration(labelText: 'Placa'))),
+                Expanded(
+                    child: TextFormField(
+                        controller: _placa,
+                        decoration: const InputDecoration(labelText: 'Placa'))),
               ]),
               const SizedBox(height: 8),
               SwitchListTile(
@@ -116,7 +149,11 @@ class _EntregadorFormPageState extends State<EntregadorFormPage> {
               FilledButton(
                 onPressed: _salvando ? null : _salvar,
                 child: _salvando
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.amberInk))
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2.4, color: AppColors.amberInk))
                     : Text(widget.entregador != null ? 'Salvar' : 'Cadastrar'),
               ),
             ],

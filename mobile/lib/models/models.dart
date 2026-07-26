@@ -10,7 +10,11 @@ class Usuario {
   final String email;
   final PerfilAcesso perfil;
 
-  Usuario({required this.id, required this.nome, required this.email, required this.perfil});
+  Usuario(
+      {required this.id,
+      required this.nome,
+      required this.email,
+      required this.perfil});
 
   factory Usuario.fromJson(Map<String, dynamic> json) => Usuario(
         id: json['id'] as String,
@@ -114,12 +118,14 @@ class HistoricoEntrega {
     required this.alteradoEm,
   });
 
-  factory HistoricoEntrega.fromJson(Map<String, dynamic> json) => HistoricoEntrega(
+  factory HistoricoEntrega.fromJson(Map<String, dynamic> json) =>
+      HistoricoEntrega(
         statusAnterior: json['statusAnterior'] != null
             ? StatusEntrega.fromApi(json['statusAnterior'] as String)
             : null,
         novoStatus: StatusEntrega.fromApi(json['novoStatus'] as String),
-        usuarioResponsavelNome: json['usuarioResponsavelNome'] as String? ?? 'JS Boy',
+        usuarioResponsavelNome:
+            json['usuarioResponsavelNome'] as String? ?? 'JS Boy',
         alteradoEm: DateTime.parse(json['alteradoEm'] as String),
       );
 }
@@ -190,7 +196,8 @@ class Entrega {
         status: StatusEntrega.fromApi(json['status'] as String),
         criadoEm: DateTime.parse(json['criadoEm'] as String),
         historico: (json['historico'] as List<dynamic>? ?? [])
-            .map((item) => HistoricoEntrega.fromJson(item as Map<String, dynamic>))
+            .map((item) =>
+                HistoricoEntrega.fromJson(item as Map<String, dynamic>))
             .toList(),
       );
 }
@@ -224,7 +231,8 @@ class Pagamento {
         entregaCodigo: json['entregaCodigo'] as String,
         clienteNome: json['clienteNome'] as String? ?? '',
         valor: _toDouble(json['valor']),
-        formaPagamento: FormaPagamento.fromApi(json['formaPagamento'] as String),
+        formaPagamento:
+            FormaPagamento.fromApi(json['formaPagamento'] as String),
         pagoEm: DateTime.parse(json['pagoEm'] as String),
         comprovante: json['comprovante'] as String?,
         observacoes: json['observacoes'] as String?,
@@ -248,7 +256,8 @@ class PendenciaFinanceira {
     required this.valorPendente,
   });
 
-  factory PendenciaFinanceira.fromJson(Map<String, dynamic> json) => PendenciaFinanceira(
+  factory PendenciaFinanceira.fromJson(Map<String, dynamic> json) =>
+      PendenciaFinanceira(
         entregaId: json['entregaId'] as String,
         entregaCodigo: json['entregaCodigo'] as String,
         clienteNome: json['clienteNome'] as String? ?? '',
@@ -273,13 +282,15 @@ class RelatorioFinanceiro {
     required this.pendencias,
   });
 
-  factory RelatorioFinanceiro.fromJson(Map<String, dynamic> json) => RelatorioFinanceiro(
+  factory RelatorioFinanceiro.fromJson(Map<String, dynamic> json) =>
+      RelatorioFinanceiro(
         valorEntregas: _toDouble(json['valorEntregas']),
         valorRecebido: _toDouble(json['valorRecebido']),
         valorPendente: _toDouble(json['valorPendente']),
         pagamentosRegistrados: (json['pagamentosRegistrados'] as num).toInt(),
         pendencias: (json['pendencias'] as List<dynamic>? ?? [])
-            .map((item) => PendenciaFinanceira.fromJson(item as Map<String, dynamic>))
+            .map((item) =>
+                PendenciaFinanceira.fromJson(item as Map<String, dynamic>))
             .toList(),
       );
 
@@ -313,7 +324,8 @@ class DashboardResumo {
     required this.entregadoresAtivos,
   });
 
-  factory DashboardResumo.fromJson(Map<String, dynamic> json) => DashboardResumo(
+  factory DashboardResumo.fromJson(Map<String, dynamic> json) =>
+      DashboardResumo(
         totalEntregas: (json['totalEntregas'] as num).toInt(),
         solicitadas: (json['solicitadas'] as num).toInt(),
         emAndamento: (json['emAndamento'] as num).toInt(),
@@ -349,7 +361,8 @@ class ConfiguracaoPreco {
     required this.valorMinimo,
   });
 
-  factory ConfiguracaoPreco.fromJson(Map<String, dynamic> json) => ConfiguracaoPreco(
+  factory ConfiguracaoPreco.fromJson(Map<String, dynamic> json) =>
+      ConfiguracaoPreco(
         id: json['id'] as String,
         taxaInicial: _toDouble(json['taxaInicial']),
         valorPorKm: _toDouble(json['valorPorKm']),
@@ -363,7 +376,11 @@ class Funcionario {
   final String email;
   final bool ativo;
 
-  Funcionario({required this.id, required this.nome, required this.email, required this.ativo});
+  Funcionario(
+      {required this.id,
+      required this.nome,
+      required this.email,
+      required this.ativo});
 
   factory Funcionario.fromJson(Map<String, dynamic> json) => Funcionario(
         id: json['id'] as String,

@@ -43,7 +43,9 @@ class _EntregadoresPageState extends State<EntregadoresPage> {
 
   Future<void> _abrirForm({Entregador? entregador}) async {
     final salvou = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(fullscreenDialog: true, builder: (_) => EntregadorFormPage(entregador: entregador)),
+      MaterialPageRoute(
+          fullscreenDialog: true,
+          builder: (_) => EntregadorFormPage(entregador: entregador)),
     );
     if (salvou == true) {
       _carregar();
@@ -52,9 +54,12 @@ class _EntregadoresPageState extends State<EntregadoresPage> {
 
   Future<void> _alterarStatus(Entregador entregador) async {
     try {
-      await context.read<EntregadorService>().alterarStatus(entregador.id, !entregador.ativo);
+      await context
+          .read<EntregadorService>()
+          .alterarStatus(entregador.id, !entregador.ativo);
       if (!mounted) return;
-      mostrarMensagem(context, entregador.ativo ? 'Entregador desativado.' : 'Entregador ativado.');
+      mostrarMensagem(context,
+          entregador.ativo ? 'Entregador desativado.' : 'Entregador ativado.');
       _carregar();
     } on ApiException catch (error) {
       if (mounted) mostrarMensagem(context, error.message, erro: true);
@@ -85,7 +90,9 @@ class _EntregadoresPageState extends State<EntregadoresPage> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancelar')),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancelar')),
           FilledButton(
             style: FilledButton.styleFrom(minimumSize: const Size(0, 40)),
             onPressed: () => Navigator.pop(dialogContext, true),
@@ -102,9 +109,8 @@ class _EntregadoresPageState extends State<EntregadoresPage> {
     }
 
     try {
-      await context
-          .read<EntregadorService>()
-          .criarAcesso(entregador.id, emailController.text.trim(), senhaController.text);
+      await context.read<EntregadorService>().criarAcesso(
+          entregador.id, emailController.text.trim(), senhaController.text);
       if (mounted) {
         mostrarMensagem(context, 'Acesso do entregador criado.');
         _carregar();
@@ -125,7 +131,8 @@ class _EntregadoresPageState extends State<EntregadoresPage> {
         actions: [
           IconButton(
             onPressed: () => _abrirForm(),
-            icon: const Icon(Icons.add_circle, color: AppColors.amber, size: 28),
+            icon:
+                const Icon(Icons.add_circle, color: AppColors.amber, size: 28),
             tooltip: 'Novo entregador',
           ),
           const SizedBox(width: 8),
@@ -135,9 +142,12 @@ class _EntregadoresPageState extends State<EntregadoresPage> {
         color: AppColors.amber,
         onRefresh: _carregar,
         child: _carregando
-            ? const Center(child: CircularProgressIndicator(color: AppColors.amber))
+            ? const Center(
+                child: CircularProgressIndicator(color: AppColors.amber))
             : _entregadores.isEmpty
-                ? ListView(children: const [EmptyState('Nenhum entregador cadastrado.')])
+                ? ListView(children: const [
+                    EmptyState('Nenhum entregador cadastrado.')
+                  ])
                 : ListView.separated(
                     padding: const EdgeInsets.all(16),
                     itemCount: _entregadores.length,
@@ -147,19 +157,23 @@ class _EntregadoresPageState extends State<EntregadoresPage> {
                       return PanelCard(
                         padding: EdgeInsets.zero,
                         child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 6),
                           leading: AvatarTile(entregador.nome),
                           title: Text(entregador.nome,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.hankenGrotesk(
-                                  fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.ink)),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.ink)),
                           subtitle: Text(
                             '${entregador.telefone} · ${entregador.tipoVeiculo.label}'
                             '${entregador.placaVeiculo != null ? ' ${entregador.placaVeiculo}' : ''}\n'
                             '${entregador.possuiAcesso ? 'Acesso criado' : 'Sem acesso'}',
                             maxLines: 2,
-                            style: GoogleFonts.hankenGrotesk(fontSize: 11.5, color: AppColors.faint),
+                            style: GoogleFonts.hankenGrotesk(
+                                fontSize: 11.5, color: AppColors.faint),
                           ),
                           isThreeLine: true,
                           trailing: Column(
@@ -167,9 +181,15 @@ class _EntregadoresPageState extends State<EntregadoresPage> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               StatusBadge(
-                                texto: entregador.disponivel ? 'Disponivel' : 'Ocupado',
-                                cor: entregador.disponivel ? AppColors.green : AppColors.muted,
-                                corFundo: entregador.disponivel ? AppColors.greenBg : const Color(0xFFF0EEE7),
+                                texto: entregador.disponivel
+                                    ? 'Disponivel'
+                                    : 'Ocupado',
+                                cor: entregador.disponivel
+                                    ? AppColors.green
+                                    : AppColors.muted,
+                                corFundo: entregador.disponivel
+                                    ? AppColors.greenBg
+                                    : const Color(0xFFF0EEE7),
                               ),
                               const SizedBox(height: 4),
                               StatusBadge.ativo(entregador.ativo),

@@ -96,8 +96,10 @@ class AppTheme {
           backgroundColor: AppColors.amber,
           foregroundColor: AppColors.amberInk,
           minimumSize: const Size.fromHeight(48),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          textStyle: GoogleFonts.hankenGrotesk(fontSize: 14.5, fontWeight: FontWeight.w700),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          textStyle: GoogleFonts.hankenGrotesk(
+              fontSize: 14.5, fontWeight: FontWeight.w700),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -105,14 +107,17 @@ class AppTheme {
           foregroundColor: AppColors.body,
           side: const BorderSide(color: AppColors.fieldBorder),
           minimumSize: const Size.fromHeight(48),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          textStyle: GoogleFonts.hankenGrotesk(fontSize: 14, fontWeight: FontWeight.w700),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          textStyle: GoogleFonts.hankenGrotesk(
+              fontSize: 14, fontWeight: FontWeight.w700),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surfaceInput,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(11),
           borderSide: const BorderSide(color: AppColors.fieldBorder),
@@ -130,13 +135,16 @@ class AppTheme {
           fontWeight: FontWeight.w600,
           color: AppColors.body,
         ),
-        hintStyle: GoogleFonts.hankenGrotesk(fontSize: 14, color: AppColors.faint),
+        hintStyle:
+            GoogleFonts.hankenGrotesk(fontSize: 14, color: AppColors.faint),
       ),
-      dividerTheme: const DividerThemeData(color: AppColors.rowDivider, thickness: 1),
+      dividerTheme:
+          const DividerThemeData(color: AppColors.rowDivider, thickness: 1),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppColors.ink,
-        contentTextStyle: GoogleFonts.hankenGrotesk(fontSize: 13.5, color: Colors.white),
+        contentTextStyle:
+            GoogleFonts.hankenGrotesk(fontSize: 13.5, color: Colors.white),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
@@ -144,6 +152,10 @@ class AppTheme {
 
   /// Estilo Archivo para numeros grandes (KPIs, valores).
   static TextStyle display({double size = 24, Color color = AppColors.ink}) {
-    return GoogleFonts.archivo(fontSize: size, fontWeight: FontWeight.w800, color: color, letterSpacing: -0.3);
+    return GoogleFonts.archivo(
+        fontSize: size,
+        fontWeight: FontWeight.w800,
+        color: color,
+        letterSpacing: -0.3);
   }
 }

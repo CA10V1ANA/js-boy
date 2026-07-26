@@ -59,7 +59,7 @@ public class SecurityConfig {
                     response.sendError(403, "Acesso negado")))
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> {
-                auth.requestMatchers("/auth/login", "/api/health", "/public/**").permitAll();
+                auth.requestMatchers("/auth/login", "/auth/refresh", "/auth/logout", "/auth/password/**", "/api/health", "/public/**").permitAll();
                 if (swaggerEnabled) {
                     auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll();
                 }
@@ -125,7 +125,8 @@ public class SecurityConfig {
             "Authorization",
             "Content-Type",
             "Idempotency-Key",
-            "X-Correlation-ID"
+            "X-Correlation-ID",
+            "If-Match"
         ));
         configuration.setExposedHeaders(List.of("X-Correlation-ID", "Retry-After"));
         configuration.setAllowCredentials(true);
