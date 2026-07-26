@@ -1,4 +1,8 @@
-target
 .git
-*.log
+.gitignore
+.idea
+.vscode
+target
 data
+*.log
+*.env

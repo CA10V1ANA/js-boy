@@ -1,5 +1,6 @@
 package com.ravtec.delivery.controller;
 
+import com.ravtec.delivery.dto.EstornoRequest;
 import com.ravtec.delivery.dto.PagamentoRequest;
 import com.ravtec.delivery.dto.PagamentoResponse;
 import com.ravtec.delivery.dto.RelatorioFinanceiroResponse;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,8 +30,20 @@ public class PagamentoController {
     }
 
     @PostMapping
-    public PagamentoResponse registrar(@Valid @RequestBody PagamentoRequest request) {
-        return pagamentoService.registrar(request);
+    public PagamentoResponse registrar(
+        @RequestHeader("Idempotency-Key") String idempotencyKey,
+        @Valid @RequestBody PagamentoRequest request
+    ) {
+        return pagamentoService.registrar(idempotencyKey, request);
+    }
+
+    @PostMapping("/{id}/estornos")
+    public PagamentoResponse estornar(
+        @PathVariable UUID id,
+        @RequestHeader("Idempotency-Key") String idempotencyKey,
+        @Valid @RequestBody EstornoRequest request
+    ) {
+        return pagamentoService.estornar(id, idempotencyKey, request);
     }
 
     @GetMapping("/relatorio")

@@ -90,7 +90,7 @@ class _PagamentoFormPageState extends State<PagamentoFormPage> {
             padding: const EdgeInsets.all(16),
             children: [
               DropdownButtonFormField<String>(
-                value: _entregaId,
+                initialValue: _entregaId,
                 decoration: const InputDecoration(labelText: 'Entrega'),
                 items: [
                   for (final entrega in _entregas)
@@ -120,7 +120,7 @@ class _PagamentoFormPageState extends State<PagamentoFormPage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: DropdownButtonFormField<FormaPagamento>(
-                      value: _forma,
+                      initialValue: _forma,
                       decoration: const InputDecoration(labelText: 'Forma'),
                       items: [
                         for (final forma in FormaPagamento.values)

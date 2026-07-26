@@ -4,6 +4,7 @@ import com.ravtec.delivery.entity.Entrega;
 import com.ravtec.delivery.entity.StatusEntrega;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,7 +12,13 @@ import org.springframework.data.jpa.repository.Query;
 public interface EntregaRepository extends JpaRepository<Entrega, UUID> {
     List<Entrega> findByCodigoContainingIgnoreCaseOrClienteNomeContainingIgnoreCase(String codigo, String clienteNome);
 
-    List<Entrega> findByEntregadorUsuarioId(UUID usuarioId);
+    List<Entrega> findByEntregadorUsuarioIdOrderByCriadoEmDesc(UUID usuarioId);
+
+    Optional<Entrega> findByIdAndEntregadorUsuarioId(UUID id, UUID usuarioId);
+
+    List<Entrega> findByClienteUsuarioIdOrderByCriadoEmDesc(UUID usuarioId);
+
+    Optional<Entrega> findByIdAndClienteUsuarioId(UUID id, UUID usuarioId);
 
     long countByStatus(StatusEntrega status);
 

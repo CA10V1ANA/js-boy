@@ -1,68 +1,53 @@
 import {
-  BarChart3,
-  Bell,
-  ChevronDown,
-  CreditCard,
-  Home,
-  LogOut,
-  MapPinned,
-  Menu,
-  Package,
-  Search,
-  Settings,
-  Sun,
-  Truck,
-  User,
-  Users,
+  BarChart3, Building2, CreditCard, FileClock, Home, LogOut, MapPinned, Menu, Package,
+  Settings, Sun, Truck, User, UserCog, Users, X,
 } from 'lucide-react';
+import { useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { normalizePerfil } from '../routes/roleHome';
+import { PerfilAcesso } from '../types';
 
-const items = [
-  { to: '/dashboard', label: 'Visao geral', icon: Home, perfis: ['PROPRIETARIO', 'FUNCIONARIO'] },
+const items: Array<{ to: string; label: string; icon: typeof Home; perfis: PerfilAcesso[] }> = [
+  { to: '/dashboard', label: 'Visao geral', icon: Home, perfis: ['PROPRIETARIO'] },
   { to: '/entregas', label: 'Entregas', icon: Truck, perfis: ['PROPRIETARIO'] },
   { to: '/entregadores', label: 'Entregadores', icon: User, perfis: ['PROPRIETARIO'] },
-  { to: '/clientes', label: 'Clientes', icon: Users, perfis: ['PROPRIETARIO', 'FUNCIONARIO'] },
+  { to: '/clientes', label: 'Clientes', icon: Users, perfis: ['PROPRIETARIO'] },
   { to: '/pagamentos', label: 'Pagamentos', icon: CreditCard, perfis: ['PROPRIETARIO'] },
   { to: '/relatorios', label: 'Relatorios', icon: BarChart3, perfis: ['PROPRIETARIO'] },
-  { to: '/minhas-entregas', label: 'Minhas entregas', icon: MapPinned, perfis: ['ENTREGADOR'] },
-  { to: '/configuracoes/preco', label: 'Configuracoes', icon: Settings, perfis: ['PROPRIETARIO'] },
+  { to: '/auditoria', label: 'Auditoria', icon: FileClock, perfis: ['PROPRIETARIO'] },
+  { to: '/usuarios', label: 'Usuarios', icon: UserCog, perfis: ['PROPRIETARIO'] },
+  { to: '/configuracoes/preco', label: 'Precos', icon: Settings, perfis: ['PROPRIETARIO'] },
+  { to: '/configuracoes/empresa', label: 'Empresa', icon: Building2, perfis: ['PROPRIETARIO'] },
+  { to: '/minhas-entregas', label: 'Minhas entregas', icon: MapPinned, perfis: ['ENTREGADOR', 'FUNCIONARIO'] },
+  { to: '/portal', label: 'Minha conta', icon: User, perfis: ['CLIENTE'] },
 ];
-
-const headerBySection: Record<string, [string, string]> = {
-  '/entregas': ['Entregas', 'Acompanhe e gerencie todas as entregas.'],
-  '/entregadores': ['Entregadores', 'Cadastro, disponibilidade e acesso da equipe.'],
-  '/clientes': ['Clientes', 'Empresas e destinatarios que solicitam entregas.'],
-  '/pagamentos': ['Pagamentos', 'Historico de recebimentos e comprovantes.'],
-  '/relatorios': ['Relatorios', 'Desempenho da operacao no periodo.'],
-  '/minhas-entregas': ['Minhas entregas', 'Entregas designadas para voce.'],
-  '/configuracoes/preco': ['Configuracoes', 'Tarifas, veiculos e preferencias do sistema.'],
-};
 
 function iniciais(nome?: string) {
   const partes = (nome || '').trim().split(/\s+/);
   return ((partes[0]?.[0] || '') + (partes[1]?.[0] || '')).toUpperCase();
 }
-
 function saudacao() {
   const hora = new Date().getHours();
-  if (hora < 12) return 'Bom dia';
-  if (hora < 18) return 'Boa tarde';
-  return 'Boa noite';
+  return hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
+}
+function profileLabel(perfil?: PerfilAcesso) {
+  if (perfil === 'PROPRIETARIO') return 'Proprietario';
+  if (perfil === 'CLIENTE') return 'Cliente';
+  return 'Entregador';
 }
 
 export function AppLayout() {
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const visibleItems = items.filter((item) => usuario && item.perfis.includes(usuario.perfil));
-
+  const [menuOpen, setMenuOpen] = useState(false);
+  const visibleItems = items.filter((item) => usuario
+    && item.perfis.map(normalizePerfil).includes(normalizePerfil(usuario.perfil)));
   const isDashboard = location.pathname.startsWith('/dashboard');
-  const primeiroNome = (usuario?.nome || '').trim().split(/\s+/)[0];
-  const section = Object.keys(headerBySection).find((path) => location.pathname.startsWith(path));
-  const [titulo, subtitulo] = isDashboard
-    ? [`${saudacao()}, ${primeiroNome}.`, 'Operacao funcionando normalmente.']
-    : (section ? headerBySection[section] : ['JS BOY', 'Painel de despacho']);
+  const current = visibleItems.find((item) => location.pathname.startsWith(item.to));
+  const title = isDashboard ? `${saudacao()}, ${(usuario?.nome || '').split(' ')[0]}.` : current?.label || 'JS BOY';
+  const subtitle = isDashboard ? 'Visao geral da operacao.' : 'Painel de entregas';
 
   function handleLogout() {
     logout();
@@ -71,71 +56,38 @@ export function AppLayout() {
 
   return (
     <div className="appShell">
-      <aside className="sidebar">
+      {menuOpen ? <button className="sidebarBackdrop" type="button" aria-label="Fechar menu" onClick={() => setMenuOpen(false)} /> : null}
+      <aside className={menuOpen ? 'sidebar open' : 'sidebar'}>
         <div className="brand">
-          <span className="brandMark">
-            <Package size={20} />
-          </span>
-          <span>
-            <strong>JS BOY</strong>
-            <small>DESPACHO</small>
-          </span>
+          <span className="brandMark"><Package size={20} /></span>
+          <span><strong>JS BOY</strong><small>DESPACHO</small></span>
+          <button className="sidebarClose" type="button" aria-label="Fechar menu" onClick={() => setMenuOpen(false)}><X size={20} /></button>
         </div>
-
         <nav className="sideNav" aria-label="Menu principal">
           {visibleItems.map((item) => (
-            <NavLink key={item.to} to={item.to}>
-              <item.icon size={19} />
-              <span>{item.label}</span>
+            <NavLink key={item.to} to={item.to} onClick={() => setMenuOpen(false)}>
+              <item.icon size={19} aria-hidden="true" /><span>{item.label}</span>
             </NavLink>
           ))}
         </nav>
-
         <div className="sideUser">
           <span className="sideUserAvatar">{iniciais(usuario?.nome)}</span>
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <strong>{usuario?.nome}</strong>
-            <span>{usuario?.perfil === 'PROPRIETARIO' ? 'Administrador' : usuario?.perfil === 'FUNCIONARIO' ? 'Funcionario' : 'Entregador'}</span>
-          </div>
-          <button
-            onClick={handleLogout}
-            aria-label="Sair"
-            title="Sair"
-            style={{ border: 'none', background: 'transparent', color: '#6e695e', cursor: 'pointer', padding: 4 }}
-          >
-            <LogOut size={16} />
-          </button>
+          <div style={{ minWidth: 0, flex: 1 }}><strong>{usuario?.nome}</strong><span>{profileLabel(usuario?.perfil)}</span></div>
+          <button className="sideLogout" onClick={handleLogout} aria-label="Sair" title="Sair" type="button"><LogOut size={16} /></button>
         </div>
       </aside>
-
       <div className="contentArea">
         <header className="appHeader">
-          <button className="iconButton" aria-label="Abrir menu">
-            <Menu size={22} />
-          </button>
+          <button className="iconButton" aria-label="Abrir menu" type="button" onClick={() => setMenuOpen(true)}><Menu size={22} /></button>
           <div className="appHeaderLeft">
-            {isDashboard ? (
-              <span className="appHeaderSun"><Sun size={20} /></span>
-            ) : null}
-            <div style={{ minWidth: 0 }}>
-              <strong>{titulo}</strong>
-              <span>{subtitulo}</span>
-            </div>
+            {isDashboard ? <span className="appHeaderSun"><Sun size={20} /></span> : null}
+            <div style={{ minWidth: 0 }}><strong>{title}</strong><span>{subtitle}</span></div>
           </div>
-          <div className="headerSearch">
-            <Search size={16} color="#ABA89B" />
-            <span>Buscar entregas, clientes…</span>
-            <kbd>⌘K</kbd>
-          </div>
-          <button className="headerBell" aria-label="Notificacoes" type="button">
-            <Bell size={18} />
-          </button>
           <div className="headerAvatarPill">
             <span className="headerAvatar">{iniciais(usuario?.nome)}</span>
-            <ChevronDown size={15} color="#8A8578" />
+            <button className="headerLogoutButton" type="button" onClick={handleLogout}><LogOut size={16} /><span>Sair</span></button>
           </div>
         </header>
-
         <Outlet />
       </div>
     </div>

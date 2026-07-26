@@ -1,0 +1,36 @@
+.requestGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.requestGrid label { display: grid; gap: .4rem; font-weight: 650; }
+.requestGrid input, .requestGrid textarea {
+  width: 100%; min-height: 44px; border: 1px solid var(--border);
+  border-radius: 10px; padding: .7rem .8rem; background: var(--surface, #fff); color: inherit;
+}
+.requestGrid textarea { min-height: 88px; resize: vertical; }
+.requestWide { grid-column: 1 / -1; }
+.deliveryDetail { grid-column: 1 / -1; border-top: 1px solid var(--border); padding-top: .8rem; display: grid; gap: .7rem; }
+.deliveryDetail ol { display: grid; gap: .45rem; margin: 0; padding-left: 1.5rem; }
+.deliveryDetail li { padding-left: .25rem; }
+.deliveryDetail li span { display: block; color: var(--muted); }
+.deliveryDetail a { display: inline-flex; align-items: center; gap: .4rem; width: fit-content; }
+.trackingPage { width: min(720px, calc(100% - 2rem)); margin: 2rem auto; display: grid; gap: 1rem; }
+.trackingBrand { display: inline-flex; align-items: center; gap: .55rem; font-weight: 900; font-size: 1.15rem; width: fit-content; text-decoration: none; color: inherit; }
+.trackingCard h1 { margin: .25rem 0; }
+.trackingStatus { font-size: 1.2rem; }
+.trackingCard > p { display: flex; align-items: center; gap: .45rem; }
+.trackingTimeline { list-style: none; margin: 1rem 0 0; padding: 0 0 0 1rem; border-left: 2px solid var(--border); display: grid; gap: .8rem; }
+.trackingTimeline li { display: flex; justify-content: space-between; gap: 1rem; position: relative; }
+.trackingTimeline li::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: #f5b400; position: absolute; left: calc(-1rem - 6px); top: .3rem; }
+.trackingTimeline time { color: var(--muted); }
+.trackingContact { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.2rem; }
+.trackingContact h2 { width: 100%; margin: 0; }
+.trackingPrivacy { text-align: center; color: var(--muted); font-size: .9rem; }
+@media (max-width: 620px) {
+  .requestGrid { grid-template-columns: 1fr; }
+  .requestWide { grid-column: auto; }
+  .trackingPage { width: min(100% - 1rem, 720px); margin: .5rem auto 1rem; }
+  .trackingTimeline li { display: grid; gap: .2rem; }
+}

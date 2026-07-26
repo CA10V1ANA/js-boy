@@ -1,5 +1,10 @@
+.git
+.gitignore
+.idea
+.vscode
 node_modules
 dist
 coverage
-.git
 *.log
+.env
+.env.*

@@ -15,7 +15,14 @@ public record ClienteResponse(
     String cidade,
     String observacoes,
     boolean ativo,
-    OffsetDateTime criadoEm
+    boolean possuiAcesso,
+    OffsetDateTime criadoEm,
+    String cep,
+    String logradouro,
+    String numero,
+    String complemento,
+    String estado,
+    boolean semNumero,
+    Long versao
 ) {
 }
-

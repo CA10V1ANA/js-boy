@@ -44,9 +44,11 @@ describe('LoginPage', () => {
     const user = userEvent.setup();
     const form = renderLoginPage();
 
+    await user.type(form.getByLabelText('E-mail'), 'usuario@exemplo.com');
+    await user.type(form.getByLabelText('Senha'), 'senha-segura');
     await user.click(form.getByRole('button', { name: 'Entrar' }));
 
-    await waitFor(() => expect(login).toHaveBeenCalledWith('proprietario@jsboy.com', 'admin123'));
+    await waitFor(() => expect(login).toHaveBeenCalledWith('usuario@exemplo.com', 'senha-segura'));
     expect(screen.queryByText('E-mail ou senha invalidos.')).not.toBeInTheDocument();
   });
 
@@ -56,8 +58,19 @@ describe('LoginPage', () => {
     const user = userEvent.setup();
     const form = renderLoginPage();
 
+    await user.type(form.getByLabelText('E-mail'), 'usuario@exemplo.com');
+    await user.type(form.getByLabelText('Senha'), 'senha-incorreta');
     await user.click(form.getByRole('button', { name: 'Entrar' }));
 
     expect(await screen.findByText('E-mail ou senha invalidos.')).toBeInTheDocument();
+  });
+
+  it('nao preenche credenciais nem oferece cadastro publico', () => {
+    mockedUseAuth.mockReturnValue({ autenticado: false, carregando: false, login: vi.fn(), usuario: null, token: null, logout: vi.fn() });
+    const form = renderLoginPage();
+
+    expect(form.getByLabelText('E-mail')).toHaveValue('');
+    expect(form.getByLabelText('Senha')).toHaveValue('');
+    expect(screen.queryByText(/criar conta/i)).not.toBeInTheDocument();
   });
 });

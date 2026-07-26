@@ -12,6 +12,7 @@ import com.ravtec.delivery.entity.Cliente;
 import com.ravtec.delivery.exception.RecursoNaoEncontradoException;
 import com.ravtec.delivery.mapper.ClienteMapper;
 import com.ravtec.delivery.repository.ClienteRepository;
+import com.ravtec.delivery.repository.UsuarioRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,12 +22,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
 class ClienteServiceTest {
 
     @Mock
     private ClienteRepository clienteRepository;
+    @Mock
+    private UsuarioRepository usuarioRepository;
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     private ClienteMapper clienteMapper;
 
@@ -36,7 +42,12 @@ class ClienteServiceTest {
     @BeforeEach
     void setUp() {
         clienteMapper = new ClienteMapper();
-        clienteService = new ClienteService(clienteRepository, clienteMapper);
+        clienteService = new ClienteService(
+            clienteRepository,
+            usuarioRepository,
+            clienteMapper,
+            passwordEncoder
+        );
     }
 
     @Test

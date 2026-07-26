@@ -3,11 +3,15 @@ package com.ravtec.delivery.entity;
 public enum StatusEntrega {
     SOLICITADA,
     CONFIRMADA,
+    AGENDADA,
     AGUARDANDO_ENTREGADOR,
     ENTREGADOR_DESIGNADO,
     COLETADA,
     EM_ROTA,
+    TENTATIVA_FALHOU,
+    EM_DEVOLUCAO,
     ENTREGUE,
+    DEVOLVIDA,
+    FALHA_OPERACIONAL,
     CANCELADA
 }
-

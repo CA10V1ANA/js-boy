@@ -2,8 +2,26 @@ import axios from 'axios';
 import { clearStoredAuth, getStoredToken } from './authStorage';
 import { emitToast } from './toastBus';
 
+function apiBaseUrl() {
+  const configured = import.meta.env.VITE_API_URL?.trim();
+  const value = configured || (import.meta.env.DEV ? 'http://localhost:8080' : '');
+
+  if (!value) {
+    throw new Error('VITE_API_URL deve ser configurada no build de producao.');
+  }
+
+  const url = new URL(value);
+  if (!['http:', 'https:'].includes(url.protocol)) {
+    throw new Error('VITE_API_URL deve usar HTTP ou HTTPS.');
+  }
+  if (import.meta.env.PROD && url.protocol !== 'https:') {
+    throw new Error('VITE_API_URL deve usar HTTPS em producao.');
+  }
+  return url.toString().replace(/\/$/, '');
+}
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
+  baseURL: apiBaseUrl(),
 });
 
 function isLoginRequest(url?: string) {

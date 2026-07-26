@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../state/auth_controller.dart';
 import '../clientes/clientes_page.dart';
+import '../cliente_portal/cliente_portal_page.dart';
 import '../dashboard/dashboard_page.dart';
 import '../entregas/entrega_wizard.dart';
 import '../entregas/entregas_page.dart';
@@ -29,7 +30,7 @@ class _HomeShellState extends State<HomeShell> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthController>();
-    final perfil = auth.usuario?.perfil ?? PerfilAcesso.funcionario;
+    final perfil = auth.usuario?.perfil ?? PerfilAcesso.cliente;
 
     final (paginas, destinos) = switch (perfil) {
       PerfilAcesso.proprietario => (
@@ -40,31 +41,44 @@ class _HomeShellState extends State<HomeShell> {
             const MaisPage(),
           ],
           const <NavigationDestination>[
-            NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Inicio'),
-            NavigationDestination(icon: Icon(Icons.local_shipping_outlined), selectedIcon: Icon(Icons.local_shipping), label: 'Entregas'),
-            NavigationDestination(icon: Icon(Icons.people_outline), selectedIcon: Icon(Icons.people), label: 'Clientes'),
+            NavigationDestination(
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home),
+                label: 'Inicio'),
+            NavigationDestination(
+                icon: Icon(Icons.local_shipping_outlined),
+                selectedIcon: Icon(Icons.local_shipping),
+                label: 'Entregas'),
+            NavigationDestination(
+                icon: Icon(Icons.people_outline),
+                selectedIcon: Icon(Icons.people),
+                label: 'Clientes'),
             NavigationDestination(icon: Icon(Icons.menu), label: 'Mais'),
           ],
         ),
-      PerfilAcesso.funcionario => (
-          <Widget>[
-            DashboardPage(key: ValueKey('dash-$_refreshTick')),
-            const ClientesPage(),
-            const MaisPage(),
-          ],
-          const <NavigationDestination>[
-            NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Inicio'),
-            NavigationDestination(icon: Icon(Icons.people_outline), selectedIcon: Icon(Icons.people), label: 'Clientes'),
-            NavigationDestination(icon: Icon(Icons.menu), label: 'Mais'),
-          ],
-        ),
-      PerfilAcesso.entregador => (
+      PerfilAcesso.entregador || PerfilAcesso.funcionario => (
           <Widget>[
             MinhasEntregasPage(key: ValueKey('minhas-$_refreshTick')),
             const MaisPage(),
           ],
           const <NavigationDestination>[
-            NavigationDestination(icon: Icon(Icons.local_shipping_outlined), selectedIcon: Icon(Icons.local_shipping), label: 'Minhas entregas'),
+            NavigationDestination(
+                icon: Icon(Icons.local_shipping_outlined),
+                selectedIcon: Icon(Icons.local_shipping),
+                label: 'Minhas entregas'),
+            NavigationDestination(icon: Icon(Icons.menu), label: 'Mais'),
+          ],
+        ),
+      PerfilAcesso.cliente => (
+          <Widget>[
+            ClientePortalPage(key: ValueKey('cliente-$_refreshTick')),
+            const MaisPage(),
+          ],
+          const <NavigationDestination>[
+            NavigationDestination(
+                icon: Icon(Icons.account_circle_outlined),
+                selectedIcon: Icon(Icons.account_circle),
+                label: 'Minha conta'),
             NavigationDestination(icon: Icon(Icons.menu), label: 'Mais'),
           ],
         ),

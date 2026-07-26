@@ -1,0 +1,36 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:jsboy_test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: false
+  jpa:
+    properties:
+      hibernate:
+        format_sql: false
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+app:
+  security:
+    jwt-secret: js-boy-test-only-secret-with-at-least-32-bytes
+    jwt-expiration-minutes: 5
+    cors:
+      allowed-origins: http://localhost
+    swagger-enabled: false
+    h2-console-enabled: false
+    require-https: false
+
+logging:
+  level:
+    root: WARN
+    com.ravtec.delivery: INFO

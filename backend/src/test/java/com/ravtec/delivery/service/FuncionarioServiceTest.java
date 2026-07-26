@@ -2,11 +2,11 @@ package com.ravtec.delivery.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.ravtec.delivery.dto.FuncionarioRequest;
 import com.ravtec.delivery.entity.PerfilAcesso;
+import com.ravtec.delivery.entity.Entregador;
 import com.ravtec.delivery.entity.Usuario;
 import com.ravtec.delivery.exception.RecursoNaoEncontradoException;
 import com.ravtec.delivery.repository.UsuarioRepository;
@@ -18,7 +18,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
 class FuncionarioServiceTest {
@@ -26,15 +25,14 @@ class FuncionarioServiceTest {
     @Mock
     private UsuarioRepository usuarioRepository;
 
-    @Mock
-    private PasswordEncoder passwordEncoder;
-
     @InjectMocks
     private FuncionarioService funcionarioService;
 
     @Test
     void deveListarApenasUsuariosComPerfilFuncionario() {
-        when(usuarioRepository.findByPerfilOrderByNomeAsc(PerfilAcesso.FUNCIONARIO))
+        when(usuarioRepository.findByPerfilInOrderByNomeAsc(
+            List.of(PerfilAcesso.ENTREGADOR, PerfilAcesso.FUNCIONARIO)
+        ))
             .thenReturn(List.of(criarFuncionario()));
 
         var resultado = funcionarioService.listar();
@@ -44,27 +42,12 @@ class FuncionarioServiceTest {
     }
 
     @Test
-    void deveCriarFuncionarioComSenhaCodificada() {
+    void deveRejeitarCriacaoDoPerfilLegadoFuncionario() {
         var request = new FuncionarioRequest("Ana Souza", "ana@jsboy.com", "senha123");
-        when(usuarioRepository.findByEmail(request.email())).thenReturn(Optional.empty());
-        when(passwordEncoder.encode(request.senha())).thenReturn("hash-codificado");
-        when(usuarioRepository.save(any(Usuario.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        var response = funcionarioService.criar(request);
-
-        assertThat(response.nome()).isEqualTo("Ana Souza");
-        assertThat(response.email()).isEqualTo("ana@jsboy.com");
-        assertThat(response.ativo()).isTrue();
-    }
-
-    @Test
-    void deveLancarExcecaoQuandoEmailJaCadastrado() {
-        var request = new FuncionarioRequest("Ana Souza", "ana@jsboy.com", "senha123");
-        when(usuarioRepository.findByEmail(request.email())).thenReturn(Optional.of(criarFuncionario()));
 
         assertThatThrownBy(() -> funcionarioService.criar(request))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("E-mail ja cadastrado");
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("descontinuado");
     }
 
     @Test
@@ -95,6 +78,10 @@ class FuncionarioServiceTest {
         usuario.setSenhaHash("hash");
         usuario.setPerfil(PerfilAcesso.FUNCIONARIO);
         usuario.setAtivo(true);
+        var entregador = new Entregador();
+        entregador.setId(UUID.randomUUID());
+        entregador.setUsuario(usuario);
+        usuario.setEntregador(entregador);
         return usuario;
     }
 }

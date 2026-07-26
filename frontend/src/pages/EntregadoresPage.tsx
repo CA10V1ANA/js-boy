@@ -31,7 +31,7 @@ export function EntregadoresPage() {
   const [busca, setBusca] = useState('');
   const [carregando, setCarregando] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [accessForm, setAccessForm] = useState({ entregadorId: '', email: '', senha: '123456' });
+  const [accessForm, setAccessForm] = useState({ entregadorId: '', email: '', senha: '' });
 
   useEffect(() => {
     carregarEntregadores();
@@ -75,7 +75,7 @@ export function EntregadoresPage() {
 
     try {
       if (editingId) {
-        await api.put(`/entregadores/${editingId}`, form);
+        await api.put(`/entregadores/${editingId}`, form, { headers: { 'If-Match': String(entregadores.find((item) => item.id === editingId)?.versao ?? 0) } });
         showToast('Entregador atualizado com sucesso.', 'success');
       } else {
         await api.post('/entregadores', form);
@@ -94,8 +94,9 @@ export function EntregadoresPage() {
   }
 
   async function alterarStatus(entregador: Entregador) {
+    if (!window.confirm('Confirma a alteracao de status de ' + entregador.nome + '?')) return;
     try {
-      await api.patch(`/entregadores/${entregador.id}/status`, { ativo: !entregador.ativo });
+      await api.patch(`/entregadores/${entregador.id}/status`, { ativo: !entregador.ativo }, { headers: { 'If-Match': String(entregador.versao) } });
       showToast(entregador.ativo ? 'Entregador desativado.' : 'Entregador ativado.', 'success');
       await carregarEntregadores();
     } catch {
@@ -112,7 +113,7 @@ export function EntregadoresPage() {
         senha: accessForm.senha,
       });
       showToast('Acesso do entregador criado.', 'success');
-      setAccessForm({ entregadorId: '', email: '', senha: '123456' });
+      setAccessForm({ entregadorId: '', email: '', senha: '' });
       await carregarEntregadores();
     } catch {
       showToast('Nao foi possivel criar o acesso. Verifique se o e-mail ja existe.', 'error');
@@ -123,7 +124,7 @@ export function EntregadoresPage() {
     setAccessForm({
       entregadorId: entregador.id,
       email: entregador.email || '',
-      senha: '123456',
+      senha: '',
     });
   }
 

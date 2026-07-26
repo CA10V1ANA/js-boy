@@ -18,7 +18,11 @@ public class PagamentoMapper {
             pagamento.getPagoEm(),
             pagamento.getComprovante(),
             pagamento.getObservacoes(),
-            pagamento.getCriadoEm()
+            pagamento.getCriadoEm(),
+            pagamento.getTipo(),
+            pagamento.getLancamentoOriginal() == null ? null : pagamento.getLancamentoOriginal().getId(),
+            pagamento.getMotivo(),
+            pagamento.getUsuarioResponsavel().getNome()
         );
     }
 }

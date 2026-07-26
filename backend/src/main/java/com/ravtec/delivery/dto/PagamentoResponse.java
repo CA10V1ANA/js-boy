@@ -1,6 +1,7 @@
 package com.ravtec.delivery.dto;
 
 import com.ravtec.delivery.entity.FormaPagamento;
+import com.ravtec.delivery.entity.TipoLancamentoFinanceiro;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -15,6 +16,10 @@ public record PagamentoResponse(
     OffsetDateTime pagoEm,
     String comprovante,
     String observacoes,
-    OffsetDateTime criadoEm
+    OffsetDateTime criadoEm,
+    TipoLancamentoFinanceiro tipo,
+    UUID lancamentoOriginalId,
+    String motivo,
+    String usuarioResponsavelNome
 ) {
 }

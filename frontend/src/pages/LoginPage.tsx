@@ -11,7 +11,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [erro, setErro] = useState('');
-  const redirectTo = (location.state as { from?: string } | null)?.from || '/dashboard';
+  const redirectTo = (location.state as { from?: string } | null)?.from || '/app';
 
   const {
     register,
@@ -19,11 +19,11 @@ export function LoginPage() {
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: 'proprietario@jsboy.com', senha: 'admin123' },
+    defaultValues: { email: '', senha: '' },
   });
 
   if (autenticado) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/app" replace />;
   }
 
   async function onSubmit(data: LoginFormData) {
@@ -44,20 +44,19 @@ export function LoginPage() {
         <div className="siteContainer">
           <h1>Area do Cliente</h1>
           <section className="clientLoginCard">
-            <div className="clientTabs" aria-label="Area do cliente">
-              <button className="active" type="button">Entrar</button>
-              <button type="button">Criar conta</button>
+            <div className="clientTabs" aria-label="Acesso ao sistema">
+              <span className="active">Entrar</span>
             </div>
 
             <form className="clientLoginForm" onSubmit={handleSubmit(onSubmit)} noValidate>
               <label>
                 E-mail
-                <input type="email" {...register('email')} />
+                <input type="email" autoComplete="username" {...register('email')} />
                 {errors.email ? <span className="fieldError">{errors.email.message}</span> : null}
               </label>
               <label>
                 Senha
-                <input type="password" {...register('senha')} />
+                <input type="password" autoComplete="current-password" {...register('senha')} />
                 {errors.senha ? <span className="fieldError">{errors.senha.message}</span> : null}
               </label>
               {erro ? <p className="errorMessage">{erro}</p> : null}

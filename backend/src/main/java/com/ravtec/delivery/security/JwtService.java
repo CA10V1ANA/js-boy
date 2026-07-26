@@ -19,9 +19,17 @@ public class JwtService {
 
     public JwtService(
         @Value("${app.security.jwt-secret}") String jwtSecret,
-        @Value("${app.security.jwt-expiration-minutes:480}") long expirationMinutes
+        @Value("${app.security.jwt-expiration-minutes}") long expirationMinutes
     ) {
-        this.secretKey = Keys.hmacShaKeyFor(normalizeSecret(jwtSecret).getBytes(StandardCharsets.UTF_8));
+        if (jwtSecret == null || jwtSecret.isBlank()
+            || jwtSecret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException("JWT_SECRET deve possuir pelo menos 32 bytes");
+        }
+        if (expirationMinutes <= 0 || expirationMinutes > 60) {
+            throw new IllegalStateException("Expiracao do JWT deve estar entre 1 e 60 minutos");
+        }
+
+        this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
         this.expirationMinutes = expirationMinutes;
     }
 
@@ -31,7 +39,7 @@ public class JwtService {
         return Jwts.builder()
             .subject(principal.getUsername())
             .claim("nome", principal.getNome())
-            .claim("perfil", principal.getUsuario().getPerfil().name())
+            .claim("perfil", principal.getUsuario().getPerfilEfetivo().name())
             .issuedAt(Date.from(agora))
             .expiration(Date.from(agora.plusSeconds(expirationMinutes * 60)))
             .signWith(secretKey)
@@ -55,12 +63,4 @@ public class JwtService {
             .getPayload();
     }
 
-    private String normalizeSecret(String secret) {
-        if (secret.length() >= 32) {
-            return secret;
-        }
-
-        return (secret + "00000000000000000000000000000000").substring(0, 32);
-    }
 }
-

@@ -15,7 +15,7 @@ public record UsuarioAutenticadoResponse(
             usuario.getId(),
             usuario.getNome(),
             usuario.getEmail(),
-            usuario.getPerfil()
+            usuario.getPerfilEfetivo()
         );
     }
 }

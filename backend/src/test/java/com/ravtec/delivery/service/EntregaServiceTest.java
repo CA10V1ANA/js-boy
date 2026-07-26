@@ -3,6 +3,7 @@ package com.ravtec.delivery.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import com.ravtec.delivery.dto.DesignarEntregadorRequest;
@@ -23,6 +24,7 @@ import com.ravtec.delivery.repository.EntregaRepository;
 import com.ravtec.delivery.repository.EntregadorRepository;
 import com.ravtec.delivery.repository.HistoricoEntregaRepository;
 import com.ravtec.delivery.security.UsuarioPrincipal;
+import com.ravtec.delivery.security.IdentidadeAtual;
 import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
@@ -49,6 +51,8 @@ class EntregaServiceTest {
     private HistoricoEntregaRepository historicoEntregaRepository;
     @Mock
     private ConfiguracaoPrecoService configuracaoPrecoService;
+    @Mock
+    private IdentidadeAtual identidadeAtual;
 
     private EntregaService entregaService;
     private Usuario usuarioLogado;
@@ -57,7 +61,8 @@ class EntregaServiceTest {
     void setUp() {
         entregaService = new EntregaService(
             entregaRepository, clienteRepository, entregadorRepository,
-            historicoEntregaRepository, configuracaoPrecoService, new EntregaMapper()
+            historicoEntregaRepository, configuracaoPrecoService, new EntregaMapper(),
+            identidadeAtual, new EntregaStatusPolicy()
         );
 
         usuarioLogado = new Usuario();
@@ -71,6 +76,8 @@ class EntregaServiceTest {
         SecurityContextHolder.getContext().setAuthentication(
             new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities())
         );
+        lenient().when(identidadeAtual.principal()).thenReturn(principal);
+        lenient().when(identidadeAtual.usuario()).thenReturn(usuarioLogado);
     }
 
     @AfterEach
@@ -135,10 +142,9 @@ class EntregaServiceTest {
 
     @Test
     void deveNegarAlteracaoDeStatusQuandoEntregaNaoPertenceAoEntregadorLogado() {
-        var outroEntregador = criarEntregador();
         var entrega = criarEntrega();
-        entrega.setEntregador(outroEntregador);
-        when(entregaRepository.findById(entrega.getId())).thenReturn(Optional.of(entrega));
+        when(entregaRepository.findByIdAndEntregadorUsuarioId(entrega.getId(), usuarioLogado.getId()))
+            .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> entregaService.alterarStatusMinhaEntrega(entrega.getId(), new EntregaStatusRequest(StatusEntrega.COLETADA)))
             .isInstanceOf(RecursoNaoEncontradoException.class);
@@ -150,7 +156,8 @@ class EntregaServiceTest {
         entregador.setUsuario(usuarioLogado);
         var entrega = criarEntrega();
         entrega.setEntregador(entregador);
-        when(entregaRepository.findById(entrega.getId())).thenReturn(Optional.of(entrega));
+        when(entregaRepository.findByIdAndEntregadorUsuarioId(entrega.getId(), usuarioLogado.getId()))
+            .thenReturn(Optional.of(entrega));
 
         var response = entregaService.alterarStatusMinhaEntrega(entrega.getId(), new EntregaStatusRequest(StatusEntrega.COLETADA));
 
@@ -170,6 +177,7 @@ class EntregaServiceTest {
         entregador.setNome("Entregador Teste");
         entregador.setCpf("12345678900");
         entregador.setTelefone("11988887777");
+        entregador.setAtivo(true);
         return entregador;
     }
 

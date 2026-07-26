@@ -1,0 +1,123 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - "feat/**"
+      - "fix/**"
+      - "codex/**"
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      SPRING_PROFILES_ACTIVE: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      - name: Testar, validar migrations e empacotar
+        run: mvn -B -ntp clean verify
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalação reproduzível
+        run: npm ci
+
+      - name: Auditar dependências
+        run: npm audit --audit-level=high
+
+      - name: Executar testes
+        run: npm test
+
+      - name: Compilar TypeScript e Vite
+        run: npm run build
+
+  flutter:
+    name: Flutter canônico
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Flutter estável
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Restaurar dependências
+        run: flutter pub get
+
+      - name: Verificar lockfile
+        run: git diff --exit-code -- pubspec.lock
+
+      - name: Análise estática
+        run: flutter analyze
+
+      - name: Executar testes
+        run: flutter test
+
+      - name: Build Android de validação
+        run: flutter build apk --debug
+
+  infrastructure:
+    name: Configuração local
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      POSTGRES_DB: jsboy_ci
+      POSTGRES_USER: jsboy_ci
+      POSTGRES_PASSWORD: ci-only-not-a-production-secret
+      JWT_SECRET: ci-only-jwt-secret-with-at-least-32-characters
+      SEED_OWNER_EMAIL: owner@example.invalid
+      SEED_OWNER_PASSWORD: ci-only-owner-password
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validar Docker Compose
+        run: docker compose config --quiet

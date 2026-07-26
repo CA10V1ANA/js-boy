@@ -7,6 +7,9 @@ import com.ravtec.delivery.dto.ClienteRequest;
 import com.ravtec.delivery.dto.ClienteResponse;
 import com.ravtec.delivery.dto.LoginRequest;
 import com.ravtec.delivery.dto.LoginResponse;
+import com.ravtec.delivery.entity.PerfilAcesso;
+import com.ravtec.delivery.entity.Usuario;
+import com.ravtec.delivery.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,19 +17,37 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 class ClienteControllerIT extends AbstractIntegrationTest {
 
     @Autowired
     private TestRestTemplate restTemplate;
 
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     private String token;
+    private static final String OWNER_EMAIL = "owner-clientes-it@jsboy.test";
+    private static final String OWNER_PASSWORD = "senha-segura-it";
 
     @BeforeEach
     void autenticar() {
+        usuarioRepository.findByEmail(OWNER_EMAIL).orElseGet(() -> {
+            var usuario = new Usuario();
+            usuario.setNome("Proprietario Clientes IT");
+            usuario.setEmail(OWNER_EMAIL);
+            usuario.setSenhaHash(passwordEncoder.encode(OWNER_PASSWORD));
+            usuario.setPerfil(PerfilAcesso.PROPRIETARIO);
+            usuario.setAtivo(true);
+            return usuarioRepository.save(usuario);
+        });
         var login = restTemplate.postForEntity(
             "/auth/login",
-            new LoginRequest("proprietario@jsboy.com", "admin123"),
+            new LoginRequest(OWNER_EMAIL, OWNER_PASSWORD),
             LoginResponse.class
         );
         token = login.getBody().token();
@@ -55,7 +76,7 @@ class ClienteControllerIT extends AbstractIntegrationTest {
     void deveRejeitarAcessoSemToken() {
         var response = restTemplate.getForEntity("/clientes", String.class);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test

@@ -1,0 +1,92 @@
+.asyncState {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  padding: 28px;
+  text-align: center;
+  color: var(--body-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.asyncState.error { color: #8f271f; }
+.asyncState span { max-width: 560px; }
+.spin { animation: p1-spin 0.9s linear infinite; }
+@keyframes p1-spin { to { transform: rotate(360deg); } }
+
+.feedbackMessage {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+}
+.feedbackMessage.success { color: #245f38; background: #eaf7ee; }
+.feedbackMessage.error { color: #8f271f; background: #fff0ee; }
+
+.confirmDialog {
+  width: min(92vw, 460px);
+  max-height: min(86vh, 620px);
+  overflow-y: auto;
+  padding: 24px;
+  color: var(--ink);
+  background: var(--surface);
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.3);
+}
+.confirmDialog h2 { margin: 0 0 9px; font-family: var(--font-display); }
+.confirmDialog p { margin: 0; color: var(--body-2); line-height: 1.55; }
+.confirmActions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+.dangerButton { min-height: 44px; padding: 10px 16px; color: white; background: #a62d24; border: 0; border-radius: 9px; }
+
+.responsiveList { display: grid; gap: 12px; }
+.auditCard, .userCard {
+  display: grid;
+  grid-template-columns: minmax(190px, 1.2fr) minmax(250px, 2fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.auditCard > div, .userCard > div { display: grid; gap: 4px; min-width: 0; }
+.auditCard span, .userCard span { overflow-wrap: anywhere; color: var(--muted); font-size: 12px; }
+.auditCard dl, .userCard dl { display: flex; flex-wrap: wrap; gap: 14px 24px; margin: 0; }
+.auditCard dl div, .userCard dl div { display: grid; gap: 3px; }
+.auditCard dt, .userCard dt { color: var(--muted); font-size: 11px; text-transform: uppercase; }
+.auditCard dd, .userCard dd { margin: 0; color: var(--body-2); }
+.settingsForm { display: grid; gap: 20px; padding: 22px; }
+.formGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.formGrid label { display: grid; gap: 7px; }
+
+:focus-visible { outline: 3px solid #f3b51b; outline-offset: 2px; }
+button, a, input, select, textarea { min-height: 44px; }
+
+@media (max-width: 620px) {
+  .appHeader, .page { padding-inline: 14px; }
+  .page { padding-top: 18px; }
+  .pageHeaderActions, .filterBar, .listToolbar, .confirmActions { align-items: stretch; flex-direction: column; }
+  .pageHeaderActions > *, .filterBar > *, .listToolbar > *, .confirmActions > * { width: 100%; }
+  .formGrid, .modalFormGrid, .auditCard, .userCard { grid-template-columns: 1fr; }
+  .auditCard, .userCard { align-items: stretch; }
+  .modalPanel { width: calc(100vw - 20px); max-height: calc(100dvh - 20px); margin: 10px; }
+  .modalBody { overflow-y: auto; }
+  .tableWrap { overflow: visible; }
+  table.responsiveTable { min-width: 0; }
+  table.responsiveTable thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  table.responsiveTable, table.responsiveTable tbody, table.responsiveTable tr, table.responsiveTable td { display: block; width: 100%; }
+  table.responsiveTable tr { margin-bottom: 12px; padding: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+  table.responsiveTable td { display: grid; grid-template-columns: minmax(90px, 0.8fr) 1.2fr; gap: 8px; padding: 8px; border: 0; }
+  table.responsiveTable td::before { content: attr(data-label); color: var(--muted); font-size: 11px; font-weight: 700; text-transform: uppercase; }
+}
+
+@media (max-width: 360px) {
+  .siteHero h1 { font-size: 36px; }
+  .sidebar.open { width: min(92vw, 280px); }
+  .headerAvatarPill { display: none; }
+}

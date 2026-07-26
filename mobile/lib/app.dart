@@ -7,6 +7,9 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/login_page.dart';
 import 'features/shell/home_shell.dart';
 import 'services/services.dart';
+import 'services/offline_operation_service.dart';
+import 'services/external_actions_service.dart';
+import 'services/proof_queue_service.dart';
 import 'state/auth_controller.dart';
 
 class JsBoyApp extends StatelessWidget {
@@ -24,10 +27,12 @@ class JsBoyApp extends StatelessWidget {
         Provider(create: (_) => ClienteService(client)),
         Provider(create: (_) => EntregadorService(client)),
         Provider(create: (_) => EntregaService(client)),
+        Provider(create: (_) => OfflineOperationService(client)),
+        Provider(create: (_) => ExternalActionsService()),
+        Provider(create: (_) => ProofQueueService(client)),
         Provider(create: (_) => PagamentoService(client)),
         Provider(create: (_) => DashboardService(client)),
         Provider(create: (_) => ConfiguracaoPrecoService(client)),
-        Provider(create: (_) => FuncionarioService(client)),
         ChangeNotifierProvider(
           create: (context) => AuthController(
             storage: storage,
@@ -55,7 +60,8 @@ class _Root extends StatelessWidget {
 
     return switch (auth.status) {
       AuthStatus.carregando => const Scaffold(
-          body: Center(child: CircularProgressIndicator(color: AppColors.amber)),
+          body:
+              Center(child: CircularProgressIndicator(color: AppColors.amber)),
         ),
       AuthStatus.deslogado => const LoginPage(),
       AuthStatus.logado => const HomeShell(),

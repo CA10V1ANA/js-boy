@@ -30,6 +30,7 @@ public record EntregaResponse(
     StatusEntrega status,
     OffsetDateTime concluidaEm,
     OffsetDateTime criadoEm,
-    List<HistoricoEntregaResponse> historico
+    List<HistoricoEntregaResponse> historico,
+    Long versao
 ) {
 }

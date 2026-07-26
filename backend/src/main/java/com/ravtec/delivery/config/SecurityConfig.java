@@ -8,6 +8,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -20,34 +21,78 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import org.springframework.beans.factory.annotation.Value;
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsService userDetailsService;
 
+    @Value("${app.security.cors.allowed-origins:}")
+    private List<String> allowedOrigins;
+
+    @Value("${app.security.swagger-enabled:false}")
+    private boolean swaggerEnabled;
+
+    @Value("${app.security.h2-console-enabled:false}")
+    private boolean h2ConsoleEnabled;
+
+    @Value("${app.security.require-https:false}")
+    private boolean requireHttps;
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
+        http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authenticationProvider(authenticationProvider())
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/login", "/api/health", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                .requestMatchers("/h2-console/**").permitAll()
-                .requestMatchers("/entregas/minhas-entregas/**").hasRole("ENTREGADOR")
-                .requestMatchers("/clientes/**", "/dashboard/**").hasAnyRole("PROPRIETARIO", "FUNCIONARIO")
-                .requestMatchers("/entregadores/**", "/funcionarios/**", "/configuracoes/**", "/entregas/**", "/pagamentos/**").hasRole("PROPRIETARIO")
-                .anyRequest().authenticated()
-            )
-            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint((request, response, exception) ->
+                    response.sendError(401, "Autenticacao obrigatoria"))
+                .accessDeniedHandler((request, response, exception) ->
+                    response.sendError(403, "Acesso negado")))
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            .build();
+            .authorizeHttpRequests(auth -> {
+                auth.requestMatchers("/auth/login", "/api/health", "/public/**").permitAll();
+                if (swaggerEnabled) {
+                    auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll();
+                }
+                if (h2ConsoleEnabled) {
+                    auth.requestMatchers("/h2-console/**").permitAll();
+                }
+                auth.requestMatchers("/cliente/**").hasRole("CLIENTE");
+                auth.requestMatchers("/entregas/minhas-entregas/**").hasRole("ENTREGADOR");
+                auth.requestMatchers(
+                    "/clientes/**",
+                    "/entregadores/**",
+                    "/funcionarios/**",
+                    "/configuracoes/**",
+                    "/dashboard/**",
+                    "/entregas/**",
+                    "/pagamentos/**",
+                    "/contatos/**"
+                ).hasRole("PROPRIETARIO");
+                auth.anyRequest().authenticated();
+            })
+            .headers(headers -> headers.frameOptions(frame -> {
+                if (h2ConsoleEnabled) {
+                    frame.sameOrigin();
+                } else {
+                    frame.deny();
+                }
+            }));
+
+        if (requireHttps) {
+            http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
+        }
+
+        return http.build();
     }
 
     @Bean
@@ -71,9 +116,18 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         var configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://127.0.0.1:5173"));
+        configuration.setAllowedOrigins(allowedOrigins.stream()
+            .map(String::trim)
+            .filter(origin -> !origin.isBlank())
+            .toList());
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowedHeaders(List.of(
+            "Authorization",
+            "Content-Type",
+            "Idempotency-Key",
+            "X-Correlation-ID"
+        ));
+        configuration.setExposedHeaders(List.of("X-Correlation-ID", "Retry-After"));
         configuration.setAllowCredentials(true);
 
         var source = new UrlBasedCorsConfigurationSource();

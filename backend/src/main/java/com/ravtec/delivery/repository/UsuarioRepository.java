@@ -11,5 +11,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
     Optional<Usuario> findByEmail(String email);
 
     List<Usuario> findByPerfilOrderByNomeAsc(PerfilAcesso perfil);
-}
 
+    List<Usuario> findByPerfilInOrderByNomeAsc(List<PerfilAcesso> perfis);
+}

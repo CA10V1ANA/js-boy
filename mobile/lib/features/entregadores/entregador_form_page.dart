@@ -92,7 +92,7 @@ class _EntregadorFormPageState extends State<EntregadorFormPage> {
               Row(children: [
                 Expanded(
                   child: DropdownButtonFormField<TipoVeiculo>(
-                    value: _tipoVeiculo,
+                    initialValue: _tipoVeiculo,
                     decoration: const InputDecoration(labelText: 'Tipo de veiculo'),
                     items: [
                       for (final tipo in TipoVeiculo.values)
@@ -109,7 +109,7 @@ class _EntregadorFormPageState extends State<EntregadorFormPage> {
                 value: _disponivel,
                 onChanged: (value) => setState(() => _disponivel = value),
                 title: const Text('Disponivel para entregas'),
-                activeColor: AppColors.amber,
+                activeThumbColor: AppColors.amber,
                 contentPadding: EdgeInsets.zero,
               ),
               const SizedBox(height: 12),

@@ -8,9 +8,11 @@ class AuthService {
   final ApiClient client;
   AuthService(this.client);
 
-  Future<({String token, Usuario usuario})> login(String email, String senha) async {
+  Future<({String token, Usuario usuario})> login(
+      String email, String senha) async {
     try {
-      final response = await client.dio.post('/auth/login', data: {'email': email, 'senha': senha});
+      final response = await client.dio
+          .post('/auth/login', data: {'email': email, 'senha': senha});
       final data = response.data as Map<String, dynamic>;
       return (
         token: data['token'] as String,
@@ -43,6 +45,15 @@ class ClienteService {
       return (response.data as List<dynamic>)
           .map((item) => Cliente.fromJson(item as Map<String, dynamic>))
           .toList();
+    } catch (error) {
+      throw client.translate(error);
+    }
+  }
+
+  Future<Cliente> meuCadastro() async {
+    try {
+      final response = await client.dio.get('/cliente/me');
+      return Cliente.fromJson(response.data as Map<String, dynamic>);
     } catch (error) {
       throw client.translate(error);
     }
@@ -100,7 +111,8 @@ class EntregadorService {
 
   Future<void> alterarStatus(String id, bool ativo) async {
     try {
-      await client.dio.patch('/entregadores/$id/status', data: {'ativo': ativo});
+      await client.dio
+          .patch('/entregadores/$id/status', data: {'ativo': ativo});
     } catch (error) {
       throw client.translate(error);
     }
@@ -108,7 +120,8 @@ class EntregadorService {
 
   Future<void> criarAcesso(String id, String email, String senha) async {
     try {
-      await client.dio.post('/entregadores/$id/acesso', data: {'email': email, 'senha': senha});
+      await client.dio.post('/entregadores/$id/acesso',
+          data: {'email': email, 'senha': senha});
     } catch (error) {
       throw client.translate(error);
     }
@@ -143,6 +156,17 @@ class EntregaService {
     }
   }
 
+  Future<List<Entrega>> entregasDoCliente() async {
+    try {
+      final response = await client.dio.get('/cliente/entregas');
+      return (response.data as List<dynamic>)
+          .map((item) => Entrega.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } catch (error) {
+      throw client.translate(error);
+    }
+  }
+
   Future<void> salvar({String? id, required Map<String, dynamic> dados}) async {
     try {
       if (id != null) {
@@ -157,15 +181,18 @@ class EntregaService {
 
   Future<void> alterarStatus(String id, StatusEntrega status) async {
     try {
-      await client.dio.patch('/entregas/$id/status', data: {'status': status.api});
+      await client.dio
+          .patch('/entregas/$id/status', data: {'status': status.api});
     } catch (error) {
       throw client.translate(error);
     }
   }
 
-  Future<void> alterarStatusMinhaEntrega(String id, StatusEntrega status) async {
+  Future<void> alterarStatusMinhaEntrega(
+      String id, StatusEntrega status) async {
     try {
-      await client.dio.patch('/entregas/minhas-entregas/$id/status', data: {'status': status.api});
+      await client.dio.patch('/entregas/minhas-entregas/$id/status',
+          data: {'status': status.api});
     } catch (error) {
       throw client.translate(error);
     }
@@ -173,7 +200,8 @@ class EntregaService {
 
   Future<void> designarEntregador(String id, String entregadorId) async {
     try {
-      await client.dio.patch('/entregas/$id/entregador', data: {'entregadorId': entregadorId});
+      await client.dio.patch('/entregas/$id/entregador',
+          data: {'entregadorId': entregadorId});
     } catch (error) {
       throw client.translate(error);
     }
@@ -195,10 +223,22 @@ class PagamentoService {
     }
   }
 
+  Future<List<Pagamento>> pagamentosDoCliente() async {
+    try {
+      final response = await client.dio.get('/cliente/pagamentos');
+      return (response.data as List<dynamic>)
+          .map((item) => Pagamento.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } catch (error) {
+      throw client.translate(error);
+    }
+  }
+
   Future<RelatorioFinanceiro> relatorio() async {
     try {
       final response = await client.dio.get('/pagamentos/relatorio');
-      return RelatorioFinanceiro.fromJson(response.data as Map<String, dynamic>);
+      return RelatorioFinanceiro.fromJson(
+          response.data as Map<String, dynamic>);
     } catch (error) {
       throw client.translate(error);
     }
@@ -240,7 +280,10 @@ class ConfiguracaoPrecoService {
     }
   }
 
-  Future<void> atualizar({required double taxaInicial, required double valorPorKm, required double valorMinimo}) async {
+  Future<void> atualizar(
+      {required double taxaInicial,
+      required double valorPorKm,
+      required double valorMinimo}) async {
     try {
       await client.dio.put('/configuracoes/preco', data: {
         'taxaInicial': taxaInicial,
@@ -268,9 +311,13 @@ class FuncionarioService {
     }
   }
 
-  Future<void> criar({required String nome, required String email, required String senha}) async {
+  Future<void> criar(
+      {required String nome,
+      required String email,
+      required String senha}) async {
     try {
-      await client.dio.post('/funcionarios', data: {'nome': nome, 'email': email, 'senha': senha});
+      await client.dio.post('/funcionarios',
+          data: {'nome': nome, 'email': email, 'senha': senha});
     } catch (error) {
       throw client.translate(error);
     }
@@ -278,7 +325,8 @@ class FuncionarioService {
 
   Future<void> alterarStatus(String id, bool ativo) async {
     try {
-      await client.dio.patch('/funcionarios/$id/status', data: {'ativo': ativo});
+      await client.dio
+          .patch('/funcionarios/$id/status', data: {'ativo': ativo});
     } catch (error) {
       throw client.translate(error);
     }

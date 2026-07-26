@@ -267,7 +267,7 @@ class _EntregaWizardPageState extends State<_EntregaWizardPage> {
       0 => Column(
           children: [
             DropdownButtonFormField<String>(
-              value: _clienteId,
+              initialValue: _clienteId,
               decoration: const InputDecoration(labelText: 'Cliente'),
               items: [
                 for (final cliente in _clientes)
@@ -278,7 +278,7 @@ class _EntregaWizardPageState extends State<_EntregaWizardPage> {
             ),
             const SizedBox(height: 14),
             DropdownButtonFormField<String?>(
-              value: _entregadorId,
+              initialValue: _entregadorId,
               decoration: const InputDecoration(labelText: 'Entregador (opcional)'),
               items: [
                 const DropdownMenuItem<String?>(value: null, child: Text('Sem entregador')),

@@ -1,3 +1,5 @@
+import { PerfilAcesso } from '../types';
+
 // Fonte unica das chaves e do acesso ao armazenamento da sessao.
 // Sem dependencias de api/React para poder ser usado por qualquer camada
 // (interceptors, contexto, guards) sem risco de import circular.
@@ -9,8 +11,20 @@ export type UsuarioAutenticado = {
   id: string;
   nome: string;
   email: string;
-  perfil: 'PROPRIETARIO' | 'ENTREGADOR' | 'FUNCIONARIO';
+  perfil: PerfilAcesso;
 };
+
+const perfis: PerfilAcesso[] = ['PROPRIETARIO', 'ENTREGADOR', 'CLIENTE', 'FUNCIONARIO'];
+
+function isStoredUser(value: unknown): value is UsuarioAutenticado {
+  if (!value || typeof value !== 'object') return false;
+  const user = value as Partial<UsuarioAutenticado>;
+  return typeof user.id === 'string'
+    && typeof user.nome === 'string'
+    && typeof user.email === 'string'
+    && typeof user.perfil === 'string'
+    && perfis.includes(user.perfil as PerfilAcesso);
+}
 
 export function getStoredToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
@@ -24,7 +38,12 @@ export function getStoredUser(): UsuarioAutenticado | null {
   }
 
   try {
-    return JSON.parse(raw) as UsuarioAutenticado;
+    const parsed: unknown = JSON.parse(raw);
+    if (!isStoredUser(parsed)) {
+      localStorage.removeItem(USER_KEY);
+      return null;
+    }
+    return parsed;
   } catch {
     localStorage.removeItem(USER_KEY);
     return null;

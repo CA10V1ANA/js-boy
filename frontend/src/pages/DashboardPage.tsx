@@ -1,4 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import {
   BarChart3,
   Clock,
@@ -7,28 +6,21 @@ import {
   Package,
   Plus,
   Truck,
-  UserCog,
   UserPlus,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import { RowMenu } from '../components/RowMenu';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { api } from '../services/api';
-import { funcionarioSchema, FuncionarioFormData } from '../schemas/funcionarioSchema';
 import {
   DashboardResumo,
   Entrega,
   FormaPagamento,
-  Funcionario,
   Pagamento,
   RelatorioFinanceiro,
   StatusEntrega,
 } from '../types';
-
-const emptyFuncionarioForm: FuncionarioFormData = { nome: '', email: '', senha: '' };
 
 const emptyResumo: DashboardResumo = {
   totalEntregas: 0,
@@ -104,18 +96,7 @@ export function DashboardPage() {
   const [relatorio, setRelatorio] = useState<RelatorioFinanceiro>(emptyRelatorio);
   const [entregas, setEntregas] = useState<Entrega[]>([]);
   const [pagamentos, setPagamentos] = useState<Pagamento[]>([]);
-  const [funcionarios, setFuncionarios] = useState<Funcionario[]>([]);
   const [agora, setAgora] = useState(new Date());
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<FuncionarioFormData>({
-    resolver: zodResolver(funcionarioSchema),
-    defaultValues: emptyFuncionarioForm,
-  });
 
   useEffect(() => {
     const timer = setInterval(() => setAgora(new Date()), 30_000);
@@ -126,7 +107,6 @@ export function DashboardPage() {
     carregarResumo();
     if (ehProprietario) {
       carregarFinanceiro();
-      carregarFuncionarios();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -152,36 +132,6 @@ export function DashboardPage() {
       setPagamentos(pagamentosResponse.data);
     } catch {
       showToast('Nao foi possivel carregar os dados da operacao.', 'error');
-    }
-  }
-
-  async function carregarFuncionarios() {
-    try {
-      const response = await api.get<Funcionario[]>('/funcionarios');
-      setFuncionarios(response.data);
-    } catch {
-      showToast('Nao foi possivel carregar os funcionarios.', 'error');
-    }
-  }
-
-  async function onSubmitFuncionario(data: FuncionarioFormData) {
-    try {
-      await api.post('/funcionarios', data);
-      showToast('Acesso de funcionario criado com sucesso.', 'success');
-      reset(emptyFuncionarioForm);
-      await carregarFuncionarios();
-    } catch {
-      showToast('Nao foi possivel criar o acesso. Verifique se o e-mail ja existe.', 'error');
-    }
-  }
-
-  async function alterarStatusFuncionario(funcionario: Funcionario) {
-    try {
-      await api.patch(`/funcionarios/${funcionario.id}/status`, { ativo: !funcionario.ativo });
-      showToast(funcionario.ativo ? 'Funcionario desativado.' : 'Funcionario ativado.', 'success');
-      await carregarFuncionarios();
-    } catch {
-      showToast('Nao foi possivel alterar o status do funcionario.', 'error');
     }
   }
 
@@ -437,65 +387,6 @@ export function DashboardPage() {
         ) : null}
       </div>
 
-      {ehProprietario ? (
-        <section className="adminGrid dashboardStaff">
-          <form className="adminForm" onSubmit={handleSubmit(onSubmitFuncionario)} noValidate>
-            <h2><UserCog size={18} /> Acesso de funcionarios</h2>
-            <p className="formHint">Funcionarios acessam apenas o Dashboard e a area de Clientes.</p>
-            <label>
-              Nome
-              <input {...register('nome')} />
-              {errors.nome ? <span className="fieldError">{errors.nome.message}</span> : null}
-            </label>
-            <label>
-              E-mail
-              <input type="email" {...register('email')} />
-              {errors.email ? <span className="fieldError">{errors.email.message}</span> : null}
-            </label>
-            <label>
-              Senha inicial
-              <input type="password" {...register('senha')} />
-              {errors.senha ? <span className="fieldError">{errors.senha.message}</span> : null}
-            </label>
-            <div className="adminActions">
-              <button className="primaryButton" disabled={isSubmitting} type="submit">Criar acesso</button>
-            </div>
-          </form>
-
-          <section className="adminList">
-            <h2 className="listTitle">Funcionarios cadastrados</h2>
-            <div className="tableWrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Nome</th>
-                    <th>E-mail</th>
-                    <th>Status</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {funcionarios.map((funcionario) => (
-                    <tr key={funcionario.id}>
-                      <td>{funcionario.nome}</td>
-                      <td>{funcionario.email}</td>
-                      <td><span className={funcionario.ativo ? 'statusBadge active' : 'statusBadge'}>{funcionario.ativo ? 'Ativo' : 'Inativo'}</span></td>
-                      <td>
-                        <RowMenu
-                          items={[
-                            { label: funcionario.ativo ? 'Desativar' : 'Ativar', onClick: () => alterarStatusFuncionario(funcionario), danger: funcionario.ativo },
-                          ]}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                  {funcionarios.length === 0 ? <tr><td colSpan={4}>Nenhum funcionario cadastrado.</td></tr> : null}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </section>
-      ) : null}
     </main>
   );
 }

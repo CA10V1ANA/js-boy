@@ -1,26 +1,39 @@
-# Flutter/Dart
-.dart_tool/
-.packages
-build/
-.flutter-plugins
-.flutter-plugins-dependencies
-pubspec.lock
-
-# Dependencias/builds
-node_modules/
-target/
-dist/
+# Dependências e artefatos de build
+**/node_modules/
+**/target/
+**/dist/
+**/build/
 graphify-out/
+coverage/
+*.log
 
-# Plataformas (regenerados por `flutter create .`)
-# Remova estas linhas se quiser versionar as pastas de plataforma
-# android/
-# ios/
+# Flutter/Dart (pubspec.lock é versionado em aplicações)
+**/.dart_tool/
+**/.packages
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.pub-cache/
 
-# IDE
+# Dados locais
+backend/data/
+*.mv.db
+*.trace.db
+
+# IDE e sistema operacional
 .idea/
 *.iml
 .vscode/
+.DS_Store
+Thumbs.db
 
-# Ambiente
-*.env
+# Ambiente e segredos
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+*.jks
+*.keystore
+*.p12
+*.pem

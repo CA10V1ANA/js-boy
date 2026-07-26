@@ -119,7 +119,7 @@ class HistoricoEntrega {
             ? StatusEntrega.fromApi(json['statusAnterior'] as String)
             : null,
         novoStatus: StatusEntrega.fromApi(json['novoStatus'] as String),
-        usuarioResponsavelNome: json['usuarioResponsavelNome'] as String,
+        usuarioResponsavelNome: json['usuarioResponsavelNome'] as String? ?? 'JS Boy',
         alteradoEm: DateTime.parse(json['alteradoEm'] as String),
       );
 }
@@ -172,8 +172,8 @@ class Entrega {
   factory Entrega.fromJson(Map<String, dynamic> json) => Entrega(
         id: json['id'] as String,
         codigo: json['codigo'] as String,
-        clienteId: json['clienteId'] as String,
-        clienteNome: json['clienteNome'] as String,
+        clienteId: json['clienteId'] as String? ?? '',
+        clienteNome: json['clienteNome'] as String? ?? '',
         entregadorId: json['entregadorId'] as String?,
         entregadorNome: json['entregadorNome'] as String?,
         enderecoOrigem: json['enderecoOrigem'] as String,
@@ -181,7 +181,7 @@ class Entrega {
         enderecoDestino: json['enderecoDestino'] as String,
         bairroDestino: json['bairroDestino'] as String,
         destinatarioNome: json['destinatarioNome'] as String,
-        destinatarioTelefone: json['destinatarioTelefone'] as String,
+        destinatarioTelefone: json['destinatarioTelefone'] as String? ?? '',
         descricaoMercadoria: json['descricaoMercadoria'] as String,
         observacoes: json['observacoes'] as String?,
         distanciaKm: _toDouble(json['distanciaKm']),
@@ -222,7 +222,7 @@ class Pagamento {
         id: json['id'] as String,
         entregaId: json['entregaId'] as String,
         entregaCodigo: json['entregaCodigo'] as String,
-        clienteNome: json['clienteNome'] as String,
+        clienteNome: json['clienteNome'] as String? ?? '',
         valor: _toDouble(json['valor']),
         formaPagamento: FormaPagamento.fromApi(json['formaPagamento'] as String),
         pagoEm: DateTime.parse(json['pagoEm'] as String),
@@ -251,7 +251,7 @@ class PendenciaFinanceira {
   factory PendenciaFinanceira.fromJson(Map<String, dynamic> json) => PendenciaFinanceira(
         entregaId: json['entregaId'] as String,
         entregaCodigo: json['entregaCodigo'] as String,
-        clienteNome: json['clienteNome'] as String,
+        clienteNome: json['clienteNome'] as String? ?? '',
         valorEntrega: _toDouble(json['valorEntrega']),
         valorPago: _toDouble(json['valorPago']),
         valorPendente: _toDouble(json['valorPendente']),

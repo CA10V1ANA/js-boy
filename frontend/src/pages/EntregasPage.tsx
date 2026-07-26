@@ -169,7 +169,7 @@ export function EntregasPage() {
 
     try {
       if (editingId) {
-        await api.put(`/entregas/${editingId}`, payload);
+        await api.put(`/entregas/${editingId}`, payload, { headers: { 'If-Match': String(entregas.find((item) => item.id === editingId)?.versao ?? 0) } });
         showToast('Entrega atualizada.', 'success');
       } else {
         await api.post('/entregas', payload);
@@ -185,7 +185,7 @@ export function EntregasPage() {
 
   async function alterarStatus(entrega: Entrega, status: StatusEntrega) {
     try {
-      await api.patch(`/entregas/${entrega.id}/status`, { status });
+      await api.patch(`/entregas/${entrega.id}/status`, { status }, { headers: { 'If-Match': String(entrega.versao) } });
       showToast('Status atualizado.', 'success');
       await carregarEntregas();
     } catch {
@@ -195,7 +195,7 @@ export function EntregasPage() {
 
   async function designar(entrega: Entrega, entregadorId: string) {
     try {
-      await api.patch(`/entregas/${entrega.id}/entregador`, { entregadorId });
+      await api.patch(`/entregas/${entrega.id}/entregador`, { entregadorId }, { headers: { 'If-Match': String(entrega.versao) } });
       showToast('Entregador designado.', 'success');
       await carregarEntregas();
     } catch {

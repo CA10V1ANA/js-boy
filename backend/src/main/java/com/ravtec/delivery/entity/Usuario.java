@@ -33,5 +33,14 @@ public class Usuario extends BaseEntity {
 
     @OneToOne(mappedBy = "usuario")
     private Entregador entregador;
-}
 
+    @OneToOne(mappedBy = "usuario")
+    private Cliente cliente;
+
+    public PerfilAcesso getPerfilEfetivo() {
+        if (perfil == PerfilAcesso.FUNCIONARIO && entregador != null) {
+            return PerfilAcesso.ENTREGADOR;
+        }
+        return perfil;
+    }
+}

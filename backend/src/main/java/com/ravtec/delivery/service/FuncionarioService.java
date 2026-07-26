@@ -10,41 +10,32 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Deprecated(forRemoval = false)
 public class FuncionarioService {
 
     private final UsuarioRepository usuarioRepository;
-    private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public List<FuncionarioResponse> listar() {
-        return usuarioRepository.findByPerfilOrderByNomeAsc(PerfilAcesso.FUNCIONARIO).stream()
+        return usuarioRepository.findByPerfilInOrderByNomeAsc(
+                List.of(PerfilAcesso.ENTREGADOR, PerfilAcesso.FUNCIONARIO)
+            ).stream()
+            .filter(usuario -> usuario.getEntregador() != null)
             .map(this::toResponse)
             .toList();
     }
 
     @Transactional
     public FuncionarioResponse criar(FuncionarioRequest request) {
-        if (usuarioRepository.findByEmail(request.email()).isPresent()) {
-            throw new IllegalArgumentException("E-mail ja cadastrado");
-        }
-
-        var usuario = new Usuario();
-        usuario.setNome(request.nome());
-        usuario.setEmail(request.email());
-        usuario.setSenhaHash(passwordEncoder.encode(request.senha()));
-        usuario.setPerfil(PerfilAcesso.FUNCIONARIO);
-        usuario.setAtivo(true);
-
-        var salvo = usuarioRepository.save(usuario);
-        log.info("Acesso de funcionario criado: id={} email={}", salvo.getId(), salvo.getEmail());
-        return toResponse(salvo);
+        throw new IllegalStateException(
+            "FUNCIONARIO foi descontinuado; cadastre um entregador e crie seu acesso"
+        );
     }
 
     @Transactional
@@ -59,7 +50,9 @@ public class FuncionarioService {
         var usuario = usuarioRepository.findById(id)
             .orElseThrow(() -> new RecursoNaoEncontradoException("Funcionario nao encontrado"));
 
-        if (usuario.getPerfil() != PerfilAcesso.FUNCIONARIO) {
+        if ((usuario.getPerfil() != PerfilAcesso.FUNCIONARIO
+            && usuario.getPerfil() != PerfilAcesso.ENTREGADOR)
+            || usuario.getEntregador() == null) {
             throw new RecursoNaoEncontradoException("Funcionario nao encontrado");
         }
 

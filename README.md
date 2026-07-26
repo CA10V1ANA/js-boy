@@ -43,7 +43,7 @@ A URL da API entra por `--dart-define` (padrão: `http://10.0.2.2:8080`):
 
 > **Android + HTTP**: em desenvolvimento, se a API for `http://` (sem TLS), adicione `android:usesCleartextTraffic="true"` na tag `<application>` de `android/app/src/main/AndroidManifest.xml` (a pasta existe após o passo 1).
 
-Login de teste (seed do backend): `proprietario@jsboy.com` / `admin123`.
+O acesso local e criado somente quando `SEED_OWNER_EMAIL` e `SEED_OWNER_PASSWORD` sao informados explicitamente; nao ha credenciais padrao.
 
 ### Rodar direto no celular físico (Windows)
 

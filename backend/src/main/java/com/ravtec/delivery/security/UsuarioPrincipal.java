@@ -34,7 +34,11 @@ public class UsuarioPrincipal implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + usuario.getPerfil().name()));
+        if (usuario.getPerfil() == com.ravtec.delivery.entity.PerfilAcesso.FUNCIONARIO
+            && usuario.getEntregador() == null) {
+            return List.of();
+        }
+        return List.of(new SimpleGrantedAuthority("ROLE_" + usuario.getPerfilEfetivo().name()));
     }
 
     @Override
@@ -67,4 +71,3 @@ public class UsuarioPrincipal implements UserDetails {
         return true;
     }
 }
-

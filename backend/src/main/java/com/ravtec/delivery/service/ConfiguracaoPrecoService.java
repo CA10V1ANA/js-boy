@@ -8,15 +8,19 @@ import com.ravtec.delivery.entity.ConfiguracaoPreco;
 import com.ravtec.delivery.repository.ConfiguracaoPrecoRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class ConfiguracaoPrecoService {
-
     private final ConfiguracaoPrecoRepository configuracaoPrecoRepository;
+    private final VersionamentoService versionamento = new VersionamentoService();
+    @Autowired(required = false)
+    private AuditoriaService auditoriaService;
 
     @Transactional(readOnly = true)
     public ConfiguracaoPrecoResponse consultar() {
@@ -25,10 +29,21 @@ public class ConfiguracaoPrecoService {
 
     @Transactional
     public ConfiguracaoPrecoResponse atualizar(ConfiguracaoPrecoRequest request) {
+        return atualizar(request, null);
+    }
+
+    @Transactional
+    public ConfiguracaoPrecoResponse atualizar(ConfiguracaoPrecoRequest request, Long versao) {
         var config = buscarAtual();
+        versionamento.validar(versao, config.getVersion());
+        var anterior = resumo(config);
         config.setTaxaInicial(normalizar(request.taxaInicial()));
         config.setValorPorKm(normalizar(request.valorPorKm()));
         config.setValorMinimo(normalizar(request.valorMinimo()));
+        if (auditoriaService != null) {
+            auditoriaService.registrar("PRECO_ALTERADO", "CONFIGURACAO_PRECO", config.getId(),
+                anterior, resumo(config), null);
+        }
         return toResponse(config);
     }
 
@@ -36,13 +51,9 @@ public class ConfiguracaoPrecoService {
     public SimulacaoPrecoResponse simular(SimulacaoPrecoRequest request) {
         var config = buscarAtual();
         var distancia = normalizar(request.distanciaKm());
-        var valor = calcularValor(config, distancia);
         return new SimulacaoPrecoResponse(
-            distancia,
-            config.getTaxaInicial(),
-            config.getValorPorKm(),
-            config.getValorMinimo(),
-            valor
+            distancia, config.getTaxaInicial(), config.getValorPorKm(),
+            config.getValorMinimo(), calcularValor(config, distancia)
         );
     }
 
@@ -52,18 +63,19 @@ public class ConfiguracaoPrecoService {
     }
 
     public ConfiguracaoPreco buscarAtual() {
-        return configuracaoPrecoRepository.findAll().stream()
-            .findFirst()
+        return configuracaoPrecoRepository.findAll().stream().findFirst()
             .orElseThrow(() -> new IllegalStateException("Configuracao de preco nao encontrada"));
     }
 
     private ConfiguracaoPrecoResponse toResponse(ConfiguracaoPreco config) {
         return new ConfiguracaoPrecoResponse(
-            config.getId(),
-            config.getTaxaInicial(),
-            config.getValorPorKm(),
-            config.getValorMinimo()
+            config.getId(), config.getTaxaInicial(), config.getValorPorKm(), config.getValorMinimo(), config.getVersion()
         );
+    }
+
+    private Map<String, BigDecimal> resumo(ConfiguracaoPreco config) {
+        return Map.of("taxaInicial", config.getTaxaInicial(), "valorPorKm", config.getValorPorKm(),
+            "valorMinimo", config.getValorMinimo());
     }
 
     private BigDecimal normalizar(BigDecimal valor) {

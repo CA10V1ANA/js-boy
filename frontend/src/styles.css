@@ -44,11 +44,23 @@
 body {
   margin: 0;
   min-width: 320px;
+  overflow-x: hidden;
 }
 
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(210, 150, 14, 0.45);
+  outline-offset: 2px;
 }
 
 a {
@@ -659,6 +671,12 @@ a {
   font-size: 28px;
 }
 
+.quoteForm > p {
+  margin: -12px 0 4px;
+  color: #475569;
+  line-height: 1.5;
+}
+
 .quoteForm label {
   display: grid;
   gap: 7px;
@@ -689,6 +707,35 @@ a {
   border: 0;
   border-radius: 8px;
   font-weight: 900;
+  cursor: pointer;
+}
+
+.quoteForm button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.optionalLabel {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.honeypotField {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.contactFallback {
+  margin: 0;
+  padding: 16px;
+  color: #334155;
+  background: #ffffff;
+  border: 1px solid #dcdcdc;
+  border-radius: 8px;
 }
 
 .siteFooter {
@@ -768,7 +815,7 @@ a {
 
 .clientTabs {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 4px;
   padding: 4px;
   margin-bottom: 28px;
@@ -776,16 +823,17 @@ a {
   border-radius: 8px;
 }
 
-.clientTabs button {
+.clientTabs span {
+  display: grid;
+  place-items: center;
   min-height: 30px;
   border: 0;
   border-radius: 7px;
   background: transparent;
   font-weight: 800;
-  cursor: pointer;
 }
 
-.clientTabs button.active {
+.clientTabs span.active {
   background: #ffffff;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
 }
@@ -840,6 +888,30 @@ a {
   padding: 20px 15px;
   color: #f6f2e9;
   background: var(--panel-dark);
+}
+
+.sidebarClose,
+.sidebarBackdrop {
+  display: none;
+}
+
+.sideLogout {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  color: #8b8578;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.sideLogout:hover {
+  color: #f6f2e9;
+  background: #332d22;
 }
 
 .brand,
@@ -1116,6 +1188,30 @@ a {
   background: #ffffff;
   border: 1px solid var(--head-border);
   border-radius: 11px;
+  flex: 0 0 auto !important;
+}
+
+.headerLogoutButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 8px;
+  color: var(--body-2);
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.headerLogoutButton:hover {
+  background: var(--surface-input);
+}
+
+.headerLogoutButton span {
+  margin: 0;
+  color: inherit;
+  font-weight: 700;
 }
 
 .page {
@@ -2586,6 +2682,100 @@ tbody tr:hover {
   font-weight: 800;
 }
 
+.clientPortal {
+  display: grid;
+  gap: 18px;
+}
+
+.portalAccount {
+  padding: 18px 20px;
+}
+
+.portalAccount .panelCardHeader {
+  padding: 0 0 16px;
+}
+
+.portalDetails {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0;
+}
+
+.portalDetails div {
+  padding: 12px;
+  background: var(--surface-input);
+  border-radius: 10px;
+}
+
+.portalDetails dt {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.portalDetails dd {
+  margin: 5px 0 0;
+  color: var(--ink);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.portalDeliveries {
+  padding: 0 18px 18px;
+}
+
+.portalDeliveries .deliveryCard dl {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.portalPayments {
+  display: grid;
+  padding: 0 18px 18px;
+}
+
+.portalPayments article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--row-divider);
+}
+
+.portalPayments article > div {
+  display: grid;
+  gap: 4px;
+}
+
+.portalPayments article span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.portalContacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin: 0;
+  padding: 0 18px 18px;
+  list-style: none;
+}
+
+.portalContacts li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--body-2);
+}
+
+.portalNotice {
+  margin: 0;
+  padding: 0 18px 18px;
+  color: var(--body-2);
+}
+
 @media (max-width: 980px) {
   .siteHeaderInner {
     grid-template-columns: 1fr auto;
@@ -2636,6 +2826,40 @@ tbody tr:hover {
     display: none;
   }
 
+  .sidebar.open {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 60;
+    display: flex;
+    width: min(86vw, 280px);
+    box-shadow: 18px 0 50px rgba(0, 0, 0, 0.32);
+  }
+
+  .sidebarBackdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    background: rgba(16, 16, 16, 0.55);
+    border: 0;
+  }
+
+  .sidebarClose {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    margin-left: auto;
+    color: #f6f2e9;
+    background: transparent;
+    border: 1px solid #3a3429;
+    border-radius: 9px;
+  }
+
   .iconButton {
     display: inline-grid;
     place-items: center;
@@ -2651,7 +2875,8 @@ tbody tr:hover {
   }
 
   .inlineAccessForm,
-  .deliveryCard dl {
+  .deliveryCard dl,
+  .portalDeliveries .deliveryCard dl {
     grid-template-columns: 1fr;
   }
 }
@@ -2742,6 +2967,34 @@ tbody tr:hover {
   .appHeader,
   .page {
     padding-inline: 18px;
+  }
+
+  .appHeader {
+    gap: 10px;
+  }
+
+  .appHeaderLeft > div > span {
+    display: none;
+  }
+
+  .appHeader strong {
+    font-size: 18px;
+  }
+
+  .headerAvatarPill {
+    padding: 0 6px;
+  }
+
+  .headerLogoutButton span {
+    display: none;
+  }
+
+  .portalDetails {
+    grid-template-columns: 1fr;
+  }
+
+  .portalPayments article {
+    align-items: flex-start;
   }
 
   .headerLogout {

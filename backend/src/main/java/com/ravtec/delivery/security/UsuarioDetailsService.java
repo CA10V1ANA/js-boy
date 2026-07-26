@@ -1,6 +1,7 @@
 package com.ravtec.delivery.security;
 
 import com.ravtec.delivery.repository.UsuarioRepository;
+import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -15,9 +16,9 @@ public class UsuarioDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) {
-        return usuarioRepository.findByEmail(username)
+        var email = username == null ? "" : username.trim().toLowerCase(Locale.ROOT);
+        return usuarioRepository.findByEmail(email)
             .map(UsuarioPrincipal::new)
             .orElseThrow(() -> new UsernameNotFoundException("Usuario nao encontrado"));
     }
 }
-

@@ -15,6 +15,7 @@ public record EntregadorResponse(
     boolean ativo,
     boolean disponivel,
     boolean possuiAcesso,
-    OffsetDateTime criadoEm
+    OffsetDateTime criadoEm,
+    Long versao
 ) {
 }

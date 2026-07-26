@@ -7,6 +7,7 @@ public record ConfiguracaoPrecoResponse(
     UUID id,
     BigDecimal taxaInicial,
     BigDecimal valorPorKm,
-    BigDecimal valorMinimo
+    BigDecimal valorMinimo,
+    Long versao
 ) {
 }
