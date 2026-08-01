@@ -39,6 +39,24 @@ export type Entrega = {
   taxaRetornoAplicada: number; tempoEsperaMinutos: number; taxaEsperaAplicada: number; valorNegociado?: number;
   historico: HistoricoEntrega[]; versao: number;
 };
+export type EntregaOperacional = {
+  id: string; codigo: string; clienteNome: string; enderecoOrigem: string; bairroOrigem: string;
+  enderecoDestino: string; bairroDestino: string; destinatarioNome: string; destinatarioTelefone: string;
+  descricaoMercadoria: string; observacoes?: string; valorFinal: number; status: StatusEntrega;
+  concluidaEm?: string; criadoEm: string;
+  historico: Array<{ statusAnterior?: StatusEntrega; novoStatus: StatusEntrega; alteradoEm: string }>;
+  versao: number;
+};
+export type EntregaCliente = {
+  id: string; codigo: string; enderecoOrigem: string; bairroOrigem: string; enderecoDestino: string;
+  bairroDestino: string; destinatarioNome: string; descricaoMercadoria: string; valorFinal: number;
+  status: StatusEntrega; concluidaEm?: string; criadoEm: string;
+  historico: Array<{ statusAnterior?: StatusEntrega; novoStatus: StatusEntrega; alteradoEm: string }>;
+};
+export type ResumoEntregador = {
+  entregasAtivas: number; emRota: number; concluidasHoje: number;
+  valorMovimentadoHoje: number; documentacaoPendente: number;
+};
 export type EntregaForm = {
   clienteId: string; entregadorId: string; enderecoOrigem: string; bairroOrigem: string;
   enderecoDestino: string; bairroDestino: string; destinatarioNome: string; destinatarioTelefone: string;

@@ -1,0 +1,413 @@
+.rolePortal {
+  display: grid;
+  gap: 18px;
+}
+
+.roleHero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 26px;
+  overflow: hidden;
+  background: linear-gradient(120deg, #ffffff 0%, #fffaf0 100%);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  box-shadow: 0 2px 8px rgba(30, 25, 15, 0.04);
+}
+
+.roleHero h2 {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2.4vw, 30px);
+  line-height: 1.15;
+}
+
+.roleHero p,
+.roleListHeader p,
+.attentionBanner p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.roleHeroActions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 10px;
+}
+
+.roleMetricGrid {
+  margin-bottom: 0;
+}
+
+.roleMetricGrid .metricIcon {
+  margin-bottom: 14px;
+  border-radius: 50%;
+}
+
+.roleMetricGrid .metricDelta {
+  min-height: 16px;
+}
+
+.portalInlineError {
+  padding: 12px 15px;
+  color: #9f3428;
+  background: #fbe9e6;
+  border: 1px solid #f0c9c3;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.attentionBanner {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 15px 17px;
+  background: #fff9e9;
+  border: 1px solid #f1dfae;
+  border-radius: 13px;
+}
+
+.attentionBanner strong {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.roleListHeader {
+  align-items: center;
+}
+
+.roleListHeader h2 {
+  margin-bottom: 0;
+}
+
+.roleFilters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 18px 18px;
+}
+
+.roleFilters .filterSearch {
+  margin: 0;
+  max-width: 460px;
+}
+
+.roleDeliveryList {
+  display: grid;
+  gap: 0;
+  padding: 0 18px 18px;
+}
+
+.roleDeliveryCard {
+  display: grid;
+  grid-template-columns: minmax(210px, 1.1fr) minmax(380px, 2fr) auto;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+  padding: 17px 0;
+  border-top: 1px solid var(--row-divider);
+}
+
+.roleDeliveryCard:first-child {
+  border-top: 0;
+}
+
+.roleDeliveryMain {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.roleDeliveryMain .publicRecordCode {
+  flex-shrink: 0;
+}
+
+.roleDeliveryMain > div {
+  min-width: 0;
+}
+
+.roleDeliveryMain strong,
+.roleDeliveryMeta strong {
+  display: block;
+  color: var(--ink);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roleDeliveryMain p {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+.roleDeliveryMeta {
+  display: grid;
+  grid-template-columns: 0.8fr 1.5fr 0.65fr auto;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.roleDeliveryMeta > div {
+  min-width: 0;
+}
+
+.roleDeliveryMeta > div > span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--faint);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.roleDeliveryActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.roleDeliveryActions .secondaryButton,
+.roleDeliveryActions .darkButton {
+  min-height: 38px;
+  padding-inline: 13px;
+}
+
+.proofDeliverySummary,
+.requestReview {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  background: var(--surface-input);
+  border-radius: 11px;
+}
+
+.proofDeliverySummary span,
+.proofDeliverySummary small,
+.requestReview span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.proofForm input[type='file'] {
+  min-height: auto;
+  padding: 10px;
+  background: var(--surface-input);
+}
+
+.portalTabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  padding: 4px;
+  background: var(--chip-track);
+  border-radius: 12px;
+}
+
+.portalTabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 15px;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: 9px;
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.portalTabs button.active {
+  color: var(--ink);
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(30, 25, 15, 0.1);
+}
+
+.clientRoleHero .primaryButton {
+  flex-shrink: 0;
+}
+
+.clientDeliveryDetail {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(220px, 1fr);
+  gap: 18px;
+  padding: 16px;
+  background: var(--surface-input);
+  border-radius: 12px;
+}
+
+.deliveryTimeline {
+  display: grid;
+  gap: 12px;
+}
+
+.deliveryTimeline > div {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.deliveryTimeline > div > span {
+  width: 10px;
+  height: 10px;
+  margin-top: 4px;
+  background: #d8d3c8;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px #d8d3c8;
+}
+
+.deliveryTimeline > div > span.done {
+  background: #2e8b57;
+  box-shadow: 0 0 0 2px #bfe3cb;
+}
+
+.deliveryTimeline strong,
+.deliveryTimeline small {
+  display: block;
+}
+
+.deliveryTimeline small {
+  margin-top: 3px;
+  color: var(--muted);
+}
+
+.proofLinks {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.proofLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  color: #2d6553;
+  background: #e4f3e9;
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.clientAccountGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(260px, 0.8fr);
+  gap: 18px;
+}
+
+.clientAccountGrid .accountPayments {
+  grid-column: 1 / -1;
+}
+
+.contactCard .portalContacts {
+  display: grid;
+  padding: 0 20px 20px;
+}
+
+.requestReview {
+  border: 1px solid var(--card-border);
+}
+
+@media (max-width: 1180px) {
+  .roleDeliveryCard {
+    grid-template-columns: minmax(210px, 1fr) minmax(360px, 1.7fr);
+  }
+
+  .roleDeliveryActions {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 900px) {
+  .roleHero,
+  .roleFilters {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .roleHeroActions,
+  .roleFilters .filterSearch,
+  .portalTabs {
+    width: 100%;
+    max-width: none;
+  }
+
+  .roleHeroActions > button,
+  .portalTabs button {
+    flex: 1;
+  }
+
+  .roleDeliveryCard {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .roleDeliveryActions {
+    grid-column: auto;
+    justify-content: flex-start;
+  }
+
+  .clientAccountGrid,
+  .clientDeliveryDetail {
+    grid-template-columns: 1fr;
+  }
+
+  .clientAccountGrid .accountPayments {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 620px) {
+  .roleHero {
+    padding: 20px;
+  }
+
+  .roleHeroActions,
+  .roleDeliveryActions,
+  .portalTabs {
+    flex-direction: column;
+  }
+
+  .roleHeroActions > button,
+  .roleDeliveryActions > button,
+  .portalTabs button {
+    width: 100%;
+  }
+
+  .roleDeliveryMeta,
+  .clientDeliveryMeta {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .roleDeliveryMeta > .statusBadge {
+    justify-self: start;
+  }
+
+  .roleFilters .filterPills {
+    width: 100%;
+    overflow-x: auto;
+  }
+}

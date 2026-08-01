@@ -1,4 +1,4 @@
-import { MouseEvent, ReactNode } from 'react';
+import { MouseEvent, ReactNode, useEffect, useId, useRef } from 'react';
 import { X } from 'lucide-react';
 
 type ModalProps = {
@@ -12,23 +12,36 @@ type ModalProps = {
 };
 
 export function Modal({ open, onClose, eyebrow, title, children, footer, maxWidth = 580 }: ModalProps) {
-  if (!open) {
-    return null;
-  }
+  const titleId = useId();
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    if (!open) return undefined;
+    closeRef.current?.focus();
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') onCloseRef.current();
+    }
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [open]);
+
+  if (!open) return null;
 
   function stop(event: MouseEvent) {
     event.stopPropagation();
   }
 
   return (
-    <div className="modalOverlay" onClick={onClose}>
-      <div className="modalPanel" style={{ maxWidth }} onClick={stop}>
+    <div className="modalOverlay" role="presentation" onClick={onClose}>
+      <div className="modalPanel" role="dialog" aria-modal="true" aria-labelledby={titleId} style={{ maxWidth }} onClick={stop}>
         <div className="modalHeader">
           <div>
             {eyebrow ? <span className="modalEyebrow">{eyebrow}</span> : null}
-            <h3>{title}</h3>
+            <h3 id={titleId}>{title}</h3>
           </div>
-          <button className="modalClose" onClick={onClose} type="button" aria-label="Fechar">
+          <button ref={closeRef} className="modalClose" onClick={onClose} type="button" aria-label="Fechar">
             <X size={18} />
           </button>
         </div>

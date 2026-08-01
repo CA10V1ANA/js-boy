@@ -19,10 +19,10 @@ const items: Array<{ to: string; label: string; icon: typeof Home; perfis: Perfi
   { to: '/usuarios', label: 'Usuarios', icon: UserCog, perfis: ['PROPRIETARIO'] },
   { to: '/configuracoes/preco', label: 'Precos', icon: Settings, perfis: ['PROPRIETARIO'] },
   { to: '/configuracoes/empresa', label: 'Empresa', icon: Building2, perfis: ['PROPRIETARIO'] },
-  { to: '/financeiro', label: 'Razão financeira', icon: Landmark, perfis: ['PROPRIETARIO'] },
+  { to: '/financeiro', label: 'RazÃƒÂ£o financeira', icon: Landmark, perfis: ['PROPRIETARIO'] },
   { to: '/privacidade', label: 'Privacidade', icon: ShieldCheck, perfis: ['PROPRIETARIO'] },
-  { to: '/minhas-entregas', label: 'Minhas entregas', icon: MapPinned, perfis: ['ENTREGADOR', 'FUNCIONARIO'] },
-  { to: '/portal', label: 'Minha conta', icon: User, perfis: ['CLIENTE'] },
+  { to: '/minhas-entregas', label: 'Painel operacional', icon: MapPinned, perfis: ['ENTREGADOR', 'FUNCIONARIO'] },
+  { to: '/portal', label: 'Portal do cliente', icon: User, perfis: ['CLIENTE'] },
 ];
 
 function iniciais(nome?: string) {
@@ -47,9 +47,11 @@ export function AppLayout() {
   const visibleItems = items.filter((item) => usuario
     && item.perfis.map(normalizePerfil).includes(normalizePerfil(usuario.perfil)));
   const isDashboard = location.pathname.startsWith('/dashboard');
+  const isCourierPortal = location.pathname.startsWith('/minhas-entregas');
+  const isClientPortal = location.pathname.startsWith('/portal');
   const current = visibleItems.find((item) => location.pathname.startsWith(item.to));
-  const title = isDashboard ? `${saudacao()}, ${(usuario?.nome || '').split(' ')[0]}.` : current?.label || 'JS BOY';
-  const subtitle = isDashboard ? 'Visao geral da operacao.' : 'Painel de entregas';
+  const title = isDashboard || isCourierPortal ? `${saudacao()}, ${(usuario?.nome || '').split(' ')[0]}.` : current?.label || 'JS BOY';
+  const subtitle = isDashboard ? 'Visao geral da operacao.' : isCourierPortal ? 'Rotas, clientes e comprovantes.' : isClientPortal ? 'Solicitacoes, acompanhamento e conta.' : 'Painel de entregas';
 
   function handleLogout() {
     logout();

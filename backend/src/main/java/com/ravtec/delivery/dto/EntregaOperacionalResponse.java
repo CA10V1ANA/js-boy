@@ -1,6 +1,7 @@
 package com.ravtec.delivery.dto;
 
 import com.ravtec.delivery.entity.StatusEntrega;
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -17,6 +18,7 @@ public record EntregaOperacionalResponse(
     String destinatarioTelefone,
     String descricaoMercadoria,
     String observacoes,
+    BigDecimal valorFinal,
     StatusEntrega status,
     OffsetDateTime concluidaEm,
     OffsetDateTime criadoEm,

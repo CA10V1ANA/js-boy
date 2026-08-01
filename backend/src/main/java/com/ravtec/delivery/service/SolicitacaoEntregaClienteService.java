@@ -18,16 +18,24 @@ public class SolicitacaoEntregaClienteService {
     private final EntregaRepository entregaRepository;
     private final ParadaEntregaService paradaService;
     private final NotificacaoOutboxService notificacaoService;
+    private final TabelaPrecoService tabelaPrecoService;
 
     @Transactional
     public EntregaClienteResponse solicitar(SolicitacaoEntregaClienteRequest request) {
         var cliente = identidadeAtual.clienteObrigatorio();
         validarAgendamento(request);
+        var calculo = tabelaPrecoService.calcular(
+            request.bairroDestino(), com.ravtec.delivery.entity.TipoVeiculo.MOTO, 0,
+            false, null, request.distanciaKm()
+        );
+        var valorNegociadoPendente = calculo.valorNegociadoObrigatorio()
+            ? java.math.BigDecimal.ZERO : null;
         var criada = entregaService.criar(new EntregaRequest(
             cliente.getId(), null, request.enderecoOrigem(), request.bairroOrigem(),
             request.enderecoDestino(), request.bairroDestino(), request.destinatarioNome(),
             request.destinatarioTelefone(), request.descricaoMercadoria(), request.observacoes(),
-            request.distanciaKm(), null, null
+            request.distanciaKm(), null, null, com.ravtec.delivery.entity.TipoVeiculo.MOTO,
+            0, false, valorNegociadoPendente
         ));
         var entrega = entregaRepository.findById(criada.id()).orElseThrow();
         entrega.setAgendadaInicio(request.agendadaInicio());

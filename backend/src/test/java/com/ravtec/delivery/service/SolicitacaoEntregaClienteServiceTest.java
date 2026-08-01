@@ -14,14 +14,19 @@ import org.mockito.ArgumentCaptor;
 
 class SolicitacaoEntregaClienteServiceTest {
     @Test
-    void derivaClienteDoContextoENaoAceitaDesignacaoOuValorManual() {
+    void derivaClienteDoContextoEMarcaNegociacaoPendenteSemAceitarValorManual() {
         var identidade = mock(IdentidadeAtual.class);
         var entregaService = mock(EntregaService.class);
         var entregas = mock(EntregaRepository.class);
         var paradas = mock(ParadaEntregaService.class);
         var notificacoes = mock(NotificacaoOutboxService.class);
+        var tabelaPrecos = mock(TabelaPrecoService.class);
         var service = new SolicitacaoEntregaClienteService(
-            identidade, entregaService, entregas, paradas, notificacoes);
+            identidade, entregaService, entregas, paradas, notificacoes, tabelaPrecos);
+        var simulacao = mock(SimulacaoTabelaPrecoResponse.class);
+        when(simulacao.valorNegociadoObrigatorio()).thenReturn(true);
+        when(tabelaPrecos.calcular(eq("Aldeota"), eq(TipoVeiculo.MOTO), eq(0), eq(false),
+            isNull(), eq(BigDecimal.ONE))).thenReturn(simulacao);
         var cliente = new Cliente(); cliente.setId(UUID.randomUUID()); cliente.setAtivo(true);
         when(identidade.clienteObrigatorio()).thenReturn(cliente);
         var response = mock(EntregaResponse.class);
@@ -46,5 +51,6 @@ class SolicitacaoEntregaClienteServiceTest {
         assertThat(captor.getValue().clienteId()).isEqualTo(cliente.getId());
         assertThat(captor.getValue().entregadorId()).isNull();
         assertThat(captor.getValue().valorFinal()).isNull();
+        assertThat(captor.getValue().valorNegociado()).isEqualByComparingTo(BigDecimal.ZERO);
     }
 }

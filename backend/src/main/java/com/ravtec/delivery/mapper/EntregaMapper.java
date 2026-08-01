@@ -53,7 +53,7 @@ public class EntregaMapper {
             entrega.getId(), entrega.getCodigo(), entrega.getCliente().getNome(), entrega.getEnderecoOrigem(),
             entrega.getBairroOrigem(), entrega.getEnderecoDestino(), entrega.getBairroDestino(),
             entrega.getDestinatarioNome(), entrega.getDestinatarioTelefone(), entrega.getDescricaoMercadoria(),
-            entrega.getObservacoes(), entrega.getStatus(), entrega.getConcluidaEm(), entrega.getCriadoEm(),
+            entrega.getObservacoes(), entrega.getValorFinal(), entrega.getStatus(), entrega.getConcluidaEm(), entrega.getCriadoEm(),
             historico, entrega.getVersion()
         );
     }
