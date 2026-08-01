@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ErrorState, LoadingState } from '../components/AsyncState';
 import { api } from '../services/api';
 import { apiErrorMessage } from '../services/apiError';
+import { formatPhone } from '../utils/inputMasks';
 import type { RastreamentoPublico } from '../types/p2';
 
 const label = (value: string) => value.replace(/_/g, ' ').toLowerCase()
@@ -52,7 +53,7 @@ export function RastreamentoPage() {
       </section>
       <section className="panelCard trackingContact">
         <h2>{data.empresa.nome}</h2>
-        {data.empresa.telefone ? <a href={`tel:${data.empresa.telefone}`}>{data.empresa.telefone}</a> : null}
+        {data.empresa.telefone ? <a href={`tel:${data.empresa.telefone}`}>{formatPhone(data.empresa.telefone)}</a> : null}
         {data.empresa.whatsapp ? <a href={`https://wa.me/${data.empresa.whatsapp}`}>WhatsApp</a> : null}
         {data.empresa.email ? <a href={`mailto:${data.empresa.email}`}>{data.empresa.email}</a> : null}
         {data.empresa.horario ? <p>{data.empresa.horario}</p> : null}

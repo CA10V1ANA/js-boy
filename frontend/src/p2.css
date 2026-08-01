@@ -34,3 +34,218 @@
   .trackingPage { width: min(100% - 1rem, 720px); margin: .5rem auto 1rem; }
   .trackingTimeline li { display: grid; gap: .2rem; }
 }
+
+/* unified admin experience */
+.appHeader .appHeaderSun,
+.appHeader .headerAvatar {
+  display: grid;
+  place-items: center;
+  margin-top: 0;
+}
+.appHeader .appHeaderSun svg,
+.appHeader .headerAvatar svg,
+.metricIcon svg,
+.statIcon svg,
+.avatarTile svg,
+.brandMark svg,
+.infoBannerIcon svg,
+.panelIcon svg,
+.tableActionButton svg {
+  display: block;
+  margin: auto;
+}
+.sideUserAvatar,
+.headerAvatar,
+.appHeaderSun,
+.metricIcon,
+.statIcon,
+.avatarTile,
+.brandMark,
+.infoBannerIcon,
+.panelIcon {
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.tableActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: max-content;
+}
+.tableActionButton {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0;
+  color: var(--body-2);
+  background: #fff;
+  border: 1px solid var(--input-border);
+  border-radius: 9px;
+  cursor: pointer;
+  transition: color .15s ease, background .15s ease, border-color .15s ease, transform .15s ease;
+}
+.tableActionButton:hover {
+  color: var(--amber-text);
+  background: #fcf6e7;
+  border-color: #e7ca82;
+  transform: translateY(-1px);
+}
+.tableActionButton.danger { color: #b73b31; }
+.tableActionButton.danger:hover { background: #fff0ee; border-color: #efb7b1; }
+.tableActionButton:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+.publicRecordCode,
+.cellPrimary { display: block; color: var(--ink); font-size: 13px; font-weight: 700; }
+td .cellSub { display: block; margin-top: 3px; color: var(--faint); font-size: 11.5px; font-weight: 500; }
+.passwordMask { color: var(--body-2) !important; font-size: 17px !important; letter-spacing: .12em; }
+
+.filterSelect {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 0 10px 0 13px;
+  color: var(--muted);
+  background: #fff;
+  border: 1px solid var(--head-border);
+  border-radius: 11px;
+}
+.filterSelect span { font-size: 12px; font-weight: 600; white-space: nowrap; }
+.filterSelect select { min-height: 34px; padding: 0 30px 0 8px; color: var(--ink); background: transparent; border: 0; font: inherit; font-weight: 600; }
+.compactFilterBar { margin-top: 16px; }
+.filterSearch svg { flex: 0 0 auto; color: var(--faint-2); }
+
+.infoBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  margin-bottom: 18px;
+  padding: 15px 17px;
+  color: var(--body-2);
+  background: #fcf7ea;
+  border: 1px solid #efe1bd;
+  border-radius: 14px;
+}
+.infoBannerIcon,
+.panelIcon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  color: var(--amber-text);
+  background: #f9e9bd;
+  border-radius: 10px;
+}
+.infoBanner strong { display: block; color: var(--ink); font-size: 13.5px; }
+.infoBanner p { margin: 3px 0 0; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+
+.modalPanel { display: flex; flex-direction: column; max-height: calc(100dvh - 40px); }
+.modalHeader,
+.modalFooter { flex: 0 0 auto; }
+.modalBody { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.modalFooterActions { display: flex; align-items: center; gap: 12px; }
+.modalFooterActions > span { color: var(--muted); font-size: 12px; font-weight: 600; }
+.clientWizardForm { padding: 8px 0 10px; }
+.clientWizardForm label,
+.compactForm label,
+.settingsSection label,
+.financeForm label,
+.privacyFields label {
+  display: grid;
+  gap: 7px;
+  color: var(--body-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+.clientWizardForm input,
+.clientWizardForm select,
+.clientWizardForm textarea,
+.compactForm input,
+.compactForm select,
+.settingsSection input,
+.financeForm input,
+.financeForm select,
+.privacyFields input,
+.privacyFields select {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 13px;
+  color: var(--ink);
+  background: var(--surface-input);
+  border: 1px solid var(--input-border);
+  border-radius: 10px;
+  font: inherit;
+}
+.clientWizardForm input:focus,
+.clientWizardForm textarea:focus,
+.compactForm input:focus,
+.compactForm select:focus,
+.settingsSection input:focus,
+.financeForm input:focus,
+.financeForm select:focus,
+.privacyFields input:focus,
+.privacyFields select:focus { outline: none; background: #fff; border-color: var(--yellow-dark); box-shadow: 0 0 0 3px rgba(233,168,28,.15); }
+.clientWizardForm textarea { padding: 12px 13px; resize: vertical; }
+.wizardCheckbox { align-self: end; min-height: 44px; padding: 0 12px; grid-template-columns: auto 1fr !important; background: var(--surface-input); border: 1px solid var(--input-border); border-radius: 10px; }
+.wizardCheckbox input { width: 18px; min-height: 18px; padding: 0; }
+.reviewPanel { display: grid; gap: 18px; }
+.reviewPanel > div { display: grid; gap: 4px; padding: 14px 16px; background: #fcf7ea; border: 1px solid #efe1bd; border-radius: 12px; }
+.reviewPanel > div span,
+.formHelp { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.compactForm { padding: 6px 0 12px; }
+.accessButton { color: var(--ink); }
+
+.settingsSections { display: grid; gap: 16px; }
+.settingsSection { padding: 20px; background: #fff; border: 1px solid var(--card-border); border-radius: 15px; box-shadow: 0 1px 2px rgba(30,25,15,.03); }
+.settingsSectionTitle { display: flex; align-items: flex-start; gap: 11px; margin-bottom: 17px; color: var(--amber-text); }
+.settingsSectionTitle h2 { margin: 0; color: var(--ink); font-size: 15px; }
+.settingsSectionTitle p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+.singleField { grid-template-columns: minmax(0, 1fr); max-width: 560px; }
+.settingsSubmit { display: flex; justify-content: flex-end; padding: 2px 0; }
+
+.financeGrid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr); gap: 16px; }
+.financePanel { overflow: hidden; }
+.financePanel .panelCardHeader > div { display: flex; align-items: center; gap: 11px; }
+.financePanel .panelCardHeader h2 { margin: 0; }
+.financePanel .panelCardHeader p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+.financeForm { display: grid; gap: 13px; padding: 0 18px 18px; }
+.financeSummary { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin-top: 16px; }
+.financeSummary article { display: grid; gap: 8px; padding: 17px; background: #fff; border: 1px solid var(--card-border); border-radius: 13px; }
+.financeSummary span { color: var(--muted); font-size: 12px; }
+.financeSummary strong { color: var(--ink); font-family: var(--font-display); font-size: 20px; }
+.financeSummary .result { color: #fff; background: #1c1912; border-color: #1c1912; }
+.financeSummary .result span,
+.financeSummary .result strong { color: #fff; }
+.emptyReport { display: grid; place-items: center; gap: 6px; min-height: 150px; margin-top: 16px; padding: 24px; color: var(--faint); text-align: center; background: #fff; border: 1px dashed var(--input-border); border-radius: 14px; }
+.emptyReport strong { color: var(--body-2); }
+.emptyReport span { font-size: 12px; }
+
+.privacyPanel { padding: 20px; margin-bottom: 16px; }
+.privacyIdentity { display: flex; align-items: flex-start; gap: 11px; margin-bottom: 17px; }
+.privacyIdentity h2 { margin: 0; font-size: 15px; }
+.privacyIdentity p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+.privacyFields { display: grid; grid-template-columns: 1fr 1.2fr; gap: 14px; }
+.privacyActionsList td:last-child { text-align: right; }
+.dangerButton { display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
+.dangerButton:disabled { opacity: .5; cursor: not-allowed; }
+
+@media (max-width: 900px) {
+  .financeGrid { grid-template-columns: 1fr; }
+  .financeSummary { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 620px) {
+  .tableActions { justify-content: flex-start; }
+  .modalFooter { align-items: stretch; gap: 10px; }
+  .modalFooterActions { margin-left: auto; }
+  .modalFooterActions > span { display: none; }
+  .privacyFields,
+  .financeSummary { grid-template-columns: 1fr; }
+  .settingsSubmit .primaryButton { width: 100%; }
+  .infoBanner { align-items: flex-start; }
+}

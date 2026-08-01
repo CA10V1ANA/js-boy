@@ -21,6 +21,7 @@ import {
   RelatorioFinanceiro,
   StatusEntrega,
 } from '../types';
+import { publicDeliveryCode, titleCase } from '../utils/display';
 
 const emptyResumo: DashboardResumo = {
   totalEntregas: 0,
@@ -152,19 +153,19 @@ export function DashboardPage() {
 
     entregas.forEach((entrega) => {
       entrega.historico.forEach((item) => {
-        let texto = `Entrega ${entrega.codigo} atualizada para ${labelStatus(item.novoStatus).toLowerCase()}`;
+        let texto = `Entrega de ${titleCase(entrega.destinatarioNome)} atualizada para ${labelStatus(item.novoStatus).toLowerCase()}`;
         let cor = '#B47A12';
         if (item.novoStatus === 'ENTREGUE') {
-          texto = `Entrega ${entrega.codigo} marcada como entregue`;
+          texto = `Entrega de ${titleCase(entrega.destinatarioNome)} marcada como entregue`;
           cor = '#2E8B57';
         } else if (item.novoStatus === 'EM_ROTA' || item.novoStatus === 'COLETADA') {
-          texto = `Entrega ${entrega.codigo} saiu para rota`;
+          texto = `Entrega de ${titleCase(entrega.destinatarioNome)} saiu para rota`;
           cor = '#1B8079';
         } else if (item.novoStatus === 'SOLICITADA') {
           texto = 'Nova entrega registrada · aguardando entregador';
           cor = '#B47A12';
         } else if (item.novoStatus === 'CANCELADA') {
-          texto = `Entrega ${entrega.codigo} cancelada`;
+          texto = `Entrega de ${titleCase(entrega.destinatarioNome)} cancelada`;
           cor = '#C0503F';
         }
         eventos.push({
@@ -305,7 +306,7 @@ export function DashboardPage() {
                 <table style={{ minWidth: 640 }}>
                   <thead>
                     <tr>
-                      <th style={{ paddingLeft: 20 }}>Codigo</th>
+                      <th style={{ paddingLeft: 20 }}>Entrega</th>
                       <th>Destinatario</th>
                       <th>Status</th>
                       <th>Entregador</th>
@@ -313,9 +314,9 @@ export function DashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {entregasEmAndamento.map((entrega) => (
+                    {entregasEmAndamento.map((entrega, index) => (
                       <tr key={entrega.id}>
-                        <td style={{ paddingLeft: 20, fontWeight: 600, color: 'var(--body-text)' }}>{entrega.codigo}</td>
+                        <td style={{ paddingLeft: 20 }}><strong className="publicRecordCode">{publicDeliveryCode(index)}</strong></td>
                         <td>
                           <div style={{ minWidth: 0 }}>
                             <div style={{ fontWeight: 700, color: 'var(--ink)', fontSize: 13 }}>{entrega.destinatarioNome}</div>

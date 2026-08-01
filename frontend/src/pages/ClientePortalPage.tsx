@@ -5,6 +5,7 @@ import { api } from '../services/api';
 import { apiErrorMessage } from '../services/apiError';
 import { Cliente, ConfiguracaoEmpresa, Entrega, Pagamento } from '../types';
 import type { Comprovante, Parada, SolicitacaoEntrega } from '../types/p2';
+import { formatCpfOrCnpj, formatPhone, onlyDigits } from '../utils/inputMasks';
 
 type PortalData = { cliente: Cliente; entregas: Entrega[]; pagamentos: Pagamento[]; contato: ConfiguracaoEmpresa };
 type Detail = { paradas: Parada[]; comprovantes: Comprovante[] };
@@ -87,8 +88,8 @@ export function ClientePortalPage() {
         <div className="panelCardHeader"><div><span className="modalEyebrow">MINHA CONTA</span><h2>{data.cliente.nome}</h2></div><Building2 size={24} /></div>
         <dl className="portalDetails">
           {data.cliente.email ? <div><dt>E-mail</dt><dd>{data.cliente.email}</dd></div> : null}
-          <div><dt>Telefone</dt><dd>{data.cliente.telefone}</dd></div>
-          {data.cliente.documento ? <div><dt>Documento</dt><dd>{data.cliente.documento}</dd></div> : null}
+          <div><dt>Telefone</dt><dd>{formatPhone(data.cliente.telefone)}</dd></div>
+          {data.cliente.documento ? <div><dt>Documento</dt><dd>{formatCpfOrCnpj(data.cliente.documento)}</dd></div> : null}
           {address ? <div><dt>Endereço</dt><dd>{address}</dd></div> : null}
         </dl>
       </section>
@@ -102,9 +103,9 @@ export function ClientePortalPage() {
           <label>Destino<input required value={request.enderecoDestino} onChange={(e) => setRequest({ ...request, enderecoDestino: e.target.value })} /></label>
           <label>Bairro do destino<input required value={request.bairroDestino} onChange={(e) => setRequest({ ...request, bairroDestino: e.target.value })} /></label>
           <label>Destinatário<input required value={request.destinatarioNome} onChange={(e) => setRequest({ ...request, destinatarioNome: e.target.value })} /></label>
-          <label>Telefone autorizado<input required inputMode="tel" value={request.destinatarioTelefone} onChange={(e) => setRequest({ ...request, destinatarioTelefone: e.target.value })} /></label>
+          <label>Telefone autorizado<input required type="tel" inputMode="tel" autoComplete="tel" maxLength={15} placeholder="(00) 00000-0000" value={request.destinatarioTelefone} onChange={(e) => setRequest({ ...request, destinatarioTelefone: formatPhone(e.target.value) })} /></label>
           <label>Mercadoria<input required maxLength={255} value={request.descricaoMercadoria} onChange={(e) => setRequest({ ...request, descricaoMercadoria: e.target.value })} /></label>
-          <label>Distância estimada (km)<input required min="0" step="0.1" type="number" value={request.distanciaKm || ''} onChange={(e) => setRequest({ ...request, distanciaKm: Number(e.target.value) })} /></label>
+          <label>Distância estimada (km)<input required min="0" step="0.1" type="number" placeholder="0,0" value={request.distanciaKm || ''} onChange={(e) => setRequest({ ...request, distanciaKm: Number(e.target.value) })} /></label>
           <label>Início agendado (opcional)<input type="datetime-local" value={request.agendadaInicio || ''} onChange={(e) => setRequest({ ...request, agendadaInicio: e.target.value })} /></label>
           <label>Fim agendado (opcional)<input type="datetime-local" value={request.agendadaFim || ''} onChange={(e) => setRequest({ ...request, agendadaFim: e.target.value })} /></label>
           <label className="requestWide">Observações<textarea maxLength={500} value={request.observacoes} onChange={(e) => setRequest({ ...request, observacoes: e.target.value })} /></label>
@@ -142,14 +143,14 @@ export function ClientePortalPage() {
         <div className="panelCardHeader"><h2><CreditCard size={18} /> Meus pagamentos</h2></div>
         {data.pagamentos.length === 0 ? <EmptyState title="Nenhum pagamento vinculado" /> : (
           <div className="portalPayments">{data.pagamentos.map((payment) => (
-            <article key={payment.id}><div><strong>{payment.entregaCodigo}</strong><span>{date(payment.pagoEm)} · {payment.formaPagamento} · {payment.tipo}</span></div><strong>{payment.tipo === 'ESTORNO' ? '-' : ''}{money(payment.valor)}</strong></article>
+            <article key={payment.id}><div><strong>Pagamento da entrega</strong><span>{date(payment.pagoEm)} · {payment.formaPagamento} · {payment.tipo}</span></div><strong>{payment.tipo === 'ESTORNO' ? '-' : ''}{money(payment.valor)}</strong></article>
           ))}</div>
         )}
       </section>
       <section className="panelCard">
         <div className="panelCardHeader"><h2>Contato da JS Boy</h2></div>
         <ul className="portalContacts">
-          {data.contato.telefone ? <li><Phone size={17} /><a href={`tel:${data.contato.telefone}`}>{data.contato.telefone}</a></li> : null}
+          {data.contato.telefone ? <li><Phone size={17} /><a href={`tel:${data.contato.telefone}`}>{formatPhone(data.contato.telefone)}</a></li> : null}
           {data.contato.whatsapp ? <li><Phone size={17} /><a href={`https://wa.me/${data.contato.whatsapp}`}>WhatsApp</a></li> : null}
           {data.contato.email ? <li><Mail size={17} /><a href={`mailto:${data.contato.email}`}>{data.contato.email}</a></li> : null}
           {companyAddress ? <li><MapPin size={17} />{companyAddress}</li> : null}

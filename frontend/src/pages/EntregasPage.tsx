@@ -1,10 +1,12 @@
-import { ArrowRight, Check, Plus, Search } from 'lucide-react';
+import { ArrowRight, Ban, Check, History, Pencil, Plus, Search, UserRoundCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Modal } from '../components/Modal';
-import { RowMenu } from '../components/RowMenu';
+import { TableActions } from '../components/TableActions';
 import { useToast } from '../contexts/ToastContext';
 import { api } from '../services/api';
 import { Cliente, ConfiguracaoPreco, Entrega, EntregaForm, Entregador, StatusEntrega } from '../types';
+import { publicDeliveryCode, titleCase } from '../utils/display';
+import { formatPhone, onlyDigits } from '../utils/inputMasks';
 
 const emptyForm: EntregaForm = {
   clienteId: '',
@@ -143,7 +145,7 @@ export function EntregasPage() {
       enderecoDestino: entrega.enderecoDestino,
       bairroDestino: entrega.bairroDestino,
       destinatarioNome: entrega.destinatarioNome,
-      destinatarioTelefone: entrega.destinatarioTelefone,
+      destinatarioTelefone: formatPhone(entrega.destinatarioTelefone),
       descricaoMercadoria: entrega.descricaoMercadoria,
       observacoes: entrega.observacoes || '',
       distanciaKm: String(entrega.distanciaKm),
@@ -163,6 +165,7 @@ export function EntregasPage() {
     const payload = {
       ...form,
       entregadorId: form.entregadorId || null,
+      destinatarioTelefone: onlyDigits(form.destinatarioTelefone),
       distanciaKm: Number(form.distanciaKm),
       valorFinal: form.valorFinal ? Number(form.valorFinal) : null,
     };
@@ -214,7 +217,7 @@ export function EntregasPage() {
   }
 
   function cancelarEntrega(entrega: Entrega) {
-    if (window.confirm(`Cancelar a entrega ${entrega.codigo}?`)) {
+    if (window.confirm(`Cancelar a entrega de ${titleCase(entrega.destinatarioNome)}?`)) {
       alterarStatus(entrega, 'CANCELADA');
     }
   }
@@ -260,22 +263,22 @@ export function EntregasPage() {
           <table>
             <thead>
               <tr>
-                <th>Codigo</th>
+                <th>Entrega</th>
                 <th>Destinatario</th>
                 <th>Status</th>
                 <th>Entregador</th>
                 <th style={{ textAlign: 'right' }}>Valor</th>
-                <th></th>
+                <th style={{ textAlign: 'right' }}>Acoes</th>
               </tr>
             </thead>
             <tbody>
-              {entregasFiltradas.map((entrega) => (
+              {entregasFiltradas.map((entrega, index) => (
                 <tr key={entrega.id}>
-                  <td style={{ fontWeight: 600, color: 'var(--body-text)', fontSize: 12.5 }}>{entrega.codigo}</td>
+                  <td><strong className="publicRecordCode">{publicDeliveryCode(index)}</strong><span className="cellSub">Registro operacional</span></td>
                   <td>
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, color: 'var(--ink)', fontSize: 13 }}>{entrega.destinatarioNome}</div>
-                      <div style={{ color: 'var(--faint)', fontSize: 11.5 }}>{entrega.clienteNome} · {entrega.bairroDestino}</div>
+                      <div style={{ fontWeight: 700, color: 'var(--ink)', fontSize: 13 }}>{titleCase(entrega.destinatarioNome)}</div>
+                      <div style={{ color: 'var(--faint)', fontSize: 11.5 }}>{titleCase(entrega.clienteNome)} · {titleCase(entrega.bairroDestino)}</div>
                     </div>
                   </td>
                   <td><span className={toneStatus(entrega.status)}>{labelStatus(entrega.status)}</span></td>
@@ -291,15 +294,13 @@ export function EntregasPage() {
                   </td>
                   <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--ink)' }}>{money(entrega.valorFinal)}</td>
                   <td>
-                    <RowMenu
-                      items={[
-                        { label: 'Editar', onClick: () => abrirWizardEdicao(entrega) },
-                        { label: 'Alterar status', onClick: () => abrirStatusModal(entrega) },
-                        { label: 'Designar entregador', onClick: () => abrirDesignarModal(entrega) },
-                        { label: 'Historico', onClick: () => setHistoricoEntrega(entrega) },
-                        { label: 'Cancelar', onClick: () => cancelarEntrega(entrega), danger: true },
-                      ]}
-                    />
+                    <TableActions actions={[
+                      { label: 'Editar entrega', icon: <Pencil size={16} />, onClick: () => abrirWizardEdicao(entrega) },
+                      { label: 'Alterar status', icon: <Check size={16} />, onClick: () => abrirStatusModal(entrega) },
+                      { label: 'Designar entregador', icon: <UserRoundCheck size={16} />, onClick: () => abrirDesignarModal(entrega) },
+                      { label: 'Ver historico', icon: <History size={16} />, onClick: () => setHistoricoEntrega(entrega) },
+                      { label: 'Cancelar entrega', icon: <Ban size={16} />, onClick: () => cancelarEntrega(entrega), danger: true },
+                    ]} />
                   </td>
                 </tr>
               ))}
@@ -401,7 +402,7 @@ export function EntregasPage() {
               </label>
               <label>
                 Telefone
-                <input placeholder="(00) 00000-0000" value={form.destinatarioTelefone} onChange={(event) => setForm({ ...form, destinatarioTelefone: event.target.value })} required />
+                <input type="tel" inputMode="tel" autoComplete="tel" maxLength={15} placeholder="(00) 00000-0000" value={form.destinatarioTelefone} onChange={(event) => setForm({ ...form, destinatarioTelefone: formatPhone(event.target.value) })} required />
               </label>
             </div>
           </>
@@ -425,7 +426,7 @@ export function EntregasPage() {
             <div className="modalFormGrid">
               <label>
                 Distancia (km)
-                <input type="number" min="0" step="0.1" value={form.distanciaKm} onChange={(event) => setForm({ ...form, distanciaKm: event.target.value })} required />
+                <input type="number" min="0" step="0.1" placeholder="0,0" value={form.distanciaKm} onChange={(event) => setForm({ ...form, distanciaKm: event.target.value })} required />
               </label>
               <label>
                 Valor final
@@ -475,7 +476,7 @@ export function EntregasPage() {
         )}
       >
         <label style={{ display: 'grid', gap: 7 }}>
-          Novo status para {statusModalEntrega?.codigo}
+          Novo status da entrega de {titleCase(statusModalEntrega?.destinatarioNome)}
           <select value={statusModalValor} onChange={(event) => setStatusModalValor(event.target.value as StatusEntrega)}>
             {statusOptions.map((status) => <option key={status} value={status}>{labelStatus(status)}</option>)}
           </select>
@@ -504,7 +505,7 @@ export function EntregasPage() {
         )}
       >
         <label style={{ display: 'grid', gap: 7 }}>
-          Entregador para {designarModalEntrega?.codigo}
+          Entregador para a entrega de {titleCase(designarModalEntrega?.destinatarioNome)}
           <select value={designarModalValor} onChange={(event) => setDesignarModalValor(event.target.value)}>
             <option value="">Selecione</option>
             {entregadores.map((entregador) => <option key={entregador.id} value={entregador.id}>{entregador.nome}</option>)}
@@ -515,7 +516,7 @@ export function EntregasPage() {
       <Modal
         open={historicoEntrega !== null}
         onClose={() => setHistoricoEntrega(null)}
-        title={`Historico - ${historicoEntrega?.codigo || ''}`}
+        title="Historico da entrega"
         maxWidth={480}
       >
         <div style={{ display: 'grid', gap: 10 }}>

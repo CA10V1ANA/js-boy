@@ -90,7 +90,7 @@ export function PagamentosPage() {
         <section className="responsiveList">
           {items.map((payment) => (
             <article className="userCard" key={payment.id}>
-              <div><strong>{payment.entregaCodigo}</strong><span>{payment.clienteNome} · {new Date(payment.pagoEm).toLocaleString('pt-BR')}</span></div>
+              <div><strong>Entrega vinculada</strong><span>{payment.clienteNome} · {new Date(payment.pagoEm).toLocaleString('pt-BR')}</span></div>
               <dl><div><dt>Tipo</dt><dd>{payment.tipo}</dd></div><div><dt>Forma</dt><dd>{payment.formaPagamento}</dd></div><div><dt>Valor</dt><dd>{money(payment.valor)}</dd></div></dl>
               {payment.tipo === 'RECEBIMENTO' ? <button className="secondaryButton" type="button" onClick={() => setRefund({ payment, value: String(payment.valor), reason: '' })}>Estornar</button> : null}
             </article>
@@ -100,7 +100,7 @@ export function PagamentosPage() {
       <Modal open={modalOpen} onClose={() => !busy && setModalOpen(false)} title="Novo pagamento" maxWidth={520}>
         <form onSubmit={submit} className="settingsForm">
           <label>Entrega<select value={form.entregaId} onChange={(e) => setForm({ ...form, entregaId: e.target.value })} required><option value="">Selecione</option>{deliveries.map((delivery) => <option key={delivery.id} value={delivery.id}>{delivery.codigo} - {delivery.clienteNome}</option>)}</select></label>
-          <div className="formGrid"><label>Valor<input type="number" min="0.01" step="0.01" value={form.valor} onChange={(e) => setForm({ ...form, valor: e.target.value })} required /></label><label>Forma<select value={form.formaPagamento} onChange={(e) => setForm({ ...form, formaPagamento: e.target.value as FormaPagamento })}>{formas.map((forma) => <option key={forma}>{forma}</option>)}</select></label></div>
+          <div className="formGrid"><label>Valor<input type="number" min="0.01" step="0.01" placeholder="0,00" value={form.valor} onChange={(e) => setForm({ ...form, valor: e.target.value })} required /></label><label>Forma<select value={form.formaPagamento} onChange={(e) => setForm({ ...form, formaPagamento: e.target.value as FormaPagamento })}>{formas.map((forma) => <option key={forma}>{forma}</option>)}</select></label></div>
           <label>Comprovante<input value={form.comprovante} onChange={(e) => setForm({ ...form, comprovante: e.target.value })} /></label>
           <label>Observacoes<textarea rows={3} value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} /></label>
           <button className="primaryButton" type="submit" disabled={busy}>Revisar pagamento</button>
@@ -108,7 +108,7 @@ export function PagamentosPage() {
       </Modal>
       <ConfirmDialog open={confirmPayment} title="Registrar pagamento?" description={`Confirme o recebimento de ${money(Number(form.valor || 0))}.`} confirmLabel="Registrar pagamento" busy={busy} onCancel={() => setConfirmPayment(false)} onConfirm={() => void register()} />
       <Modal open={refund !== null} onClose={() => !busy && setRefund(null)} title="Registrar estorno" maxWidth={480}>
-        {refund ? <form className="settingsForm" onSubmit={(e) => { e.preventDefault(); void registerRefund(); }}><label>Valor<input type="number" min="0.01" max={refund.payment.valor} step="0.01" value={refund.value} onChange={(e) => setRefund({ ...refund, value: e.target.value })} required /></label><label>Motivo<textarea rows={3} maxLength={500} value={refund.reason} onChange={(e) => setRefund({ ...refund, reason: e.target.value })} required /></label><button className="dangerButton" type="submit" disabled={busy}>{busy ? 'Processando...' : 'Confirmar estorno'}</button></form> : null}
+        {refund ? <form className="settingsForm" onSubmit={(e) => { e.preventDefault(); void registerRefund(); }}><label>Valor<input type="number" min="0.01" max={refund.payment.valor} step="0.01" placeholder="0,00" value={refund.value} onChange={(e) => setRefund({ ...refund, value: e.target.value })} required /></label><label>Motivo<textarea rows={3} maxLength={500} value={refund.reason} onChange={(e) => setRefund({ ...refund, reason: e.target.value })} required /></label><button className="dangerButton" type="submit" disabled={busy}>{busy ? 'Processando...' : 'Confirmar estorno'}</button></form> : null}
       </Modal>
     </main>
   );

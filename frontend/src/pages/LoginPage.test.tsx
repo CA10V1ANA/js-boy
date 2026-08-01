@@ -38,6 +38,19 @@ describe('LoginPage', () => {
     expect(await screen.findByText('Informe a senha')).toBeInTheDocument();
   });
 
+  it('permite mostrar e ocultar a senha', async () => {
+    mockedUseAuth.mockReturnValue({ autenticado: false, carregando: false, login: vi.fn(), usuario: null, token: null, logout: vi.fn() });
+    const user = userEvent.setup();
+    const form = renderLoginPage();
+    const password = form.getByLabelText('Senha');
+
+    expect(password).toHaveAttribute('type', 'password');
+    await user.click(form.getByRole('button', { name: 'Mostrar senha' }));
+    expect(password).toHaveAttribute('type', 'text');
+    await user.click(form.getByRole('button', { name: 'Ocultar senha' }));
+    expect(password).toHaveAttribute('type', 'password');
+  });
+
   it('chama login e nao mostra erro quando as credenciais sao validas', async () => {
     const login = vi.fn().mockResolvedValue(undefined);
     mockedUseAuth.mockReturnValue({ autenticado: false, carregando: false, login, usuario: null, token: null, logout: vi.fn() });

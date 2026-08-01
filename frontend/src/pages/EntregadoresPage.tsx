@@ -1,10 +1,12 @@
-import { KeyRound, Plus, Search } from 'lucide-react';
+import { KeyRound, Pencil, Plus, Search, ToggleLeft, ToggleRight, UserPlus } from 'lucide-react';
 import { FormEvent, useEffect, useState } from 'react';
 import { Modal } from '../components/Modal';
-import { RowMenu, RowMenuItem } from '../components/RowMenu';
+import { TableAction, TableActions } from '../components/TableActions';
 import { useToast } from '../contexts/ToastContext';
 import { api } from '../services/api';
 import { Entregador, EntregadorForm, TipoVeiculo } from '../types';
+import { sentenceCase, titleCase } from '../utils/display';
+import { formatCpf, formatEmailInput, formatPhone, formatVehiclePlate, normalizeVehiclePlate, onlyDigits } from '../utils/inputMasks';
 
 const emptyForm: EntregadorForm = {
   nome: '',
@@ -16,7 +18,7 @@ const emptyForm: EntregadorForm = {
   disponivel: true,
 };
 
-const vehicleOptions: TipoVeiculo[] = ['MOTO', 'CARRO', 'BICICLETA', 'OUTRO'];
+const vehicleOptions: TipoVeiculo[] = ['MOTO', 'CARRO'];
 
 function iniciais(nome: string) {
   const partes = nome.trim().split(/\s+/);
@@ -32,6 +34,7 @@ export function EntregadoresPage() {
   const [carregando, setCarregando] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [accessForm, setAccessForm] = useState({ entregadorId: '', email: '', senha: '' });
+  const [accessModalOpen, setAccessModalOpen] = useState(false);
 
   useEffect(() => {
     carregarEntregadores();
@@ -59,11 +62,11 @@ export function EntregadoresPage() {
     setEditingId(entregador.id);
     setForm({
       nome: entregador.nome,
-      cpf: entregador.cpf,
-      telefone: entregador.telefone,
-      email: entregador.email || '',
-      tipoVeiculo: entregador.tipoVeiculo,
-      placaVeiculo: entregador.placaVeiculo || '',
+      cpf: formatCpf(entregador.cpf),
+      telefone: formatPhone(entregador.telefone),
+      email: formatEmailInput(entregador.email || ''),
+      tipoVeiculo: entregador.tipoVeiculo === 'CARRO' ? 'CARRO' : 'MOTO',
+      placaVeiculo: formatVehiclePlate(entregador.placaVeiculo || ''),
       disponivel: entregador.disponivel,
     });
     setModalOpen(true);
@@ -72,13 +75,20 @@ export function EntregadoresPage() {
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setCarregando(true);
+    const payload = {
+      ...form,
+      cpf: onlyDigits(form.cpf),
+      telefone: onlyDigits(form.telefone),
+      email: formatEmailInput(form.email),
+      placaVeiculo: normalizeVehiclePlate(form.placaVeiculo),
+    };
 
     try {
       if (editingId) {
-        await api.put(`/entregadores/${editingId}`, form, { headers: { 'If-Match': String(entregadores.find((item) => item.id === editingId)?.versao ?? 0) } });
+        await api.put(`/entregadores/${editingId}`, payload, { headers: { 'If-Match': String(entregadores.find((item) => item.id === editingId)?.versao ?? 0) } });
         showToast('Entregador atualizado com sucesso.', 'success');
       } else {
-        await api.post('/entregadores', form);
+        await api.post('/entregadores', payload);
         showToast('Entregador cadastrado com sucesso.', 'success');
       }
 
@@ -109,11 +119,12 @@ export function EntregadoresPage() {
 
     try {
       await api.post(`/entregadores/${accessForm.entregadorId}/acesso`, {
-        email: accessForm.email,
+        email: formatEmailInput(accessForm.email),
         senha: accessForm.senha,
       });
       showToast('Acesso do entregador criado.', 'success');
       setAccessForm({ entregadorId: '', email: '', senha: '' });
+      setAccessModalOpen(false);
       await carregarEntregadores();
     } catch {
       showToast('Nao foi possivel criar o acesso. Verifique se o e-mail ja existe.', 'error');
@@ -126,6 +137,7 @@ export function EntregadoresPage() {
       email: entregador.email || '',
       senha: '',
     });
+    setAccessModalOpen(true);
   }
 
   return (
@@ -141,51 +153,13 @@ export function EntregadoresPage() {
           />
         </div>
         <span style={{ flex: 1 }} />
+        <button className="secondaryButton accessButton" onClick={() => { setAccessForm({ entregadorId: '', email: '', senha: '' }); setAccessModalOpen(true); }} type="button">
+          <KeyRound size={17} /> Criar acesso
+        </button>
         <button className="primaryButton" onClick={abrirNovo} type="button">
           <Plus size={17} /> Novo entregador
         </button>
       </div>
-
-      <form
-        className="adminList"
-        style={{ marginBottom: 20, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}
-        onSubmit={criarAcesso}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 11, flex: '0 0 auto' }}>
-          <span className="metricIcon tone-blue"><KeyRound size={18} /></span>
-          <div>
-            <strong style={{ display: 'block', fontSize: 14 }}>Criar acesso</strong>
-            <span style={{ color: '#8c9096', fontSize: 12, fontWeight: 500 }}>Gere login para o app do entregador</span>
-          </div>
-        </div>
-        <select
-          style={{ flex: 1, minWidth: 180, height: 44, border: '1px solid var(--input-border)', borderRadius: 10, padding: '0 14px', fontFamily: 'var(--font-ui)', fontWeight: 600, background: '#fbfbf9' }}
-          value={accessForm.entregadorId}
-          onChange={(event) => setAccessForm({ ...accessForm, entregadorId: event.target.value })}
-          required
-        >
-          <option value="">Selecione um entregador</option>
-          {entregadores.filter((entregador) => !entregador.possuiAcesso).map((entregador) => (
-            <option key={entregador.id} value={entregador.id}>{entregador.nome}</option>
-          ))}
-        </select>
-        <input
-          style={{ flex: 1, minWidth: 160, height: 44, border: '1px solid var(--input-border)', borderRadius: 10, padding: '0 14px', fontFamily: 'var(--font-ui)' }}
-          type="email"
-          placeholder="E-mail de login"
-          value={accessForm.email}
-          onChange={(event) => setAccessForm({ ...accessForm, email: event.target.value })}
-          required
-        />
-        <input
-          style={{ width: 130, height: 44, border: '1px solid var(--input-border)', borderRadius: 10, padding: '0 14px', fontFamily: 'var(--font-ui)' }}
-          placeholder="Senha inicial"
-          value={accessForm.senha}
-          onChange={(event) => setAccessForm({ ...accessForm, senha: event.target.value })}
-          required
-        />
-        <button className="darkButton" type="submit">Criar acesso</button>
-      </form>
 
       <div className="adminList" style={{ overflow: 'visible' }}>
         <div className="tableWrap">
@@ -197,19 +171,20 @@ export function EntregadoresPage() {
                 <th>Veiculo</th>
                 <th>Disponibilidade</th>
                 <th>Status</th>
-                <th></th>
+                <th style={{ textAlign: 'right' }}>Acoes</th>
               </tr>
             </thead>
             <tbody>
               {entregadores.map((entregador) => {
-                const menuItems: RowMenuItem[] = [
-                  { label: 'Editar', onClick: () => editar(entregador) },
+                const menuItems: TableAction[] = [
+                  { label: 'Editar entregador', icon: <Pencil size={16} />, onClick: () => editar(entregador) },
                 ];
                 if (!entregador.possuiAcesso) {
-                  menuItems.push({ label: 'Preparar acesso', onClick: () => prepararAcesso(entregador) });
+                  menuItems.push({ label: 'Criar acesso', icon: <UserPlus size={16} />, onClick: () => prepararAcesso(entregador) });
                 }
                 menuItems.push({
                   label: entregador.ativo ? 'Desativar' : 'Ativar',
+                  icon: entregador.ativo ? <ToggleLeft size={16} /> : <ToggleRight size={16} />,
                   onClick: () => alterarStatus(entregador),
                   danger: entregador.ativo,
                 });
@@ -220,17 +195,17 @@ export function EntregadoresPage() {
                       <div className="nameCell">
                         <span className="avatarTile tone-yellow">{iniciais(entregador.nome)}</span>
                         <div>
-                          <div>{entregador.nome}</div>
+                          <div>{titleCase(entregador.nome)}</div>
                           <div className="cellSub">{entregador.possuiAcesso ? 'Acesso criado' : 'Sem acesso'}</div>
                         </div>
                       </div>
                     </td>
-                    <td>{entregador.telefone}</td>
-                    <td style={{ fontSize: 13, color: 'var(--body-2)' }}>{entregador.tipoVeiculo}{entregador.placaVeiculo ? ` · ${entregador.placaVeiculo}` : ''}</td>
+                    <td>{formatPhone(entregador.telefone)}</td>
+                    <td style={{ fontSize: 13, color: 'var(--body-2)' }}>{sentenceCase(entregador.tipoVeiculo)}{entregador.placaVeiculo ? ` · ${entregador.placaVeiculo}` : ''}</td>
                     <td><span className={entregador.disponivel ? 'statusBadge active dot' : 'statusBadge dot'}>{entregador.disponivel ? 'Disponivel' : 'Ocupado'}</span></td>
                     <td><span className={entregador.ativo ? 'statusBadge active' : 'statusBadge danger'}>{entregador.ativo ? 'Ativo' : 'Inativo'}</span></td>
                     <td>
-                      <RowMenu items={menuItems} />
+                      <TableActions actions={menuItems} />
                     </td>
                   </tr>
                 );
@@ -241,6 +216,29 @@ export function EntregadoresPage() {
         </div>
       </div>
 
+      <Modal open={accessModalOpen} onClose={() => setAccessModalOpen(false)} title="Criar acesso" eyebrow="ACESSO DO ENTREGADOR" maxWidth={540}>
+        <form className="settingsForm compactForm" onSubmit={criarAcesso}>
+          <label>
+            Entregador
+            <select value={accessForm.entregadorId} onChange={(event) => setAccessForm({ ...accessForm, entregadorId: event.target.value })} required>
+              <option value="">Selecione um entregador</option>
+              {entregadores.filter((entregador) => !entregador.possuiAcesso).map((entregador) => (
+                <option key={entregador.id} value={entregador.id}>{titleCase(entregador.nome)}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            E-mail de login
+            <input type="email" inputMode="email" autoComplete="email" placeholder="nome@exemplo.com" value={accessForm.email} onChange={(event) => setAccessForm({ ...accessForm, email: formatEmailInput(event.target.value) })} required />
+          </label>
+          <label>
+            Senha inicial
+            <input type="password" minLength={8} autoComplete="new-password" placeholder="Minimo de 8 caracteres" value={accessForm.senha} onChange={(event) => setAccessForm({ ...accessForm, senha: event.target.value })} required />
+          </label>
+          <p className="formHelp">A senha sera armazenada de forma protegida e nao podera ser visualizada depois.</p>
+          <button className="primaryButton" type="submit"><KeyRound size={17} /> Criar acesso</button>
+        </form>
+      </Modal>
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -255,27 +253,27 @@ export function EntregadoresPage() {
           <div className="modalFormGrid" style={{ marginBottom: 0 }}>
             <label>
               CPF
-              <input value={form.cpf} onChange={(event) => setForm({ ...form, cpf: event.target.value })} required />
+              <input inputMode="numeric" autoComplete="off" maxLength={14} placeholder="000.000.000-00" value={form.cpf} onChange={(event) => setForm({ ...form, cpf: formatCpf(event.target.value) })} required />
             </label>
             <label>
               Telefone
-              <input value={form.telefone} onChange={(event) => setForm({ ...form, telefone: event.target.value })} required />
+              <input type="tel" inputMode="tel" autoComplete="tel" maxLength={15} placeholder="(00) 00000-0000" value={form.telefone} onChange={(event) => setForm({ ...form, telefone: formatPhone(event.target.value) })} required />
             </label>
           </div>
           <label style={{ display: 'grid', gap: 7 }}>
             E-mail
-            <input type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} />
+            <input type="email" inputMode="email" autoComplete="email" placeholder="nome@exemplo.com" value={form.email} onChange={(event) => setForm({ ...form, email: formatEmailInput(event.target.value) })} />
           </label>
           <div className="modalFormGrid" style={{ marginBottom: 0 }}>
             <label>
               Tipo de veiculo
               <select value={form.tipoVeiculo} onChange={(event) => setForm({ ...form, tipoVeiculo: event.target.value as TipoVeiculo })}>
-                {vehicleOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+                {vehicleOptions.map((option) => <option key={option} value={option}>{sentenceCase(option)}</option>)}
               </select>
             </label>
             <label>
               Placa
-              <input value={form.placaVeiculo} onChange={(event) => setForm({ ...form, placaVeiculo: event.target.value })} />
+              <input autoCapitalize="characters" maxLength={8} placeholder="ABC-1D23" value={form.placaVeiculo} onChange={(event) => setForm({ ...form, placaVeiculo: formatVehiclePlate(event.target.value) })} />
             </label>
           </div>
           <label className="checkboxLine">

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { api } from '../services/api';
+import { formatEmailInput, formatPhone, onlyDigits } from '../utils/inputMasks';
 
 const contactSchema = z.object({
   nome: z.string().trim().min(2, 'Informe seu nome').max(120, 'Use no maximo 120 caracteres'),
@@ -36,18 +37,23 @@ export function ContactForm() {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
     defaultValues: emptyForm,
   });
 
+  const email = watch('email');
+  const telefone = watch('telefone');
+
   async function onSubmit(data: ContactFormData) {
     setSubmitError('');
     setConfirmation('');
 
     try {
-      const response = await api.post<ContactResponse>('/public/contatos', data);
+      const response = await api.post<ContactResponse>('/public/contatos', { ...data, email: formatEmailInput(data.email), telefone: onlyDigits(data.telefone) });
       const reference = response.data.protocolo || response.data.id;
       setConfirmation(reference
         ? `Solicitacao recebida. Protocolo: ${reference}.`
@@ -76,12 +82,12 @@ export function ContactForm() {
       <div className="formRow">
         <label>
           E-mail
-          <input type="email" autoComplete="email" {...register('email')} />
+          <input {...register('email')} type="email" inputMode="email" autoComplete="email" placeholder="nome@exemplo.com" value={email} onChange={(event) => setValue('email', formatEmailInput(event.target.value), { shouldDirty: true, shouldValidate: true })} />
           {errors.email ? <span className="fieldError">{errors.email.message}</span> : null}
         </label>
         <label>
           Telefone
-          <input type="tel" autoComplete="tel" {...register('telefone')} />
+          <input {...register('telefone')} type="tel" inputMode="tel" autoComplete="tel" maxLength={15} placeholder="(00) 00000-0000" value={telefone} onChange={(event) => setValue('telefone', formatPhone(event.target.value), { shouldDirty: true, shouldValidate: true })} />
           {errors.telefone ? <span className="fieldError">{errors.telefone.message}</span> : null}
         </label>
       </div>

@@ -857,6 +857,41 @@ a {
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
+.passwordInputWrap {
+  position: relative;
+  display: block;
+}
+
+.clientLoginForm .passwordInputWrap input {
+  width: 100%;
+  padding-right: 44px;
+}
+
+.clientLoginForm .passwordVisibilityButton {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  min-height: 0;
+  padding: 0;
+  color: #6f6b60;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  place-items: center;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.clientLoginForm .passwordVisibilityButton:hover,
+.clientLoginForm .passwordVisibilityButton:focus-visible {
+  color: #111111;
+  background: #f2efe7;
+  outline: none;
+}
+
 .clientLoginForm button[type="submit"] {
   min-height: 38px;
   color: #111111;

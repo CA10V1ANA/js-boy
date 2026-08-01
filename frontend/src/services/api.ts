@@ -4,13 +4,18 @@ import {
 } from './authStorage';
 import { emitToast } from './toastBus';
 
+const loopbackHosts = new Set(['localhost', '127.0.0.1', '[::1]']);
+
 function apiBaseUrl() {
   const configured = import.meta.env.VITE_API_URL?.trim();
   const value = configured || (import.meta.env.DEV ? 'http://localhost:8080' : '');
   if (!value) throw new Error('VITE_API_URL deve ser configurada no build de produção.');
   const url = new URL(value);
   if (!['http:', 'https:'].includes(url.protocol)) throw new Error('VITE_API_URL deve usar HTTP ou HTTPS.');
-  if (import.meta.env.PROD && url.protocol !== 'https:') throw new Error('VITE_API_URL deve usar HTTPS em produção.');
+  const insecureRemoteProduction = import.meta.env.PROD
+    && url.protocol !== 'https:'
+    && !loopbackHosts.has(url.hostname);
+  if (insecureRemoteProduction) throw new Error('VITE_API_URL deve usar HTTPS fora do ambiente local.');
   return url.toString().replace(/\/$/, '');
 }
 

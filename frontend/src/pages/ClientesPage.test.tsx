@@ -46,7 +46,7 @@ describe('ClientesPage', () => {
 
     await waitFor(() => expect(mockedApi.get).toHaveBeenCalled());
     await user.click(screen.getByRole('button', { name: 'Novo cliente' }));
-    await user.click(screen.getByRole('button', { name: 'Cadastrar' }));
+    await user.click(screen.getByRole('button', { name: 'Proximo' }));
 
     expect(await screen.findByText('Informe o nome')).toBeInTheDocument();
     expect(mockedApi.post).not.toHaveBeenCalled();
@@ -62,10 +62,12 @@ describe('ClientesPage', () => {
 
     await user.type(screen.getByLabelText('Nome'), 'Joao Silva');
     await user.type(screen.getByLabelText('Telefone'), '11999990000');
+    await user.click(screen.getByRole('button', { name: 'Proximo' }));
     await user.type(screen.getByLabelText('Endereco'), 'Rua A, 100');
     await user.type(screen.getByLabelText('Bairro'), 'Centro');
     await user.type(screen.getByLabelText('Cidade'), 'Sao Paulo');
-    await user.click(screen.getByRole('button', { name: 'Cadastrar' }));
+    await user.click(screen.getByRole('button', { name: 'Proximo' }));
+    await user.click(screen.getByRole('button', { name: 'Cadastrar cliente' }));
 
     await waitFor(() => expect(mockedApi.post).toHaveBeenCalledWith('/clientes', expect.objectContaining({ nome: 'Joao Silva' })));
     expect(showToast).toHaveBeenCalledWith('Cliente cadastrado com sucesso.', 'success');

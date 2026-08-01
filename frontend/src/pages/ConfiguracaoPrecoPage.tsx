@@ -72,21 +72,21 @@ export function ConfiguracaoPrecoPage() {
           <div className="adminFormRow">
             <label>
               Valor inicial
-              <input type="number" min="0" step="0.01" value={form.taxaInicial} onChange={(event) => setForm({ ...form, taxaInicial: event.target.value })} required />
+              <input type="number" min="0" step="0.01" placeholder="0,00" value={form.taxaInicial} onChange={(event) => setForm({ ...form, taxaInicial: event.target.value })} required />
             </label>
             <label>
               Preco por km
-              <input type="number" min="0" step="0.01" value={form.valorPorKm} onChange={(event) => setForm({ ...form, valorPorKm: event.target.value })} required />
+              <input type="number" min="0" step="0.01" placeholder="0,00" value={form.valorPorKm} onChange={(event) => setForm({ ...form, valorPorKm: event.target.value })} required />
             </label>
           </div>
           <label>
             Valor minimo
-            <input type="number" min="0" step="0.01" value={form.valorMinimo} onChange={(event) => setForm({ ...form, valorMinimo: event.target.value })} required />
+            <input type="number" min="0" step="0.01" placeholder="0,00" value={form.valorMinimo} onChange={(event) => setForm({ ...form, valorMinimo: event.target.value })} required />
           </label>
 
           <label>
             Simular distancia (km)
-            <input type="number" min="0" step="0.1" value={distancia} onChange={(event) => setDistancia(event.target.value)} />
+            <input type="number" min="0" step="0.1" placeholder="0,0" value={distancia} onChange={(event) => setDistancia(event.target.value)} />
           </label>
 
           {previewValor !== null ? (

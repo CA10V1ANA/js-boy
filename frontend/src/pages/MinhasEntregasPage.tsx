@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ConfirmDialog, EmptyState, ErrorState, FeedbackMessage, LoadingState } from '../components/AsyncState';
 import { api } from '../services/api';
 import { apiErrorMessage } from '../services/apiError';
+import { formatPhone } from '../utils/inputMasks';
 import { Entrega, StatusEntrega } from '../types';
 
 function labelStatus(status: StatusEntrega) {
@@ -73,7 +74,7 @@ export function MinhasEntregasPage() {
                 <dl>
                   <div><dt>Cliente</dt><dd>{delivery.clienteNome}</dd></div>
                   <div><dt>Coleta</dt><dd>{delivery.enderecoOrigem}, {delivery.bairroOrigem}</dd></div>
-                  <div><dt>Destinatario</dt><dd>{delivery.destinatarioTelefone}</dd></div>
+                  <div><dt>Destinatario</dt><dd>{formatPhone(delivery.destinatarioTelefone)}</dd></div>
                   <div><dt>Mercadoria</dt><dd>{delivery.descricaoMercadoria}</dd></div>
                   <div><dt>Status</dt><dd><span className={`statusBadge ${delivery.status === 'ENTREGUE' ? 'active' : ''}`}>{labelStatus(delivery.status)}</span></dd></div>
                 </dl>
