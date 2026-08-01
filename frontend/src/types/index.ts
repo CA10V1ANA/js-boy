@@ -34,17 +34,36 @@ export type Entrega = {
   destinatarioNome: string; destinatarioTelefone: string; descricaoMercadoria: string; observacoes?: string;
   distanciaKm: number; taxaInicial: number; valorPorKm: number; valorCalculado: number; valorFinal: number;
   observacaoValorManual?: string; status: StatusEntrega; concluidaEm?: string; criadoEm: string;
+  tipoVeiculo: 'MOTO' | 'CARRO'; origemPreco: 'AREA' | 'NEGOCIADO' | 'DISTANCIA';
+  areaPrecoCodigo?: string; areaPrecoNome?: string; tarifaBairro: number; possuiRetorno: boolean;
+  taxaRetornoAplicada: number; tempoEsperaMinutos: number; taxaEsperaAplicada: number; valorNegociado?: number;
   historico: HistoricoEntrega[]; versao: number;
 };
 export type EntregaForm = {
   clienteId: string; entregadorId: string; enderecoOrigem: string; bairroOrigem: string;
   enderecoDestino: string; bairroDestino: string; destinatarioNome: string; destinatarioTelefone: string;
   descricaoMercadoria: string; observacoes: string; distanciaKm: string; valorFinal: string; observacaoValorManual: string;
+  tipoVeiculo: 'MOTO' | 'CARRO'; tempoEsperaMinutos: string; possuiRetorno: boolean; valorNegociado: string;
 };
 export type ConfiguracaoPreco = {
   id: string; taxaInicial: number; valorPorKm: number; valorMinimo: number; versao: number;
 };
 export type ConfiguracaoPrecoForm = { taxaInicial: string; valorPorKm: string; valorMinimo: string };
+export type AreaPreco = {
+  id: string; codigo: string; nome: string; ordem: number; valorMoto: number; valorCarro: number;
+  valorNegociado: boolean; bairros: string[]; versao: number;
+};
+export type TabelaPreco = {
+  configuracaoId: string; nome: string; vigenteDesde: string; taxaRetorno: number;
+  taxaEsperaTrintaMinutos: number; taxaInicialFallback: number; valorPorKmFallback: number;
+  valorMinimoFallback: number; areas: AreaPreco[]; versao: number;
+};
+export type SimulacaoTabelaPreco = {
+  bairroDestino: string; areaCodigo?: string; areaNome: string; tipoVeiculo: 'MOTO' | 'CARRO';
+  origemPreco: 'AREA' | 'NEGOCIADO' | 'DISTANCIA'; tarifaBase?: number; taxaRetorno: number;
+  taxaEspera: number; blocosEspera: number; valorCalculado?: number; valorNegociadoObrigatorio: boolean;
+  mensagem: string;
+};
 export type SimulacaoPreco = {
   distanciaKm: number; taxaInicial: number; valorPorKm: number; valorMinimo: number; valorCalculado: number;
 };

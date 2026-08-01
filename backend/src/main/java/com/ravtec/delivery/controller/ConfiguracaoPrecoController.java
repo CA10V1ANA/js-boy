@@ -2,6 +2,7 @@ package com.ravtec.delivery.controller;
 
 import com.ravtec.delivery.dto.*;
 import com.ravtec.delivery.service.ConfiguracaoPrecoService;
+import com.ravtec.delivery.service.TabelaPrecoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @PreAuthorize("hasRole('PROPRIETARIO')")
 public class ConfiguracaoPrecoController {
     private final ConfiguracaoPrecoService configuracaoPrecoService;
+    private final TabelaPrecoService tabelaPrecoService;
     @GetMapping
     public ConfiguracaoPrecoResponse consultar() {
         return configuracaoPrecoService.consultar();
@@ -27,5 +29,22 @@ public class ConfiguracaoPrecoController {
     @PostMapping("/simular")
     public SimulacaoPrecoResponse simular(@Valid @RequestBody SimulacaoPrecoRequest request) {
         return configuracaoPrecoService.simular(request);
+    }
+    @GetMapping("/tabela")
+    public TabelaPrecoResponse consultarTabela() {
+        return tabelaPrecoService.consultar();
+    }
+    @PutMapping("/tabela")
+    public TabelaPrecoResponse atualizarTabela(
+        @RequestHeader(value = "If-Match", required = false) Long versao,
+        @Valid @RequestBody TabelaPrecoRequest request
+    ) {
+        return tabelaPrecoService.atualizar(request, versao);
+    }
+    @PostMapping("/simular-bairro")
+    public SimulacaoTabelaPrecoResponse simularTabela(
+        @Valid @RequestBody SimulacaoTabelaPrecoRequest request
+    ) {
+        return tabelaPrecoService.simular(request);
     }
 }

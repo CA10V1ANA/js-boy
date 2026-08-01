@@ -52,6 +52,8 @@ class EntregaServiceTest {
     @Mock
     private ConfiguracaoPrecoService configuracaoPrecoService;
     @Mock
+    private TabelaPrecoService tabelaPrecoService;
+    @Mock
     private IdentidadeAtual identidadeAtual;
 
     private EntregaService entregaService;
@@ -61,7 +63,7 @@ class EntregaServiceTest {
     void setUp() {
         entregaService = new EntregaService(
             entregaRepository, clienteRepository, entregadorRepository,
-            historicoEntregaRepository, configuracaoPrecoService, new EntregaMapper(),
+            historicoEntregaRepository, configuracaoPrecoService, tabelaPrecoService, new EntregaMapper(),
             identidadeAtual, new EntregaStatusPolicy()
         );
 
@@ -78,6 +80,13 @@ class EntregaServiceTest {
         );
         lenient().when(identidadeAtual.principal()).thenReturn(principal);
         lenient().when(identidadeAtual.usuario()).thenReturn(usuarioLogado);
+        lenient().when(tabelaPrecoService.calcular(any(), any(), any(), any(), any(), any()))
+            .thenReturn(new com.ravtec.delivery.dto.SimulacaoTabelaPrecoResponse(
+                "Vila Nova", null, "Fora da tabela", com.ravtec.delivery.entity.TipoVeiculo.MOTO,
+                com.ravtec.delivery.entity.OrigemPreco.DISTANCIA, new BigDecimal("20.00"),
+                BigDecimal.ZERO, BigDecimal.ZERO, 0, new BigDecimal("20.00"), false,
+                "Calculo alternativo"
+            ));
     }
 
     @AfterEach
@@ -97,7 +106,6 @@ class EntregaServiceTest {
 
         when(clienteRepository.findById(cliente.getId())).thenReturn(Optional.of(cliente));
         when(configuracaoPrecoService.buscarAtual()).thenReturn(config);
-        when(configuracaoPrecoService.calcularValor(config, new BigDecimal("5.00"))).thenReturn(new BigDecimal("20.00"));
         when(entregaRepository.save(any(Entrega.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         var response = entregaService.criar(request);
@@ -121,7 +129,6 @@ class EntregaServiceTest {
         when(clienteRepository.findById(cliente.getId())).thenReturn(Optional.of(cliente));
         when(entregadorRepository.findById(entregador.getId())).thenReturn(Optional.of(entregador));
         when(configuracaoPrecoService.buscarAtual()).thenReturn(config);
-        when(configuracaoPrecoService.calcularValor(config, new BigDecimal("5.00"))).thenReturn(new BigDecimal("20.00"));
         when(entregaRepository.save(any(Entrega.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         var response = entregaService.criar(request);

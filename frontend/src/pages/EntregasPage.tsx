@@ -1,10 +1,10 @@
-import { ArrowRight, Ban, Check, History, Pencil, Plus, Search, UserRoundCheck } from 'lucide-react';
+import { ArrowRight, Ban, Check, History, MapPinned, Pencil, Plus, Search, UserRoundCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Modal } from '../components/Modal';
 import { TableActions } from '../components/TableActions';
 import { useToast } from '../contexts/ToastContext';
 import { api } from '../services/api';
-import { Cliente, ConfiguracaoPreco, Entrega, EntregaForm, Entregador, StatusEntrega } from '../types';
+import { Cliente, ConfiguracaoPreco, Entrega, EntregaForm, Entregador, StatusEntrega, TabelaPreco } from '../types';
 import { publicDeliveryCode, titleCase } from '../utils/display';
 import { formatPhone, onlyDigits } from '../utils/inputMasks';
 
@@ -22,6 +22,10 @@ const emptyForm: EntregaForm = {
   distanciaKm: '0',
   valorFinal: '',
   observacaoValorManual: '',
+  tipoVeiculo: 'MOTO',
+  tempoEsperaMinutos: '0',
+  possuiRetorno: false,
+  valorNegociado: '',
 };
 
 const statusOptions: StatusEntrega[] = [
@@ -69,12 +73,17 @@ function money(value: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 }
 
+function normalize(value: string) {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleLowerCase('pt-BR').replace(/\s+/g, ' ');
+}
+
 export function EntregasPage() {
   const { showToast } = useToast();
   const [entregas, setEntregas] = useState<Entrega[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [entregadores, setEntregadores] = useState<Entregador[]>([]);
   const [configPreco, setConfigPreco] = useState<ConfiguracaoPreco | null>(null);
+  const [tabelaPreco, setTabelaPreco] = useState<TabelaPreco | null>(null);
   const [busca, setBusca] = useState('');
   const [filtro, setFiltro] = useState<Filtro>('Todas');
 
@@ -95,7 +104,7 @@ export function EntregasPage() {
   }, []);
 
   async function carregarBase() {
-    await Promise.all([carregarEntregas(), carregarClientes(), carregarEntregadores(), carregarConfigPreco()]);
+    await Promise.all([carregarEntregas(), carregarClientes(), carregarEntregadores(), carregarConfigPreco(), carregarTabelaPreco()]);
   }
 
   async function carregarEntregas(search = busca) {
@@ -128,6 +137,15 @@ export function EntregasPage() {
     }
   }
 
+  async function carregarTabelaPreco() {
+    try {
+      const response = await api.get<TabelaPreco>('/configuracoes/preco/tabela');
+      setTabelaPreco(response.data);
+    } catch {
+      setTabelaPreco(null);
+    }
+  }
+
   function abrirWizardNovo() {
     setForm(emptyForm);
     setEditingId(null);
@@ -151,6 +169,10 @@ export function EntregasPage() {
       distanciaKm: String(entrega.distanciaKm),
       valorFinal: String(entrega.valorFinal),
       observacaoValorManual: entrega.observacaoValorManual || '',
+      tipoVeiculo: entrega.tipoVeiculo === 'CARRO' ? 'CARRO' : 'MOTO',
+      tempoEsperaMinutos: String(entrega.tempoEsperaMinutos || 0),
+      possuiRetorno: Boolean(entrega.possuiRetorno),
+      valorNegociado: entrega.valorNegociado ? String(entrega.valorNegociado) : '',
     });
     setWizardStep(1);
     setWizardOpen(true);
@@ -168,6 +190,8 @@ export function EntregasPage() {
       destinatarioTelefone: onlyDigits(form.destinatarioTelefone),
       distanciaKm: Number(form.distanciaKm),
       valorFinal: form.valorFinal ? Number(form.valorFinal) : null,
+      tempoEsperaMinutos: Math.max(0, Number(form.tempoEsperaMinutos) || 0),
+      valorNegociado: form.valorNegociado ? Number(form.valorNegociado) : null,
     };
 
     try {
@@ -224,9 +248,21 @@ export function EntregasPage() {
 
   const entregasFiltradas = entregas.filter((entrega) => pertenceFiltro(entrega.status, filtro));
 
-  const previewValor = configPreco
-    ? Math.max(configPreco.taxaInicial + Number(form.distanciaKm || 0) * configPreco.valorPorKm, configPreco.valorMinimo)
-    : null;
+  const areaPreco = tabelaPreco?.areas.find((area) =>
+    area.bairros.some((bairro) => normalize(bairro) === normalize(form.bairroDestino)));
+  const tarifaBase = areaPreco?.valorNegociado
+    ? Number(form.valorNegociado) || 0
+    : areaPreco
+      ? (form.tipoVeiculo === 'CARRO' ? areaPreco.valorCarro : areaPreco.valorMoto)
+      : configPreco
+        ? Math.max(configPreco.taxaInicial + Number(form.distanciaKm || 0) * configPreco.valorPorKm, configPreco.valorMinimo)
+        : 0;
+  const blocosEspera = Math.floor(Math.max(0, Number(form.tempoEsperaMinutos) || 0) / 30);
+  const taxaEspera = blocosEspera * (tabelaPreco?.taxaEsperaTrintaMinutos || 0);
+  const taxaRetorno = form.possuiRetorno ? (tabelaPreco?.taxaRetorno || 0) : 0;
+  const valorNegociadoPendente = Boolean(areaPreco?.valorNegociado && tarifaBase <= 0);
+  const previewValor = tabelaPreco && !valorNegociadoPendente ? tarifaBase + taxaEspera + taxaRetorno : null;
+  const bairrosTabela = tabelaPreco?.areas.flatMap((area) => area.bairros) || [];
 
   return (
     <main className="page">
@@ -369,6 +405,13 @@ export function EntregasPage() {
                   {entregadores.map((entregador) => <option key={entregador.id} value={entregador.id}>{entregador.nome}</option>)}
                 </select>
               </label>
+              <label>
+                Tipo de veículo
+                <select value={form.tipoVeiculo} onChange={(event) => setForm({ ...form, tipoVeiculo: event.target.value as 'MOTO' | 'CARRO' })}>
+                  <option value="MOTO">Moto</option>
+                  <option value="CARRO">Carro</option>
+                </select>
+              </label>
             </div>
             <div className="modalFormGrid" style={{ marginBottom: 0 }}>
               <label>
@@ -392,9 +435,16 @@ export function EntregasPage() {
               </label>
               <label>
                 Bairro
-                <input placeholder="Bairro" value={form.bairroDestino} onChange={(event) => setForm({ ...form, bairroDestino: event.target.value })} required />
+                <input list="bairros-entrega" placeholder="Digite e selecione o bairro" value={form.bairroDestino} onChange={(event) => setForm({ ...form, bairroDestino: event.target.value })} required />
+                <datalist id="bairros-entrega">{bairrosTabela.map((bairro) => <option key={bairro} value={bairro} />)}</datalist>
               </label>
             </div>
+            {form.bairroDestino ? (
+              <div className={areaPreco ? 'deliveryAreaNotice matched' : 'deliveryAreaNotice'}>
+                <MapPinned size={18} />
+                <div><strong>{areaPreco ? areaPreco.nome : 'Bairro fora da tabela'}</strong><span>{areaPreco?.valorNegociado ? 'O valor será negociado nesta entrega.' : areaPreco ? `Tarifa identificada: ${money(form.tipoVeiculo === 'CARRO' ? areaPreco.valorCarro : areaPreco.valorMoto)}` : 'Será usado o cálculo alternativo por distância.'}</span></div>
+              </div>
+            ) : null}
             <div className="modalFormGrid" style={{ marginBottom: 0 }}>
               <label>
                 Destinatario
@@ -423,22 +473,40 @@ export function EntregasPage() {
 
         {wizardStep === 4 ? (
           <>
-            <div className="modalFormGrid">
+            <div className="modalFormGrid deliveryPricingFields">
+              {areaPreco?.valorNegociado ? (
+                <label>
+                  Valor negociado
+                  <input className="highlight" type="number" min="0" step="0.01" placeholder="0,00" value={form.valorNegociado} onChange={(event) => setForm({ ...form, valorNegociado: event.target.value })} required />
+                </label>
+              ) : null}
+              {!areaPreco ? (
+                <label>
+                  Distância para cálculo alternativo (km)
+                  <input type="number" min="0" step="0.1" placeholder="0,0" value={form.distanciaKm} onChange={(event) => setForm({ ...form, distanciaKm: event.target.value })} required />
+                </label>
+              ) : null}
               <label>
-                Distancia (km)
-                <input type="number" min="0" step="0.1" placeholder="0,0" value={form.distanciaKm} onChange={(event) => setForm({ ...form, distanciaKm: event.target.value })} required />
+                Tempo de espera (minutos)
+                <input type="number" min="0" step="1" placeholder="0" value={form.tempoEsperaMinutos} onChange={(event) => setForm({ ...form, tempoEsperaMinutos: event.target.value })} />
               </label>
               <label>
                 Valor final
                 <input className="highlight" type="number" min="0" step="0.01" placeholder={previewValor ? money(previewValor) : 'R$ 0,00'} value={form.valorFinal} onChange={(event) => setForm({ ...form, valorFinal: event.target.value })} />
               </label>
             </div>
+            <label className="wizardCheckbox deliveryReturnCheck">
+              <input type="checkbox" checked={form.possuiRetorno} onChange={(event) => setForm({ ...form, possuiRetorno: event.target.checked })} />
+              <span>Possui retorno <small>Adiciona {money(tabelaPreco?.taxaRetorno || 0)} ao total.</small></span>
+            </label>
             {previewValor !== null ? (
               <div className="wizardSummary">
                 <div className="wizardSummaryRow">
-                  <span>Tarifa base + {form.distanciaKm || 0} km x {money(configPreco?.valorPorKm || 0)}</span>
-                  <strong>{money(previewValor)}</strong>
+                  <span>{areaPreco ? `${areaPreco.nome} · ${form.tipoVeiculo === 'CARRO' ? 'Carro' : 'Moto'}` : `Cálculo por distância · ${form.distanciaKm || 0} km`}</span>
+                  <strong>{money(tarifaBase)}</strong>
                 </div>
+                {taxaRetorno > 0 ? <div className="wizardSummaryRow"><span>Retorno</span><strong>{money(taxaRetorno)}</strong></div> : null}
+                {taxaEspera > 0 ? <div className="wizardSummaryRow"><span>Espera · {blocosEspera} bloco(s) de 30 min</span><strong>{money(taxaEspera)}</strong></div> : null}
                 <div className="wizardSummaryDivider" />
                 <div className="wizardSummaryTotal">
                   <span>Total estimado</span>
@@ -446,6 +514,7 @@ export function EntregasPage() {
                 </div>
               </div>
             ) : null}
+            {valorNegociadoPendente ? <p className="errorMessage">Informe o valor negociado para a Região Metropolitana.</p> : null}
             <label style={{ marginTop: 14, display: 'grid', gap: 7 }}>
               Motivo do valor manual
               <input value={form.observacaoValorManual} onChange={(event) => setForm({ ...form, observacaoValorManual: event.target.value })} />

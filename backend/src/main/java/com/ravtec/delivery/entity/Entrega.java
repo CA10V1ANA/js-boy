@@ -45,6 +45,28 @@ public class Entrega extends BaseEntity {
     private BigDecimal valorCalculado = BigDecimal.ZERO;
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal valorFinal = BigDecimal.ZERO;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private TipoVeiculo tipoVeiculo = TipoVeiculo.MOTO;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private OrigemPreco origemPreco = OrigemPreco.DISTANCIA;
+    @Column(length = 30)
+    private String areaPrecoCodigo;
+    @Column(length = 80)
+    private String areaPrecoNome;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal tarifaBairro = BigDecimal.ZERO;
+    @Column(nullable = false)
+    private boolean possuiRetorno;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal taxaRetornoAplicada = BigDecimal.ZERO;
+    @Column(nullable = false)
+    private Integer tempoEsperaMinutos = 0;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal taxaEsperaAplicada = BigDecimal.ZERO;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal valorNegociado;
     @Column(length = 500)
     private String observacaoValorManual;
     @Enumerated(EnumType.STRING)

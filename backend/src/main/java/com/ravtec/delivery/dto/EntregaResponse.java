@@ -1,6 +1,8 @@
 package com.ravtec.delivery.dto;
 
+import com.ravtec.delivery.entity.OrigemPreco;
 import com.ravtec.delivery.entity.StatusEntrega;
+import com.ravtec.delivery.entity.TipoVeiculo;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -27,6 +29,16 @@ public record EntregaResponse(
     BigDecimal valorCalculado,
     BigDecimal valorFinal,
     String observacaoValorManual,
+    TipoVeiculo tipoVeiculo,
+    OrigemPreco origemPreco,
+    String areaPrecoCodigo,
+    String areaPrecoNome,
+    BigDecimal tarifaBairro,
+    boolean possuiRetorno,
+    BigDecimal taxaRetornoAplicada,
+    Integer tempoEsperaMinutos,
+    BigDecimal taxaEsperaAplicada,
+    BigDecimal valorNegociado,
     StatusEntrega status,
     OffsetDateTime concluidaEm,
     OffsetDateTime criadoEm,

@@ -24,7 +24,11 @@ public class EntregaMapper {
             entrega.getBairroDestino(), entrega.getDestinatarioNome(), entrega.getDestinatarioTelefone(),
             entrega.getDescricaoMercadoria(), entrega.getObservacoes(), entrega.getDistanciaKm(),
             entrega.getTaxaInicial(), entrega.getValorPorKm(), entrega.getValorCalculado(), entrega.getValorFinal(),
-            entrega.getObservacaoValorManual(), entrega.getStatus(), entrega.getConcluidaEm(), entrega.getCriadoEm(),
+            entrega.getObservacaoValorManual(), entrega.getTipoVeiculo(), entrega.getOrigemPreco(),
+            entrega.getAreaPrecoCodigo(), entrega.getAreaPrecoNome(), entrega.getTarifaBairro(),
+            entrega.isPossuiRetorno(), entrega.getTaxaRetornoAplicada(), entrega.getTempoEsperaMinutos(),
+            entrega.getTaxaEsperaAplicada(), entrega.getValorNegociado(), entrega.getStatus(),
+            entrega.getConcluidaEm(), entrega.getCriadoEm(),
             historico, entrega.getVersion()
         );
     }

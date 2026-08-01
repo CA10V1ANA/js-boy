@@ -5,6 +5,7 @@ import './styles.css';
 import './p1-vars.css';
 import './p1.css';
 import './p2.css';
+import './price.css';
 import './services/authToken';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';

@@ -37,6 +37,7 @@ public class EntregaService {
     private final EntregadorRepository entregadorRepository;
     private final HistoricoEntregaRepository historicoEntregaRepository;
     private final ConfiguracaoPrecoService configuracaoPrecoService;
+    private final TabelaPrecoService tabelaPrecoService;
     private final EntregaMapper entregaMapper;
     private final IdentidadeAtual identidadeAtual;
     private final EntregaStatusPolicy entregaStatusPolicy;
@@ -173,7 +174,14 @@ public class EntregaService {
         }
         var config = configuracaoPrecoService.buscarAtual();
         var distancia = request.distanciaKm().setScale(2, RoundingMode.HALF_UP);
-        var valorCalculado = configuracaoPrecoService.calcularValor(config, distancia);
+        var calculo = tabelaPrecoService.calcular(
+            request.bairroDestino(), request.tipoVeiculo(), request.tempoEsperaMinutos(),
+            request.possuiRetorno(), request.valorNegociado(), distancia
+        );
+        if (calculo.valorNegociadoObrigatorio() || calculo.valorCalculado() == null) {
+            throw new IllegalArgumentException("Informe o valor negociado para a Regiao Metropolitana");
+        }
+        var valorCalculado = calculo.valorCalculado();
         var valorFinal = request.valorFinal() == null
             ? valorCalculado : request.valorFinal().setScale(2, RoundingMode.HALF_UP);
         if (valorFinal.compareTo(BigDecimal.ZERO) < 0) {
@@ -203,6 +211,17 @@ public class EntregaService {
         entrega.setValorPorKm(config.getValorPorKm());
         entrega.setValorCalculado(valorCalculado);
         entrega.setValorFinal(valorFinal);
+        entrega.setTipoVeiculo(calculo.tipoVeiculo());
+        entrega.setOrigemPreco(calculo.origemPreco());
+        entrega.setAreaPrecoCodigo(calculo.areaCodigo());
+        entrega.setAreaPrecoNome(calculo.areaNome());
+        entrega.setTarifaBairro(calculo.tarifaBase());
+        entrega.setPossuiRetorno(Boolean.TRUE.equals(request.possuiRetorno()));
+        entrega.setTaxaRetornoAplicada(calculo.taxaRetorno());
+        entrega.setTempoEsperaMinutos(request.tempoEsperaMinutos() == null ? 0 : request.tempoEsperaMinutos());
+        entrega.setTaxaEsperaAplicada(calculo.taxaEspera());
+        entrega.setValorNegociado(request.valorNegociado() == null ? null
+            : request.valorNegociado().setScale(2, RoundingMode.HALF_UP));
         entrega.setObservacaoValorManual(valorFinal.compareTo(valorCalculado) == 0
             ? null : limpar(request.observacaoValorManual()));
         if (valorFinal.compareTo(valorCalculado) != 0 && entrega.getObservacaoValorManual() == null) {
