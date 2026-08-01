@@ -249,3 +249,57 @@ td .cellSub { display: block; margin-top: 3px; color: var(--faint); font-size: 1
   .settingsSubmit .primaryButton { width: 100%; }
   .infoBanner { align-items: flex-start; }
 }
+
+/* Specificity guards for centered icon and avatar content. */
+.metricCard > .metricIcon,
+.quickTile > .metricIcon,
+.nameCell > .avatarTile,
+.appHeader .appHeaderSun,
+.appHeader .headerAvatar,
+.sideUser > .sideUserAvatar {
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  padding: 0;
+  line-height: 1;
+  text-align: center;
+}
+
+.metricCard > .metricIcon {
+  margin-bottom: 14px;
+}
+
+.metricCard > .metricIcon svg,
+.quickTile > .metricIcon svg,
+.nameCell > .avatarTile svg,
+.appHeader .appHeaderSun svg {
+  display: block;
+  align-self: center;
+  justify-self: center;
+  margin: 0;
+}
+
+.sideUser > .sideUserAvatar {
+  margin-top: 0;
+  overflow: visible;
+  color: var(--amber-ink);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: normal;
+  text-overflow: clip;
+}
+
+.appHeader .appHeaderSun {
+  margin-top: 0;
+  color: var(--amber-icon);
+  font-size: initial;
+}
+
+.appHeader .headerAvatar {
+  margin-top: 0;
+  color: var(--amber-ink);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+}
