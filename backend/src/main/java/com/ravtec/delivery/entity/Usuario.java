@@ -43,4 +43,16 @@ public class Usuario extends BaseEntity {
         }
         return perfil;
     }
+
+    public boolean isAcessoAtivo() {
+        if (!ativo) return false;
+        var efetivo = getPerfilEfetivo();
+        if (efetivo == PerfilAcesso.CLIENTE) {
+            return cliente != null && cliente.isAtivo();
+        }
+        if (efetivo == PerfilAcesso.ENTREGADOR) {
+            return entregador != null && entregador.isAtivo();
+        }
+        return true;
+    }
 }

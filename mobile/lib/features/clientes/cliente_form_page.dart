@@ -9,8 +9,9 @@ import '../../widgets/ui.dart';
 
 class ClienteFormPage extends StatefulWidget {
   final Cliente? cliente;
+  final bool cadastroEntregador;
 
-  const ClienteFormPage({super.key, this.cliente});
+  const ClienteFormPage({super.key, this.cliente, this.cadastroEntregador = false});
 
   @override
   State<ClienteFormPage> createState() => _ClienteFormPageState();
@@ -61,20 +62,25 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
     setState(() => _salvando = true);
 
     try {
-      await context.read<ClienteService>().salvar(
-        id: widget.cliente?.id,
-        dados: {
+      final dados = {
           'nome': _nome.text.trim(),
           'telefone': _telefone.text.trim(),
           'whatsapp': _whatsapp.text.trim(),
           'email': _email.text.trim(),
           'documento': _documento.text.trim(),
           'endereco': _endereco.text.trim(),
+          'logradouro': _endereco.text.trim(),
+          'numero': 'S/N',
+          'semNumero': true,
           'bairro': _bairro.text.trim(),
           'cidade': _cidade.text.trim(),
           'observacoes': _observacoes.text.trim(),
-        },
-      );
+        };
+      if (widget.cadastroEntregador) {
+        await context.read<ClienteService>().cadastrarPeloEntregador(dados);
+      } else {
+        await context.read<ClienteService>().salvar(id: widget.cliente?.id, dados: dados);
+      }
 
       if (!mounted) return;
       mostrarMensagem(

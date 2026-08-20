@@ -21,6 +21,11 @@ app:
     require-https: true
   storage:
     provider: ${APP_STORAGE_PROVIDER}
+  proof:
+    otp:
+      provider: ${APP_PROOF_OTP_PROVIDER:webhook}
+      webhook-url: ${PROOF_OTP_WEBHOOK_URL}
+      webhook-token: ${PROOF_OTP_WEBHOOK_TOKEN}
   notifications:
     provider: ${APP_NOTIFICATIONS_PROVIDER}
   password-reset:

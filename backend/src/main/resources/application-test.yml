@@ -29,6 +29,9 @@ app:
     swagger-enabled: false
     h2-console-enabled: false
     require-https: false
+  proof:
+    otp:
+      provider: local
 
 logging:
   level:

@@ -23,6 +23,7 @@ import com.ravtec.delivery.repository.ClienteRepository;
 import com.ravtec.delivery.repository.EntregaRepository;
 import com.ravtec.delivery.repository.EntregadorRepository;
 import com.ravtec.delivery.repository.HistoricoEntregaRepository;
+import com.ravtec.delivery.repository.ComprovanteEntregaRepository;
 import com.ravtec.delivery.security.UsuarioPrincipal;
 import com.ravtec.delivery.security.IdentidadeAtual;
 import java.math.BigDecimal;
@@ -37,6 +38,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class EntregaServiceTest {
@@ -55,6 +57,8 @@ class EntregaServiceTest {
     private TabelaPrecoService tabelaPrecoService;
     @Mock
     private IdentidadeAtual identidadeAtual;
+    @Mock
+    private ComprovanteEntregaRepository comprovanteRepository;
 
     private EntregaService entregaService;
     private Usuario usuarioLogado;
@@ -66,6 +70,7 @@ class EntregaServiceTest {
             historicoEntregaRepository, configuracaoPrecoService, tabelaPrecoService, new EntregaMapper(),
             identidadeAtual, new EntregaStatusPolicy()
         );
+        ReflectionTestUtils.setField(entregaService, "comprovanteRepository", comprovanteRepository);
 
         usuarioLogado = new Usuario();
         usuarioLogado.setId(UUID.randomUUID());
@@ -169,6 +174,23 @@ class EntregaServiceTest {
         var response = entregaService.alterarStatusMinhaEntrega(entrega.getId(), new EntregaStatusRequest(StatusEntrega.COLETADA));
 
         assertThat(response.status()).isEqualTo(StatusEntrega.COLETADA);
+    }
+
+    @Test
+    void deveRejeitarEntregaSemComprovanteFinalVerificado() {
+        var entregador = criarEntregador();
+        entregador.setUsuario(usuarioLogado);
+        var entrega = criarEntrega();
+        entrega.setEntregador(entregador);
+        entrega.setStatus(StatusEntrega.EM_ROTA);
+        when(entregaRepository.findByIdAndEntregadorUsuarioId(entrega.getId(), usuarioLogado.getId()))
+            .thenReturn(Optional.of(entrega));
+        when(comprovanteRepository.existsEntregaFinalVerificada(entrega.getId())).thenReturn(false);
+
+        assertThatThrownBy(() -> entregaService.alterarStatusMinhaEntrega(
+            entrega.getId(), new EntregaStatusRequest(StatusEntrega.ENTREGUE)))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("valide o comprovante");
     }
 
     private Cliente criarCliente() {

@@ -35,15 +35,16 @@ class AuthControllerIT extends AbstractIntegrationTest {
 
     @BeforeEach
     void prepararProprietario() {
-        usuarioRepository.findByEmail(OWNER_EMAIL).orElseGet(() -> {
-            var usuario = new Usuario();
-            usuario.setNome("Proprietario Integracao");
-            usuario.setEmail(OWNER_EMAIL);
-            usuario.setSenhaHash(passwordEncoder.encode(OWNER_PASSWORD));
-            usuario.setPerfil(PerfilAcesso.PROPRIETARIO);
-            usuario.setAtivo(true);
-            return usuarioRepository.save(usuario);
+        var usuario = usuarioRepository.findByEmail(OWNER_EMAIL).orElseGet(() -> {
+            var novo = new Usuario();
+            novo.setNome("Proprietario Integracao");
+            novo.setEmail(OWNER_EMAIL);
+            return novo;
         });
+        usuario.setSenhaHash(passwordEncoder.encode(OWNER_PASSWORD));
+        usuario.setPerfil(PerfilAcesso.PROPRIETARIO);
+        usuario.setAtivo(true);
+        usuarioRepository.saveAndFlush(usuario);
     }
 
     @Test
@@ -109,6 +110,24 @@ class AuthControllerIT extends AbstractIntegrationTest {
     @Test
     void deveRejeitarConsultaDeUsuarioSemToken() {
         var response = restTemplate.getForEntity("/auth/me", String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    void deveRejeitarImediatamenteJwtEmitidoAntesDaDesativacao() {
+        var login = restTemplate.postForEntity(
+            "/auth/login", new LoginRequest(OWNER_EMAIL, OWNER_PASSWORD), LoginResponse.class
+        );
+        var usuario = usuarioRepository.findByEmail(OWNER_EMAIL).orElseThrow();
+        usuario.setAtivo(false);
+        usuarioRepository.saveAndFlush(usuario);
+
+        var headers = new HttpHeaders();
+        headers.setBearerAuth(login.getBody().token());
+        var response = restTemplate.exchange(
+            "/auth/me", HttpMethod.GET, new HttpEntity<>(headers), String.class
+        );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }

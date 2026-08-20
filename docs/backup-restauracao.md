@@ -10,7 +10,12 @@ Meta inicial para revisão operacional: RPO de 24 horas e RTO de 4 horas. Para m
 - Ensaio mensal automatizado em banco isolado; ensaio trimestral acompanhado pelo responsável.
 - Responsável primário: operador designado pela JS Boy; substituto deve estar registrado.
 
-`ops/backup-postgres.sh` cria arquivo custom format, valida, cifra e gera checksum. A linha de retenção apenas lista candidatos; exclusão deve ser feita por lifecycle controlado do storage. `ops/restore-rehearsal.sh` recusa `production` e exige nome de banco de teste.
+`ops/backup-postgres.sh` cria arquivo custom format, valida, cifra e gera checksum.
+`ops/backup-proofs.sh` cria e cifra o arquivo correspondente ao volume persistente de comprovantes.
+Os dois artefatos devem compartilhar o mesmo identificador de janela e ser restaurados em conjunto;
+um banco sem os arquivos correspondentes deixa evidências indisponíveis. As linhas de retenção apenas
+listam candidatos; exclusão deve ser feita por lifecycle controlado do storage. `ops/restore-rehearsal.sh`
+recusa `production` e exige nome de banco de teste.
 
 ## Simulação
 

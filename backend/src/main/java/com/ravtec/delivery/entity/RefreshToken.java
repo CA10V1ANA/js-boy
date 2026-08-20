@@ -20,6 +20,6 @@ public class RefreshToken extends BaseEntity {
     @Column(length = 64)
     private String substituidoPorHash;
     public boolean ativo() {
-        return revogadoEm == null && expiraEm.isAfter(OffsetDateTime.now()) && usuario.isAtivo();
+        return revogadoEm == null && expiraEm.isAfter(OffsetDateTime.now()) && usuario.isAcessoAtivo();
     }
 }

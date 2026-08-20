@@ -53,7 +53,7 @@ public class UsuarioPrincipal implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return usuario.isAtivo();
+        return usuario.isAcessoAtivo();
     }
 
     @Override

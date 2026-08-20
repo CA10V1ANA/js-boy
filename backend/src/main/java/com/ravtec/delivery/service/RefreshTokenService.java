@@ -25,12 +25,12 @@ public class RefreshTokenService {
         return emitir(usuario, UUID.randomUUID());
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = BadCredentialsException.class)
     public LoginResponse rotacionar(String token) {
-        var atual = repository.findByTokenHash(tokens.hash(token))
+        var atual = repository.findByTokenHashParaAtualizacao(tokens.hash(token))
             .orElseThrow(() -> new BadCredentialsException("Sessao invalida"));
         if (!atual.ativo()) {
-            repository.findByFamiliaId(atual.getFamiliaId()).forEach(item -> item.setRevogadoEm(OffsetDateTime.now()));
+            repository.revogarFamilia(atual.getFamiliaId(), OffsetDateTime.now());
             throw new BadCredentialsException("Sessao invalida");
         }
         atual.setRevogadoEm(OffsetDateTime.now());
@@ -41,8 +41,13 @@ public class RefreshTokenService {
 
     @Transactional
     public void revogar(String token) {
-        repository.findByTokenHash(tokens.hash(token))
+        repository.findByTokenHashParaAtualizacao(tokens.hash(token))
             .ifPresent(item -> item.setRevogadoEm(OffsetDateTime.now()));
+    }
+
+    @Transactional
+    public void revogarUsuario(UUID usuarioId) {
+        repository.revogarAtivosDoUsuario(usuarioId, OffsetDateTime.now());
     }
 
     private LoginResponse emitir(Usuario usuario, UUID familia) {

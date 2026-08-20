@@ -58,6 +58,9 @@ public class ParadaEntregaService {
         if (anteriorPendente) {
             throw new IllegalStateException("Conclua as paradas anteriores primeiro");
         }
+        if (parada.getTipo() == TipoParada.ENTREGA) {
+            throw new IllegalStateException("A parada de entrega e concluida pelo comprovante com codigo do destinatario");
+        }
         parada.setStatus(StatusParada.CONCLUIDA);
         parada.setRealizadaEm(OffsetDateTime.now());
         auditoriaService.registrar("PARADA_CONCLUIDA", "PARADA", parada.getId(), null,

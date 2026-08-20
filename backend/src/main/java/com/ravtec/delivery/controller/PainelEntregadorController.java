@@ -29,6 +29,6 @@ public class PainelEntregadorController {
 
     @PostMapping("/clientes")
     public ClienteResponse cadastrarCliente(@Valid @RequestBody ClienteRequest request) {
-        return clienteService.criar(request);
+        return clienteService.criarPeloEntregador(request);
     }
 }

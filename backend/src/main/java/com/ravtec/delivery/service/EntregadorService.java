@@ -10,7 +10,9 @@ import com.ravtec.delivery.exception.ConflitoException;
 import com.ravtec.delivery.exception.RecursoNaoEncontradoException;
 import com.ravtec.delivery.mapper.EntregadorMapper;
 import com.ravtec.delivery.repository.EntregadorRepository;
+import com.ravtec.delivery.repository.RefreshTokenRepository;
 import com.ravtec.delivery.repository.UsuarioRepository;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -28,6 +30,7 @@ public class EntregadorService {
     private final UsuarioRepository usuarioRepository;
     private final EntregadorMapper entregadorMapper;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final NormalizacaoService normalizacao = new NormalizacaoService();
     private final VersionamentoService versionamento = new VersionamentoService();
     @Autowired(required = false)
@@ -87,6 +90,10 @@ public class EntregadorService {
         versionamento.validar(versao, entregador.getVersion());
         var anterior = entregador.isAtivo();
         entregador.setAtivo(request.ativo());
+        if (entregador.getUsuario() != null && !request.ativo()) {
+            entregador.getUsuario().setAtivo(false);
+            refreshTokenRepository.revogarAtivosDoUsuario(entregador.getUsuario().getId(), OffsetDateTime.now());
+        }
         auditar(request.ativo() ? "ENTREGADOR_ATIVADO" : "ENTREGADOR_DESATIVADO", id,
             Map.of("ativo", anterior), Map.of("ativo", entregador.isAtivo()));
         return entregadorMapper.toResponse(entregador);

@@ -20,7 +20,14 @@ class ProofQueueService {
       : storage = storage ?? const FlutterSecureStorage(),
         picker = picker ?? ImagePicker();
 
-  Future<bool> capturarEntrega(String entregaId, String recebedorNome) async {
+  Future<String> solicitarOtp(String entregaId) async {
+    final response = await client.dio.post(
+        '/operacao-entregador/entregas/$entregaId/comprovante-otp');
+    return (response.data as Map<String, dynamic>)['destinoMascarado'] as String;
+  }
+
+  Future<bool> capturarEntrega(
+      String entregaId, String recebedorNome, String otp) async {
     final image = await picker.pickImage(
       source: ImageSource.camera,
       imageQuality: 82,
@@ -41,7 +48,8 @@ class ProofQueueService {
       'id': id,
       'entregaId': entregaId,
       'path': saved.path,
-      'recebedorNome': recebedorNome
+      'recebedorNome': recebedorNome,
+      'otp': otp
     });
     await _save(queue);
     try {
@@ -65,6 +73,7 @@ class ProofQueueService {
         final form = FormData.fromMap({
           'tipo': 'ENTREGA',
           'recebedorNome': proof['recebedorNome'],
+          'otp': proof['otp'],
           'arquivo': await MultipartFile.fromFile(file.path,
               filename: 'comprovante.jpg'),
         });

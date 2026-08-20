@@ -15,6 +15,6 @@ public class PasswordResetToken extends BaseEntity {
     private OffsetDateTime expiraEm;
     private OffsetDateTime usadoEm;
     public boolean ativo() {
-        return usadoEm == null && expiraEm.isAfter(OffsetDateTime.now()) && usuario.isAtivo();
+        return usadoEm == null && expiraEm.isAfter(OffsetDateTime.now()) && usuario.isAcessoAtivo();
     }
 }

@@ -2,6 +2,7 @@ package com.ravtec.delivery.entity;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -37,6 +38,10 @@ public class ComprovanteEntrega extends BaseEntity {
     private String assinatura;
     @Column(length = 64)
     private String otpHash;
+    @ManyToOne
+    @JoinColumn(name = "desafio_id")
+    private DesafioComprovanteEntrega desafio;
+    private OffsetDateTime verificadoEm;
     @Column(precision = 10, scale = 7)
     private BigDecimal latitude;
     @Column(precision = 10, scale = 7)

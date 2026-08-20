@@ -43,4 +43,9 @@ public class IdentidadeAtual {
         return entregadorRepository.findByUsuarioIdAndAtivoTrue(principal().getId())
             .orElseThrow(() -> new AccessDeniedException("Usuario entregador sem vinculo ativo"));
     }
+
+    public Entregador entregadorObrigatorioParaAtualizacao() {
+        return entregadorRepository.findAtivoPorUsuarioParaAtualizacao(principal().getId())
+            .orElseThrow(() -> new AccessDeniedException("Usuario entregador sem vinculo ativo"));
+    }
 }

@@ -28,10 +28,13 @@ PUBLIC_API_URL=https://api.exemplo.com
 MANAGEMENT_PORT=9090
 JWT_EXPIRATION_MINUTES=15
 REFRESH_TOKEN_DAYS=30
-LOGIN_MAX_FAILURES=5
-LOGIN_LOCK_MINUTES=15
-APP_STORAGE_PROVIDER=<provider-privado>
+LOGIN_SOURCE_MAX_REQUESTS=30
+LOGIN_GLOBAL_MAX_REQUESTS=1000
+APP_STORAGE_PROVIDER=local
+PROOF_STORAGE_PATH=/srv/jsboy/proofs-encrypted
 APP_STORAGE_MAX_FILE_BYTES=5242880
+APP_PROOF_OTP_PROVIDER=webhook
+PROOF_OTP_WEBHOOK_URL=https://notificacoes.exemplo.com/v1/delivery-otp
 APP_NOTIFICATIONS_PROVIDER=<provider-configurado>
 APP_PASSWORD_RESET_PROVIDER=<provider-configurado>
 BUSINESS_TIME_ZONE=America/Fortaleza
@@ -58,7 +61,9 @@ Rollback de aplicação usa a imagem anterior somente quando a migration é retr
 
 - [ ] Domínios, certificados, CORS e CSP revisados.
 - [ ] Secrets diferentes por ambiente e rotação registrada.
-- [ ] Storage privado configurado; provider `local` não usado em produção.
+- [ ] `PROOF_STORAGE_PATH` aponta para filesystem persistente, privado e criptografado, com UID/GID `10001`.
+- [ ] Backup cifrado dos comprovantes e restauração conjunta com o banco foram ensaiados.
+- [ ] Webhook de OTP entrega o código ao destinatário e sua credencial vem do secret manager.
 - [ ] E-mail/WhatsApp/SMS e password reset testados sem conteúdo sensível em logs.
 - [ ] Backup recente, checksum válido e restore rehearsal aprovado.
 - [ ] Alertas e responsáveis de plantão configurados.

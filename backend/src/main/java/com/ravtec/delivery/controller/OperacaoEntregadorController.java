@@ -26,6 +26,11 @@ public class OperacaoEntregadorController {
         return paradaService.listar(entregaId);
     }
 
+    @PostMapping("/{entregaId}/comprovante-otp")
+    public DesafioComprovanteResponse solicitarCodigoComprovante(@PathVariable UUID entregaId) {
+        return comprovanteService.solicitarCodigo(entregaId);
+    }
+
     @PostMapping("/{entregaId}/paradas/{paradaId}/concluir")
     public ParadaResponse concluir(
         @PathVariable UUID entregaId, @PathVariable UUID paradaId,

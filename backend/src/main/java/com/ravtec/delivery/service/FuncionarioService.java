@@ -6,6 +6,8 @@ import com.ravtec.delivery.entity.PerfilAcesso;
 import com.ravtec.delivery.entity.Usuario;
 import com.ravtec.delivery.exception.RecursoNaoEncontradoException;
 import com.ravtec.delivery.repository.UsuarioRepository;
+import com.ravtec.delivery.repository.RefreshTokenRepository;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class FuncionarioService {
 
     private final UsuarioRepository usuarioRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Transactional(readOnly = true)
     public List<FuncionarioResponse> listar() {
@@ -42,6 +45,9 @@ public class FuncionarioService {
     public FuncionarioResponse alterarStatus(UUID id, boolean ativo) {
         var usuario = buscarFuncionario(id);
         usuario.setAtivo(ativo);
+        if (!ativo) {
+            refreshTokenRepository.revogarAtivosDoUsuario(usuario.getId(), OffsetDateTime.now());
+        }
         log.info("Status de funcionario alterado: id={} ativo={}", usuario.getId(), ativo);
         return toResponse(usuario);
     }

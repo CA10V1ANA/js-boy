@@ -19,6 +19,7 @@ public class LgpdService {
     private final SolicitacaoTitularRepository solicitacoes;
     private final IdentidadeAtual identidadeAtual;
     private final AuditoriaService auditoria;
+    private final RefreshTokenRepository refreshTokens;
 
     @Transactional(readOnly = true)
     public Map<String, Object> exportar(UUID clienteId) {
@@ -77,6 +78,7 @@ public class LgpdService {
             cliente.getUsuario().setNome(cliente.getNome());
             cliente.getUsuario().setEmail("anon-" + cliente.getId() + "@invalid.local");
             cliente.getUsuario().setAtivo(false);
+            refreshTokens.revogarAtivosDoUsuario(cliente.getUsuario().getId(), OffsetDateTime.now());
         }
         auditoria.registrar("CLIENTE_ANONIMIZADO", "CLIENTE", clienteId, null,
             Map.of("solicitacaoId", pedido.getId()), justificativa);

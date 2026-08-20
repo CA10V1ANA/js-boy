@@ -4,6 +4,7 @@ import com.ravtec.delivery.dto.*;
 import com.ravtec.delivery.security.UsuarioPrincipal;
 import com.ravtec.delivery.service.*;
 import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +27,9 @@ public class AuthController {
     private final MeterRegistry meterRegistry;
 
     @PostMapping("/login")
-    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
+    public LoginResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
         String email = request.email().trim().toLowerCase();
-        tentativaLoginService.verificar(email);
+        tentativaLoginService.verificarOrigem(httpRequest.getRemoteAddr());
         try {
             var authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(email, request.senha()));
@@ -59,9 +60,10 @@ public class AuthController {
 
     @PostMapping("/password/request")
     public ResponseEntity<Map<String, String>> solicitarSenha(
-        @Valid @RequestBody RecuperacaoSenhaRequest request
+        @Valid @RequestBody RecuperacaoSenhaRequest request,
+        HttpServletRequest httpRequest
     ) {
-        recuperacaoSenhaService.solicitar(request.email());
+        recuperacaoSenhaService.solicitar(request.email(), httpRequest.getRemoteAddr());
         return ResponseEntity.accepted().body(Map.of(
             "message", "Se a conta existir, as instrucoes serao enviadas"
         ));

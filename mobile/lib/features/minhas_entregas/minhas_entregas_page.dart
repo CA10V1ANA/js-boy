@@ -10,6 +10,7 @@ import '../../services/external_actions_service.dart';
 import '../../services/offline_operation_service.dart';
 import '../../services/proof_queue_service.dart';
 import '../../widgets/ui.dart';
+import '../clientes/cliente_form_page.dart';
 
 class MinhasEntregasPage extends StatefulWidget {
   const MinhasEntregasPage({super.key});
@@ -122,32 +123,61 @@ class _MinhasEntregasPageState extends State<MinhasEntregasPage> {
   }
 
   Future<void> _comprovar(Entrega entrega) async {
-    final controller = TextEditingController();
-    final nome = await showDialog<String>(
+    final proofService = context.read<ProofQueueService>();
+    String destino;
+    try {
+      destino = await proofService.solicitarOtp(entrega.id);
+    } on DioException catch (error) {
+      if (!mounted) return;
+      mostrarMensagem(context, context.read<ApiClient>().translate(error).message,
+          erro: true);
+      return;
+    }
+    if (!mounted) return;
+    final nomeController = TextEditingController();
+    final otpController = TextEditingController();
+    final dados = await showDialog<({String nome, String otp})>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Comprovante de entrega'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(labelText: 'Nome de quem recebeu'),
-        ),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text('Enviamos um codigo para $destino.'),
+          const SizedBox(height: 12),
+          TextField(
+            controller: nomeController,
+            autofocus: true,
+            decoration: const InputDecoration(labelText: 'Nome de quem recebeu'),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: otpController,
+            keyboardType: TextInputType.number,
+            maxLength: 6,
+            decoration: const InputDecoration(labelText: 'Codigo do destinatario'),
+          ),
+        ]),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Cancelar')),
           FilledButton(
-              onPressed: () =>
-                  Navigator.pop(dialogContext, controller.text.trim()),
+              onPressed: () => Navigator.pop(dialogContext, (
+                    nome: nomeController.text.trim(),
+                    otp: otpController.text.trim()
+                  )),
               child: const Text('Abrir câmera')),
         ],
       ),
     );
-    controller.dispose();
-    if (nome == null || nome.isEmpty || !mounted) return;
-    final saved = await context
-        .read<ProofQueueService>()
-        .capturarEntrega(entrega.id, nome);
+    nomeController.dispose();
+    otpController.dispose();
+    if (dados == null || dados.nome.isEmpty || !RegExp(r'^\d{6}$').hasMatch(dados.otp) || !mounted) {
+      if (dados != null && mounted) {
+        mostrarMensagem(context, 'Informe o nome e o codigo de 6 digitos.', erro: true);
+      }
+      return;
+    }
+    final saved = await proofService.capturarEntrega(entrega.id, dados.nome, dados.otp);
     if (!mounted || !saved) return;
     mostrarMensagem(context,
         'Comprovante preservado e enviado ou aguardando sincronização.');
@@ -165,6 +195,18 @@ class _MinhasEntregasPageState extends State<MinhasEntregasPage> {
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
           title: const Text('Minhas entregas'),
+          actions: [
+            IconButton(
+              tooltip: 'Cadastrar cliente',
+              icon: const Icon(Icons.person_add_alt_1),
+              onPressed: () async {
+                await Navigator.of(context).push(MaterialPageRoute(
+                  fullscreenDialog: true,
+                  builder: (_) => const ClienteFormPage(cadastroEntregador: true),
+                ));
+              },
+            ),
+          ],
           bottom: _offline || _pendentes > 0
               ? PreferredSize(
                   preferredSize: const Size.fromHeight(34),

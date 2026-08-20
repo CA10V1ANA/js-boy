@@ -247,9 +247,8 @@ public class EntregaService {
             entregaStatusPolicy.validarTransicao(anterior, destino);
         }
         if (destino == StatusEntrega.ENTREGUE && comprovanteRepository != null
-            && !comprovanteRepository.existsByEntregaIdAndTipoAndSubstituidoPorIsNull(
-                entrega.getId(), com.ravtec.delivery.entity.TipoComprovante.ENTREGA)) {
-            throw new IllegalStateException("Registre o comprovante de entrega antes de concluir");
+            && !comprovanteRepository.existsEntregaFinalVerificada(entrega.getId())) {
+            throw new IllegalStateException("Registre e valide o comprovante da parada final antes de concluir");
         }
         if (entregaStatusPolicy.exigeEntregador(destino) && entrega.getEntregador() == null) {
             throw new IllegalStateException("Status exige um entregador designado");

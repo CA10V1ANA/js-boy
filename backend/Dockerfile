@@ -13,7 +13,9 @@ ARG APP_UID=10001
 ARG APP_GID=10001
 
 RUN addgroup -S -g "${APP_GID}" jsboy \
-    && adduser -S -D -H -u "${APP_UID}" -G jsboy jsboy
+    && adduser -S -D -H -u "${APP_UID}" -G jsboy jsboy \
+    && mkdir -p /var/lib/jsboy/proofs \
+    && chown -R jsboy:jsboy /var/lib/jsboy
 
 WORKDIR /app
 COPY --from=build --chown=jsboy:jsboy /workspace/target/js-boy-api-*.jar app.jar

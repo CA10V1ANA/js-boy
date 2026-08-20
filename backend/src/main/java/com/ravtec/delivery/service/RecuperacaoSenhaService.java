@@ -2,8 +2,11 @@ package com.ravtec.delivery.service;
 
 import com.ravtec.delivery.repository.*;
 import com.ravtec.delivery.entity.PasswordResetToken;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,17 +21,39 @@ public class RecuperacaoSenhaService {
     private final TokenSeguroService tokens;
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetNotifier notifier;
+    private final LimiteRequisicoesPublicasService limitador;
+    @Value("${app.security.password-reset.source-max-requests:5}") private int limiteOrigem;
+    @Value("${app.security.password-reset.global-max-requests:300}") private int limiteGlobal;
+    @Value("${app.security.password-reset.window-minutes:60}") private long minutosJanela;
+    @Value("${app.security.password-reset.account-cooldown-seconds:60}") private long segundosCooldown;
 
     @Transactional
-    public void solicitar(String email) {
-        usuarios.findByEmail(email.trim().toLowerCase()).filter(u -> u.isAtivo()).ifPresent(usuario -> {
+    public void solicitar(String email, String origem) {
+        var janela = Duration.ofMinutes(minutosJanela);
+        limitador.verificar("password-reset-global", "global", limiteGlobal, janela);
+        limitador.verificar("password-reset-source", origem, limiteOrigem, janela);
+        var agora = OffsetDateTime.now();
+        repository.deleteExpiradosOuUsados(agora);
+        usuarios.findAtivoByEmailParaAtualizacao(email.trim().toLowerCase())
+            .filter(com.ravtec.delivery.entity.Usuario::isAcessoAtivo).ifPresent(usuario -> {
+            var ultimo = repository.findTopByUsuarioIdOrderByCriadoEmDesc(usuario.getId());
+            if (ultimo.isPresent() && ultimo.get().getCriadoEm() != null
+                && ultimo.get().getCriadoEm().isAfter(agora.minusSeconds(segundosCooldown))) {
+                return;
+            }
+            repository.deleteByUsuarioId(usuario.getId());
             String token = tokens.gerar();
             var item = new PasswordResetToken();
             item.setUsuario(usuario); item.setTokenHash(tokens.hash(token));
-            item.setExpiraEm(OffsetDateTime.now().plusMinutes(20));
+            item.setExpiraEm(agora.plusMinutes(20));
             repository.save(item);
             notifier.enviar(usuario.getEmail(), token);
         });
+    }
+
+    @Transactional
+    public void solicitar(String email) {
+        solicitar(email, "unknown");
     }
 
     @Transactional
@@ -39,8 +64,13 @@ public class RecuperacaoSenhaService {
             .orElseThrow(() -> new BadCredentialsException("Token invalido ou expirado"));
         item.setUsadoEm(OffsetDateTime.now());
         item.getUsuario().setSenhaHash(passwordEncoder.encode(senha));
-        refreshTokens.findAll().stream().filter(r -> r.getUsuario().getId().equals(item.getUsuario().getId()))
-            .forEach(r -> r.setRevogadoEm(OffsetDateTime.now()));
+        refreshTokens.revogarAtivosDoUsuario(item.getUsuario().getId(), OffsetDateTime.now());
+    }
+
+    @Scheduled(cron = "${app.security.password-reset.cleanup-cron:0 23 * * * *}")
+    @Transactional
+    public void limparExpirados() {
+        repository.deleteExpiradosOuUsados(OffsetDateTime.now());
     }
 
     private void validarSenha(String senha) {

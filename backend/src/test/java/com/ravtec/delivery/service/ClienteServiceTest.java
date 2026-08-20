@@ -9,10 +9,17 @@ import static org.mockito.Mockito.when;
 import com.ravtec.delivery.dto.ClienteRequest;
 import com.ravtec.delivery.dto.StatusRequest;
 import com.ravtec.delivery.entity.Cliente;
+import com.ravtec.delivery.entity.Usuario;
+import com.ravtec.delivery.entity.Entregador;
+import com.ravtec.delivery.entity.PerfilAcesso;
 import com.ravtec.delivery.exception.RecursoNaoEncontradoException;
 import com.ravtec.delivery.mapper.ClienteMapper;
 import com.ravtec.delivery.repository.ClienteRepository;
 import com.ravtec.delivery.repository.UsuarioRepository;
+import com.ravtec.delivery.repository.RefreshTokenRepository;
+import com.ravtec.delivery.repository.AuditoriaRepository;
+import com.ravtec.delivery.security.IdentidadeAtual;
+import com.ravtec.delivery.security.UsuarioPrincipal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,6 +30,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class ClienteServiceTest {
@@ -33,6 +41,8 @@ class ClienteServiceTest {
     private UsuarioRepository usuarioRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
+    @Mock
+    private RefreshTokenRepository refreshTokenRepository;
 
     private ClienteMapper clienteMapper;
 
@@ -46,7 +56,8 @@ class ClienteServiceTest {
             clienteRepository,
             usuarioRepository,
             clienteMapper,
-            passwordEncoder
+            passwordEncoder,
+            refreshTokenRepository
         );
     }
 
@@ -104,6 +115,63 @@ class ClienteServiceTest {
         var response = clienteService.alterarStatus(cliente.getId(), new StatusRequest(false));
 
         assertThat(response.ativo()).isFalse();
+    }
+
+    @Test
+    void desativarClienteDesativaUsuarioERevogaSessoes() {
+        var cliente = criarCliente();
+        var usuario = new Usuario();
+        usuario.setId(UUID.randomUUID());
+        usuario.setAtivo(true);
+        cliente.setUsuario(usuario);
+        when(clienteRepository.findById(cliente.getId())).thenReturn(Optional.of(cliente));
+
+        clienteService.alterarStatus(cliente.getId(), new StatusRequest(false));
+
+        assertThat(usuario.isAtivo()).isFalse();
+        verify(refreshTokenRepository).revogarAtivosDoUsuario(
+            org.mockito.ArgumentMatchers.eq(usuario.getId()), org.mockito.ArgumentMatchers.any()
+        );
+    }
+
+    @Test
+    void entregadorAtivoPodeCadastrarClienteComAuditoria() {
+        var identidade = org.mockito.Mockito.mock(IdentidadeAtual.class);
+        var auditorias = org.mockito.Mockito.mock(AuditoriaRepository.class);
+        var auditoriaService = org.mockito.Mockito.mock(AuditoriaService.class);
+        var usuario = new Usuario(); usuario.setId(UUID.randomUUID()); usuario.setAtivo(true);
+        usuario.setPerfil(PerfilAcesso.ENTREGADOR);
+        var entregador = new Entregador(); entregador.setAtivo(true); entregador.setUsuario(usuario);
+        usuario.setEntregador(entregador);
+        var principal = new UsuarioPrincipal(usuario);
+        when(identidade.principal()).thenReturn(principal);
+        when(clienteRepository.save(any(Cliente.class))).thenAnswer(invocation -> {
+            var item = invocation.getArgument(0, Cliente.class);
+            item.setId(UUID.randomUUID());
+            return item;
+        });
+        ReflectionTestUtils.setField(clienteService, "identidadeAtual", identidade);
+        ReflectionTestUtils.setField(clienteService, "auditoriaRepository", auditorias);
+        ReflectionTestUtils.setField(clienteService, "auditoriaService", auditoriaService);
+        ReflectionTestUtils.setField(clienteService, "limiteDiarioEntregador", 20);
+        ReflectionTestUtils.setField(clienteService, "zonaNegocio", "America/Fortaleza");
+        var request = new ClienteRequest(
+            "Cliente do entregador", "85999998888", null, null, null,
+            "Rua A, S/N", "Centro", "Fortaleza", null
+        );
+
+        var response = clienteService.criarPeloEntregador(request);
+
+        assertThat(response.nome()).isEqualTo("Cliente do entregador");
+        verify(identidade).entregadorObrigatorioParaAtualizacao();
+        verify(auditoriaService).registrar(
+            org.mockito.ArgumentMatchers.eq("CLIENTE_CRIADO_PELO_ENTREGADOR"),
+            org.mockito.ArgumentMatchers.eq("CLIENTE"),
+            org.mockito.ArgumentMatchers.any(),
+            org.mockito.ArgumentMatchers.isNull(),
+            org.mockito.ArgumentMatchers.any(),
+            org.mockito.ArgumentMatchers.isNull()
+        );
     }
 
     private Cliente criarCliente() {

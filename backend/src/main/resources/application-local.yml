@@ -33,4 +33,7 @@ app:
   seed:
     owner-email: ${SEED_OWNER_EMAIL}
     owner-password: ${SEED_OWNER_PASSWORD}
+  proof:
+    otp:
+      provider: local
 

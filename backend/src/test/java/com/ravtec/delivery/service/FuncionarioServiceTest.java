@@ -3,6 +3,7 @@ package com.ravtec.delivery.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
 import com.ravtec.delivery.dto.FuncionarioRequest;
 import com.ravtec.delivery.entity.PerfilAcesso;
@@ -10,6 +11,7 @@ import com.ravtec.delivery.entity.Entregador;
 import com.ravtec.delivery.entity.Usuario;
 import com.ravtec.delivery.exception.RecursoNaoEncontradoException;
 import com.ravtec.delivery.repository.UsuarioRepository;
+import com.ravtec.delivery.repository.RefreshTokenRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -24,6 +26,8 @@ class FuncionarioServiceTest {
 
     @Mock
     private UsuarioRepository usuarioRepository;
+    @Mock
+    private RefreshTokenRepository refreshTokenRepository;
 
     @InjectMocks
     private FuncionarioService funcionarioService;
@@ -58,6 +62,9 @@ class FuncionarioServiceTest {
         var response = funcionarioService.alterarStatus(funcionario.getId(), false);
 
         assertThat(response.ativo()).isFalse();
+        verify(refreshTokenRepository).revogarAtivosDoUsuario(
+            org.mockito.ArgumentMatchers.eq(funcionario.getId()), org.mockito.ArgumentMatchers.any()
+        );
     }
 
     @Test

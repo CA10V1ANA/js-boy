@@ -42,7 +42,8 @@ usuário; `Operacional` = somente campos e transições necessários à entrega;
 |---|---|---|---|
 | Cliente — listar | Tudo | — | — |
 | Cliente — consultar | Tudo | Dados mínimos da entrega própria | Próprio |
-| Cliente — criar, aprovar ou vincular acesso | Tudo | — | — |
+| Cliente — criar | Tudo | Permitido, com vínculo ativo, limite diário e auditoria | — |
+| Cliente — aprovar ou vincular acesso | Tudo | — | — |
 | Cliente — editar | Tudo | — | — |
 | Entregador — listar | Tudo | — | — |
 | Entregador — consultar | Tudo | Próprio | — |
@@ -78,8 +79,10 @@ financeiros ou agir sobre entrega de outro entregador.
 
 ## Cadastro e vínculos
 
-O P0 não oferece cadastro público automático. O proprietário cadastra ou aprova
-o cliente e cria o acesso vinculado. O mesmo vale para o acesso do entregador.
+O P0 não oferece cadastro público automático. O proprietário e o entregador
+com vínculo ativo podem cadastrar o registro operacional do cliente; cadastros
+feitos por entregador têm limite diário e trilha de auditoria. Somente o
+proprietário cria ou vincula o acesso do cliente. O mesmo vale para o acesso do entregador.
 Uma conta sem vínculo válido permanece autenticável apenas se necessário para
 diagnóstico, mas não recebe acesso às áreas protegidas de negócio.
 

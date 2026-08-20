@@ -36,6 +36,13 @@ public class EntregaAcessoService {
             .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega nao encontrada"));
     }
 
+    public Entrega exigirDoEntregadorParaAtualizacao(UUID entregaId) {
+        identidadeAtual.entregadorObrigatorioParaAtualizacao();
+        return entregaRepository.findDoEntregadorParaAtualizacao(
+            entregaId, identidadeAtual.principal().getId()
+        ).orElseThrow(() -> new RecursoNaoEncontradoException("Entrega nao encontrada"));
+    }
+
     public Entrega buscar(UUID entregaId) {
         return entregaRepository.findById(entregaId)
             .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega nao encontrada"));

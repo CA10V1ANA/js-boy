@@ -4,7 +4,9 @@ import com.ravtec.delivery.dto.StatusRequest;
 import com.ravtec.delivery.dto.UsuarioResponse;
 import com.ravtec.delivery.exception.RecursoNaoEncontradoException;
 import com.ravtec.delivery.repository.UsuarioRepository;
+import com.ravtec.delivery.repository.RefreshTokenRepository;
 import com.ravtec.delivery.security.IdentidadeAtual;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -16,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final IdentidadeAtual identidadeAtual;
     private final AuditoriaService auditoriaService;
 
@@ -33,6 +36,9 @@ public class UsuarioService {
         }
         var anterior = usuario.isAtivo();
         usuario.setAtivo(request.ativo());
+        if (!request.ativo()) {
+            refreshTokenRepository.revogarAtivosDoUsuario(usuario.getId(), OffsetDateTime.now());
+        }
         auditoriaService.registrar(
             request.ativo() ? "USUARIO_ATIVADO" : "USUARIO_DESATIVADO",
             "USUARIO",

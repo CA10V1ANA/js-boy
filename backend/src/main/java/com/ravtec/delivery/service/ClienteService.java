@@ -7,10 +7,15 @@ import com.ravtec.delivery.dto.StatusRequest;
 import com.ravtec.delivery.entity.PerfilAcesso;
 import com.ravtec.delivery.entity.Usuario;
 import com.ravtec.delivery.exception.ConflitoException;
+import com.ravtec.delivery.exception.LimiteRequisicoesException;
 import com.ravtec.delivery.exception.RecursoNaoEncontradoException;
 import com.ravtec.delivery.mapper.ClienteMapper;
 import com.ravtec.delivery.repository.ClienteRepository;
+import com.ravtec.delivery.repository.AuditoriaRepository;
+import com.ravtec.delivery.repository.RefreshTokenRepository;
 import com.ravtec.delivery.repository.UsuarioRepository;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -18,9 +23,11 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.ravtec.delivery.security.IdentidadeAtual;
 
 @Slf4j
 @Service
@@ -30,10 +37,19 @@ public class ClienteService {
     private final UsuarioRepository usuarioRepository;
     private final ClienteMapper clienteMapper;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final NormalizacaoService normalizacao = new NormalizacaoService();
     private final VersionamentoService versionamento = new VersionamentoService();
     @Autowired(required = false)
     private AuditoriaService auditoriaService;
+    @Autowired(required = false)
+    private AuditoriaRepository auditoriaRepository;
+    @Autowired(required = false)
+    private IdentidadeAtual identidadeAtual;
+    @Value("${app.customers.driver-daily-create-limit:20}")
+    private int limiteDiarioEntregador;
+    @Value("${app.business-zone:America/Fortaleza}")
+    private String zonaNegocio;
 
     @Transactional(readOnly = true)
     public List<ClienteResponse> listar(String busca) {
@@ -50,12 +66,34 @@ public class ClienteService {
 
     @Transactional
     public ClienteResponse criar(ClienteRequest request) {
+        return criarInterno(request, "CLIENTE_CRIADO");
+    }
+
+    @Transactional
+    public ClienteResponse criarPeloEntregador(ClienteRequest request) {
+        if (identidadeAtual == null || auditoriaRepository == null || auditoriaService == null) {
+            throw new IllegalStateException("Controle de cadastro do entregador indisponivel");
+        }
+        identidadeAtual.entregadorObrigatorioParaAtualizacao();
+        var usuarioId = identidadeAtual.principal().getId();
+        var inicioDia = java.time.LocalDate.now(ZoneId.of(zonaNegocio))
+            .atStartOfDay(ZoneId.of(zonaNegocio)).toOffsetDateTime();
+        var criadosHoje = auditoriaRepository.countByUsuarioIdAndAcaoAndOcorridoEmGreaterThanEqual(
+            usuarioId, "CLIENTE_CRIADO_PELO_ENTREGADOR", inicioDia
+        );
+        if (criadosHoje >= limiteDiarioEntregador) {
+            throw new LimiteRequisicoesException("Limite diario de cadastros de clientes excedido");
+        }
+        return criarInterno(request, "CLIENTE_CRIADO_PELO_ENTREGADOR");
+    }
+
+    private ClienteResponse criarInterno(ClienteRequest request, String acaoAuditoria) {
         var documento = validarDados(request, null);
         if (documento != null && clienteRepository.existsByDocumento(documento)) {
             throw new ConflitoException("CPF ou CNPJ ja cadastrado");
         }
         var salvo = clienteRepository.save(clienteMapper.toEntity(request));
-        auditar("CLIENTE_CRIADO", salvo.getId(), null, resumo(salvo), null);
+        auditar(acaoAuditoria, salvo.getId(), null, resumo(salvo), null);
         log.info("customer_event=created customer_id={} result=success", salvo.getId());
         return clienteMapper.toResponse(salvo);
     }
@@ -90,6 +128,10 @@ public class ClienteService {
         versionamento.validar(versao, cliente.getVersion());
         var anterior = cliente.isAtivo();
         cliente.setAtivo(request.ativo());
+        if (cliente.getUsuario() != null && !request.ativo()) {
+            cliente.getUsuario().setAtivo(false);
+            refreshTokenRepository.revogarAtivosDoUsuario(cliente.getUsuario().getId(), OffsetDateTime.now());
+        }
         auditar(request.ativo() ? "CLIENTE_ATIVADO" : "CLIENTE_DESATIVADO", id,
             Map.of("ativo", anterior), Map.of("ativo", cliente.isAtivo()), null);
         return clienteMapper.toResponse(cliente);

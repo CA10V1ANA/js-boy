@@ -76,6 +76,14 @@ class ClienteService {
     }
   }
 
+  Future<void> cadastrarPeloEntregador(Map<String, dynamic> dados) async {
+    try {
+      await client.dio.post('/operacao-entregador/clientes', data: dados);
+    } catch (error) {
+      throw client.translate(error);
+    }
+  }
+
   Future<void> alterarStatus(String id, bool ativo) async {
     try {
       await client.dio.patch('/clientes/$id/status', data: {'ativo': ativo});
