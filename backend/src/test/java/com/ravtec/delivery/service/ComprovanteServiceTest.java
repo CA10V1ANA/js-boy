@@ -55,7 +55,7 @@ class ComprovanteServiceTest {
         assertThatThrownBy(() -> service.criar(entrega.getId(), null, TipoComprovante.COLETA,
             "proof-invalid", arquivo, null, null, null, null, null, false, null))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("invalido");
+            .hasMessageContaining("inválido");
         verify(storage, never()).salvar(any(), any());
     }
 

@@ -78,7 +78,7 @@ public class RazaoFinanceiraService {
     @Transactional
     public void reabrir(UUID id, String motivo) {
         if (motivo == null || motivo.isBlank()) throw new IllegalArgumentException("Motivo obrigatorio");
-        var item = fechamentos.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException("Fechamento nao encontrado"));
+        var item = fechamentos.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException("Fechamento não encontrado"));
         if (!item.fechado()) throw new ConflitoException("Periodo ja reaberto");
         item.setReabertoEm(OffsetDateTime.now(ZoneId.of(zona))); item.setMotivoReabertura(motivo.trim());
         item.setUsuarioReabertura(identidade.usuario());
@@ -121,11 +121,11 @@ public class RazaoFinanceiraService {
     }
     private BigDecimal soma(List<BigDecimal> valores) { return valores.stream().reduce(BigDecimal.ZERO, BigDecimal::add); }
     private <T> T optional(org.springframework.data.jpa.repository.JpaRepository<T, UUID> repo, UUID id) {
-        return id == null ? null : repo.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException("Referencia nao encontrada"));
+        return id == null ? null : repo.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException("Referência não encontrada"));
     }
     private void validarPeriodo(LocalDate inicio, LocalDate fim) {
         if (inicio == null || fim == null || fim.isBefore(inicio) || fim.isAfter(inicio.plusYears(1))) {
-            throw new IllegalArgumentException("Periodo invalido");
+            throw new IllegalArgumentException("Período inválido");
         }
     }
     private void validarChave(String chave) {

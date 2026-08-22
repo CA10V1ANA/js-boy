@@ -19,34 +19,33 @@ import { ContactForm } from '../components/ContactForm';
 import { businessConfig, BusinessContact } from '../config/business';
 
 const navItems = [
-  ['/', 'Inicio'],
-  ['/servicos', 'Servicos'],
+  ['/', 'Início'],
+  ['/servicos', 'Serviços'],
   ['/como-funciona', 'Como funciona'],
   ['/para-empresas', 'Para clientes'],
-  ['/sobre', 'Sobre'],
   ['/contato', 'Contato'],
 ];
 
 const benefits = [
   {
     icon: Route,
-    title: 'Operacao organizada',
-    text: 'Entregas, designacoes e status reunidos no sistema operacional da JS Boy.',
+    title: 'Operação organizada',
+    text: 'Entregas, designações e status reunidos no sistema operacional da JS Boy.',
   },
   {
     icon: LockKeyhole,
     title: 'Acesso por perfil',
-    text: 'Proprietario, entregadores e clientes acessam apenas as informacoes autorizadas.',
+    text: 'Proprietário, entregadores e clientes acessam apenas as informações autorizadas.',
   },
   {
     icon: History,
-    title: 'Historico',
-    text: 'As mudancas de status ficam registradas para consulta no sistema.',
+    title: 'Histórico',
+    text: 'As mudanças de status ficam registradas para consulta no sistema.',
   },
   {
     icon: UserRoundCheck,
     title: 'Contato direto',
-    text: 'A contratacao comeca por uma solicitacao de contato enviada para a JS Boy.',
+    text: 'A contratação começa por uma solicitação de contato enviada para a JS Boy.',
   },
 ];
 
@@ -54,25 +53,25 @@ const services = [
   {
     icon: Bike,
     title: 'Coleta e entrega',
-    text: 'Operacao de entregas conforme a necessidade analisada e confirmada pela JS Boy.',
+    text: 'Operação de entregas conforme a necessidade analisada e confirmada pela JS Boy.',
   },
   {
     icon: Building2,
     title: 'Atendimento a clientes',
-    text: 'Pessoas e empresas contratantes podem receber acesso protegido aos proprios dados.',
+    text: 'Pessoas e empresas contratantes podem receber acesso protegido aos próprios dados.',
   },
   {
     icon: PackageCheck,
     title: 'Acompanhamento operacional',
-    text: 'O sistema registra responsavel, andamento e historico das entregas cadastradas.',
+    text: 'O sistema registra responsável, andamento e histórico das entregas cadastradas.',
   },
 ];
 
 const steps = [
-  ['Contato', 'Envie a necessidade pelo formulario disponivel neste site.'],
-  ['Analise', 'A JS Boy avalia as informacoes e combina as condicoes diretamente com voce.'],
-  ['Cadastro', 'Quando aprovado, o proprietario cria o cliente e o acesso protegido.'],
-  ['Operacao', 'As entregas contratadas passam a ser acompanhadas no sistema.'],
+  ['Contato', 'Envie a necessidade pelo formulário disponível neste site.'],
+  ['Análise', 'A JS Boy avalia as informações e combina as condições diretamente com você.'],
+  ['Cadastro', 'Quando aprovado, o proprietário cria o cliente e o acesso protegido.'],
+  ['Operação', 'As entregas contratadas passam a ser acompanhadas no sistema.'],
 ];
 
 function contactIcon(contact: BusinessContact) {
@@ -93,7 +92,7 @@ function configuredContacts() {
 
 export function Brand() {
   return (
-    <Link className="siteBrand" to="/" aria-label="JS Boy Inicio">
+    <Link className="siteBrand" to="/" aria-label="JS Boy Início">
       <span className="siteBrandMark">
         <Bike size={23} strokeWidth={3} />
       </span>
@@ -110,7 +109,7 @@ export function PublicHeader() {
     <header className="siteHeader">
       <div className="siteContainer siteHeaderInner">
         <Brand />
-        <nav className="siteNav" aria-label="Navegacao do site">
+        <nav className="siteNav" aria-label="Navegação do site">
           {navItems.map(([to, label]) => (
             <NavLink
               className={({ isActive }: { isActive: boolean }) => (isActive ? 'active' : '')}
@@ -139,10 +138,10 @@ export function SiteFooter() {
       <div className="siteContainer footerGrid">
         <div>
           <Brand />
-          <p>Operacao de entregas da JS Boy.</p>
+          <p>Operação de entregas da JS Boy.</p>
         </div>
         <div>
-          <h3>Navegacao</h3>
+          <h3>Navegação</h3>
           {navItems.map(([to, label]) => (
             <Link key={to} to={to}>{label}</Link>
           ))}
@@ -155,7 +154,7 @@ export function SiteFooter() {
         <div>
           <h3>Contato</h3>
           {contacts.length === 0 ? (
-            <Link to="/contato">Formulario de contato</Link>
+            <Link to="/contato">Formulário de contato</Link>
           ) : contacts.map((contact) => (
             <a key={contact.label} href={contact.href} target={contact.href?.startsWith('https://') ? '_blank' : undefined} rel="noreferrer">
               {contactIcon(contact)} {contact.value}
@@ -211,8 +210,8 @@ export function LandingPage() {
       <section className="siteSection compact">
         <div className="siteContainer">
           <div className="siteSectionTitle centered">
-            <h2>Uma operacao clara para cada perfil</h2>
-            <p>O sistema apoia o trabalho diario sem expor dados de outros usuarios.</p>
+            <h2>Uma operação clara para cada perfil</h2>
+            <p>O sistema apoia o trabalho diário sem expor dados de outros usuários.</p>
           </div>
           <div className="benefitGrid">
             {benefits.map((benefit, index) => (
@@ -236,8 +235,8 @@ export function ServicesPage() {
     <section className="siteSection publicStandalone">
       <div className="siteContainer">
         <div className="siteSectionTitle">
-          <h2>Servicos</h2>
-          <p>O escopo de cada entrega e confirmado diretamente pela JS Boy.</p>
+          <h2>Serviços</h2>
+          <p>O escopo de cada entrega é confirmado diretamente pela JS Boy.</p>
         </div>
         <div className="servicesGrid">
           {services.map((service) => (
@@ -259,7 +258,7 @@ export function HowItWorksPage() {
       <div className="siteContainer">
         <div className="siteSectionTitle">
           <h2>Como funciona</h2>
-          <p>O cadastro nao e publico: a JS Boy confirma cada novo acesso.</p>
+          <p>O cadastro não é público: a JS Boy confirma cada novo acesso.</p>
         </div>
         <div className="stepsGrid">
           {steps.map(([title, text], index) => (
@@ -281,48 +280,28 @@ export function CompaniesPage() {
       <div className="siteContainer">
         <div className="siteSectionTitle">
           <h2>Para clientes</h2>
-          <p>A JS Boy atende pessoas e empresas conforme avaliacao da necessidade.</p>
+          <p>A JS Boy atende pessoas e empresas conforme avaliação da necessidade.</p>
         </div>
         <div className="companiesGrid">
           <div>
-            <h3>Antes de comecar</h3>
+            <h3>Antes de começar</h3>
             <p>
-              Envie a solicitacao de contato. O proprietario confirma a contratacao e cria o cadastro quando aplicavel.
+              Envie a solicitação de contato. O proprietário confirma a contratação e cria o cadastro quando aplicável.
             </p>
           </div>
           <div>
             <h3>Acesso protegido</h3>
             <ul className="advantageList">
               <li><Check size={18} /> Cadastro criado pela JS Boy</li>
-              <li><Check size={18} /> Consulta apenas das proprias entregas</li>
-              <li><Check size={18} /> Consulta dos proprios pagamentos</li>
+              <li><Check size={18} /> Consulta apenas das próprias entregas</li>
+              <li><Check size={18} /> Consulta dos próprios pagamentos</li>
             </ul>
           </div>
         </div>
         <div className="companyCta">
           <h3>Quer conversar com a JS Boy?</h3>
-          <p>Use o formulario para informar sua necessidade.</p>
+          <p>Use o formulário para informar sua necessidade.</p>
           <Link to="/contato" className="siteYellowButton">Solicitar contato</Link>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export function AboutPage() {
-  return (
-    <section className="siteSection publicStandalone">
-      <div className="siteContainer aboutGrid">
-        <div className="siteSectionTitle">
-          <h2>Sobre a JS Boy</h2>
-          <p>Uma unica empresa operadora, com acesso separado para cada usuario.</p>
-        </div>
-        <div className="aboutCard">
-          <h3>Operacao direta</h3>
-          <p>
-            A JS Boy administra suas entregas, seus entregadores e os clientes contratantes.
-            O sistema foi criado para organizar essa operacao e proteger as informacoes de cada perfil.
-          </p>
         </div>
       </div>
     </section>
@@ -338,7 +317,7 @@ export function ContactPage() {
         <div>
           <div className="siteSectionTitle">
             <h2>Fale com a JS Boy</h2>
-            <p>Envie uma solicitacao para a equipe avaliar sua necessidade.</p>
+            <p>Envie uma solicitação para a equipe avaliar sua necessidade.</p>
           </div>
           <div className="contactList">
             {contacts.map((contact) => (
@@ -356,10 +335,10 @@ export function ContactPage() {
               <article><MapPin size={23} /><span>CIDADE</span><strong>{businessConfig.city}</strong></article>
             ) : null}
             {businessConfig.hours ? (
-              <article><Clock3 size={23} /><span>HORARIO</span><strong>{businessConfig.hours}</strong></article>
+              <article><Clock3 size={23} /><span>HORÁRIO</span><strong>{businessConfig.hours}</strong></article>
             ) : null}
             {contacts.length === 0 && !businessConfig.city && !businessConfig.hours ? (
-              <p className="contactFallback">O formulario ao lado e o canal de contato disponivel.</p>
+              <p className="contactFallback">O formulário ao lado é o canal de contato disponível.</p>
             ) : null}
           </div>
         </div>
@@ -374,10 +353,10 @@ function SiteCta() {
     <section className="siteCta">
       <div className="siteContainer">
         <h2>Precisa conversar sobre uma entrega?</h2>
-        <p>Envie as informacoes para a JS Boy analisar.</p>
+        <p>Envie as informações para a JS Boy analisar.</p>
         <div className="siteCtaActions">
           <Link to="/contato">Solicitar contato</Link>
-          <Link to="/login">Ja tenho acesso</Link>
+          <Link to="/login">Já tenho acesso</Link>
         </div>
       </div>
     </section>

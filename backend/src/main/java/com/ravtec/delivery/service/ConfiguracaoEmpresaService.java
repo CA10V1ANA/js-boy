@@ -35,7 +35,7 @@ public class ConfiguracaoEmpresaService {
 
     private ConfiguracaoEmpresa buscarAtual() {
         return repository.findAll().stream().findFirst()
-            .orElseThrow(() -> new IllegalStateException("Configuracao da empresa nao encontrada"));
+            .orElseThrow(() -> new IllegalStateException("Configuração da empresa não encontrada"));
     }
 
     private void preencher(ConfiguracaoEmpresa config, ConfiguracaoEmpresaRequest request) {

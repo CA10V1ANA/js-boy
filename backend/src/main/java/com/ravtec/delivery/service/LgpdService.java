@@ -72,7 +72,7 @@ public class LgpdService {
         cliente.setWhatsapp(null); cliente.setEmail(null); cliente.setDocumento(null);
         cliente.setEndereco("Dados anonimizados"); cliente.setLogradouro("Dados anonimizados");
         cliente.setNumero("S/N"); cliente.setSemNumero(true); cliente.setComplemento(null);
-        cliente.setBairro("Nao informado"); cliente.setCidade("Nao informado"); cliente.setEstado(null);
+        cliente.setBairro("Não informado"); cliente.setCidade("Não informado"); cliente.setEstado(null);
         cliente.setCep(null); cliente.setObservacoes(null); cliente.setAtivo(false);
         if (cliente.getUsuario() != null) {
             cliente.getUsuario().setNome(cliente.getNome());
@@ -85,7 +85,7 @@ public class LgpdService {
     }
 
     private Cliente buscar(UUID id) {
-        return clientes.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException("Cliente nao encontrado"));
+        return clientes.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException("Cliente não encontrado"));
     }
     private String valor(Object value) { return value == null ? "" : value.toString(); }
     private String limpar(String value) { return value == null || value.isBlank() ? null : value.trim(); }

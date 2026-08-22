@@ -6,11 +6,11 @@ import { api } from '../services/api';
 import { formatEmailInput, formatPhone, onlyDigits } from '../utils/inputMasks';
 
 const contactSchema = z.object({
-  nome: z.string().trim().min(2, 'Informe seu nome').max(120, 'Use no maximo 120 caracteres'),
-  empresa: z.string().trim().max(120, 'Use no maximo 120 caracteres').optional(),
-  email: z.string().trim().email('Informe um e-mail valido').max(254),
-  telefone: z.string().trim().min(8, 'Informe um telefone valido').max(30),
-  mensagem: z.string().trim().min(10, 'Conte um pouco mais sobre a necessidade').max(2000, 'Use no maximo 2.000 caracteres'),
+  nome: z.string().trim().min(2, 'Informe seu nome').max(120, 'Use no máximo 120 caracteres'),
+  empresa: z.string().trim().max(120, 'Use no máximo 120 caracteres').optional(),
+  email: z.string().trim().email('Informe um e-mail válido').max(254),
+  telefone: z.string().trim().min(8, 'Informe um telefone válido').max(30),
+  mensagem: z.string().trim().min(10, 'Conte um pouco mais sobre a necessidade').max(2000, 'Use no máximo 2.000 caracteres'),
   website: z.string().max(0),
 });
 
@@ -56,11 +56,11 @@ export function ContactForm() {
       const response = await api.post<ContactResponse>('/public/contatos', { ...data, email: formatEmailInput(data.email), telefone: onlyDigits(data.telefone) });
       const reference = response.data.protocolo || response.data.id;
       setConfirmation(reference
-        ? `Solicitacao recebida. Protocolo: ${reference}.`
-        : 'Solicitacao recebida. A JS Boy retornara pelos dados informados.');
+        ? `Solicitação recebida. Protocolo: ${reference}.`
+        : 'Solicitação recebida. A JS Boy retornará pelos dados informados.');
       reset(emptyForm);
     } catch {
-      setSubmitError('Nao foi possivel enviar agora. Revise os dados e tente novamente.');
+      setSubmitError('Não foi possível enviar agora. Revise os dados e tente novamente.');
     }
   }
 
@@ -107,7 +107,7 @@ export function ContactForm() {
       {submitError ? <p className="errorMessage" role="alert">{submitError}</p> : null}
       {confirmation ? <p className="successMessage" role="status">{confirmation}</p> : null}
       <button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Enviando...' : 'Enviar solicitacao'}
+        {isSubmitting ? 'Enviando...' : 'Enviar solicitação'}
       </button>
     </form>
   );

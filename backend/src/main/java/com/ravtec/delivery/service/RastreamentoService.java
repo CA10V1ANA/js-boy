@@ -47,7 +47,7 @@ public class RastreamentoService {
         acessoService.buscar(entregaId);
         var link = repository.findById(linkId)
             .filter(item -> item.getEntrega().getId().equals(entregaId))
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Link nao encontrado"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Link não encontrado"));
         link.setRevogadoEm(OffsetDateTime.now());
         auditoriaService.registrar("RASTREAMENTO_REVOGADO", "ENTREGA", entregaId, null,
             Map.of("linkId", linkId), null);
@@ -56,7 +56,7 @@ public class RastreamentoService {
     @Transactional
     public RastreamentoPublicoResponse consultarPublico(String token) {
         var link = repository.findByTokenHash(hash(token))
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Rastreamento nao encontrado"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Rastreamento não encontrado"));
         if (!link.ativoEm(OffsetDateTime.now())) {
             throw new RecursoNaoEncontradoException("Rastreamento expirado ou revogado");
         }
@@ -76,7 +76,7 @@ public class RastreamentoService {
 
     private String hash(String token) {
         if (token == null || token.length() < 32 || token.length() > 100) {
-            throw new RecursoNaoEncontradoException("Rastreamento nao encontrado");
+            throw new RecursoNaoEncontradoException("Rastreamento não encontrado");
         }
         try {
             return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")

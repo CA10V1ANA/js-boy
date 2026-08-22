@@ -17,7 +17,7 @@ const emptyForm: ClienteFormData = {
   nome: '', telefone: '', whatsapp: '', email: '', documento: '', endereco: '', numero: 'S/N',
   semNumero: true, complemento: '', cep: '', bairro: '', cidade: '', estado: '', observacoes: '',
 };
-const stepLabels = ['Identificacao', 'Endereco', 'Observacoes'];
+const stepLabels = ['Identificação', 'Endereço', 'Observações'];
 
 export function ClientesPage() {
   const { showToast } = useToast();
@@ -44,7 +44,7 @@ export function ClientesPage() {
   const load = useCallback(async () => {
     setLoading(true); setError('');
     try { setItems((await api.get<Cliente[]>('/clientes')).data); }
-    catch (reason) { setError(apiErrorMessage(reason, 'Nao foi possivel carregar os clientes.')); }
+    catch (reason) { setError(apiErrorMessage(reason, 'Não foi possível carregar os clientes.')); }
     finally { setLoading(false); }
   }, []);
   useEffect(() => { void load(); }, [load]);
@@ -91,7 +91,7 @@ export function ClientesPage() {
         showToast('Cliente cadastrado com sucesso.', 'success');
       }
       setModalOpen(false); reset(emptyForm); await load();
-    } catch (reason) { setError(apiErrorMessage(reason, 'Nao foi possivel salvar o cliente.')); }
+    } catch (reason) { setError(apiErrorMessage(reason, 'Não foi possível salvar o cliente.')); }
     finally { setBusy(false); }
   }
 
@@ -104,7 +104,7 @@ export function ClientesPage() {
       });
       showToast(statusPending.ativo ? 'Cliente desativado.' : 'Cliente ativado.', 'success');
       setStatusPending(null); await load();
-    } catch (reason) { setError(apiErrorMessage(reason, 'Nao foi possivel alterar o cliente.')); }
+    } catch (reason) { setError(apiErrorMessage(reason, 'Não foi possível alterar o cliente.')); }
     finally { setBusy(false); }
   }
 
@@ -114,7 +114,7 @@ export function ClientesPage() {
     try {
       await api.post(`/clientes/${access.client.id}/acesso`, { email: formatEmailInput(access.email), senha: access.password });
       showToast('Acesso do cliente criado.', 'success'); setAccess(null); await load();
-    } catch (reason) { setError(apiErrorMessage(reason, 'Nao foi possivel criar o acesso.')); }
+    } catch (reason) { setError(apiErrorMessage(reason, 'Não foi possível criar o acesso.')); }
     finally { setBusy(false); }
   }
 
@@ -144,7 +144,7 @@ export function ClientesPage() {
                 {visible.map((client) => (
                   <tr key={client.id}>
                     <td data-label="Cliente"><div className="nameCell"><span className="avatarTile tone-yellow">{titleCase(client.nome).slice(0, 2)}</span><div><div>{titleCase(client.nome)}</div><div className="cellSub">{client.possuiAcesso ? 'Acesso criado' : 'Sem acesso'}</div></div></div></td>
-                    <td data-label="Contato"><strong className="cellPrimary">{formatPhone(client.telefone)}</strong><span className="cellSub">{client.email || 'E-mail nao informado'}</span></td>
+                    <td data-label="Contato"><strong className="cellPrimary">{formatPhone(client.telefone)}</strong><span className="cellSub">{client.email || 'E-mail não informado'}</span></td>
                     <td data-label="Localidade">{titleCase(client.cidade)} / {(client.estado || '--').toUpperCase()}</td>
                     <td data-label="Status"><span className={`statusBadge ${client.ativo ? 'active' : 'danger'}`}>{client.ativo ? 'Ativo' : 'Inativo'}</span></td>
                     <td data-label="Acoes">
@@ -173,7 +173,7 @@ export function ClientesPage() {
           <div className="modalFooterActions">
             <span>Etapa {modalStep} de 3</span>
             {modalStep < 3
-              ? <button className="darkButton" type="button" onClick={() => void advance()}>Proximo <ArrowRight size={16} /></button>
+              ? <button className="darkButton" type="button" onClick={() => void advance()}>Próximo <ArrowRight size={16} /></button>
               : <button className="primaryButton" form="client-form" type="submit" disabled={busy}><Check size={16} /> {busy ? 'Salvando...' : editing ? 'Salvar cliente' : 'Cadastrar cliente'}</button>}
           </div>
         </>}
@@ -190,24 +190,24 @@ export function ClientesPage() {
           </div> : null}
           {modalStep === 2 ? <div className="formGrid">
             <label>CEP<input {...register('cep')} inputMode="numeric" autoComplete="postal-code" maxLength={9} placeholder="00000-000" value={cep} onChange={(event) => setValue('cep', formatCep(event.target.value), { shouldDirty: true, shouldValidate: true })} />{fieldError('cep')}</label>
-            <label>Endereco<input {...register('endereco')} />{fieldError('endereco')}</label>
-            <label>Numero<input disabled={noNumber} {...register('numero')} />{fieldError('numero')}</label>
-            <label className="checkboxLine wizardCheckbox"><input type="checkbox" {...register('semNumero')} /> Sem numero</label>
+            <label>Endereço<input {...register('endereco')} />{fieldError('endereco')}</label>
+            <label>Número<input disabled={noNumber} {...register('numero')} />{fieldError('numero')}</label>
+            <label className="checkboxLine wizardCheckbox"><input type="checkbox" {...register('semNumero')} /> Sem número</label>
             <label>Complemento<input {...register('complemento')} /></label>
             <label>Bairro<input {...register('bairro')} />{fieldError('bairro')}</label>
             <label>Cidade<input {...register('cidade')} />{fieldError('cidade')}</label>
             <label>Estado<input maxLength={2} placeholder="CE" {...register('estado', { onChange: (event) => setValue('estado', event.target.value.replace(/[^a-z]/gi, '').toUpperCase().slice(0, 2), { shouldDirty: true }) })} />{fieldError('estado')}</label>
           </div> : null}
           {modalStep === 3 ? <div className="reviewPanel">
-            <div><strong>Cadastro pronto para revisao</strong><span>Confira os dados antes de salvar. Voce pode voltar para corrigir qualquer informacao.</span></div>
-            <label>Observacoes<textarea rows={4} placeholder="Informacoes adicionais sobre o cliente" {...register('observacoes')} /></label>
+            <div><strong>Cadastro pronto para revisão</strong><span>Confira os dados antes de salvar. Você pode voltar para corrigir qualquer informação.</span></div>
+            <label>Observações<textarea rows={4} placeholder="Informações adicionais sobre o cliente" {...register('observacoes')} /></label>
           </div> : null}
         </form>
       </Modal>
 
-      <ConfirmDialog open={statusPending !== null} title={`${statusPending?.ativo ? 'Desativar' : 'Ativar'} cliente?`} description="A mudanca afeta novas operacoes e o acesso vinculado." confirmLabel={statusPending?.ativo ? 'Desativar' : 'Ativar'} danger={statusPending?.ativo} busy={busy} onCancel={() => setStatusPending(null)} onConfirm={() => void toggleStatus()} />
+      <ConfirmDialog open={statusPending !== null} title={`${statusPending?.ativo ? 'Desativar' : 'Ativar'} cliente?`} description="A mudança afeta novas operações e o acesso vinculado." confirmLabel={statusPending?.ativo ? 'Desativar' : 'Ativar'} danger={statusPending?.ativo} busy={busy} onCancel={() => setStatusPending(null)} onConfirm={() => void toggleStatus()} />
       <Modal open={access !== null} onClose={() => !busy && setAccess(null)} title="Criar acesso do cliente" eyebrow="ACESSO DO CLIENTE" maxWidth={480}>
-        {access ? <form className="settingsForm compactForm" onSubmit={(event) => { event.preventDefault(); void createAccess(); }}><label>E-mail<input type="email" inputMode="email" autoComplete="email" placeholder="nome@exemplo.com" value={access.email} onChange={(event) => setAccess({ ...access, email: formatEmailInput(event.target.value) })} required /></label><label>Senha temporaria<input type="password" minLength={8} autoComplete="new-password" placeholder="Minimo de 8 caracteres" value={access.password} onChange={(event) => setAccess({ ...access, password: event.target.value })} required /></label><p className="formHelp">Por seguranca, a senha nao podera ser consultada depois.</p><button className="primaryButton" type="submit" disabled={busy}><KeyRound size={16} /> {busy ? 'Criando...' : 'Criar acesso'}</button></form> : null}
+        {access ? <form className="settingsForm compactForm" onSubmit={(event) => { event.preventDefault(); void createAccess(); }}><label>E-mail<input type="email" inputMode="email" autoComplete="email" placeholder="nome@exemplo.com" value={access.email} onChange={(event) => setAccess({ ...access, email: formatEmailInput(event.target.value) })} required /></label><label>Senha temporária<input type="password" minLength={12} autoComplete="new-password" placeholder="Mínimo de 12 caracteres" value={access.password} onChange={(event) => setAccess({ ...access, password: event.target.value })} required /></label><p className="formHelp">Por segurança, a senha não poderá ser consultada depois.</p><button className="primaryButton" type="submit" disabled={busy}><KeyRound size={16} /> {busy ? 'Criando...' : 'Criar acesso'}</button></form> : null}
       </Modal>
     </main>
   );

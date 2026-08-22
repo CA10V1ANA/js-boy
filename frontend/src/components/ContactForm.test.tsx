@@ -19,7 +19,7 @@ describe('ContactForm', () => {
     const user = userEvent.setup();
     render(<ContactForm />);
 
-    await user.click(screen.getByRole('button', { name: 'Enviar solicitacao' }));
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitação' }));
 
     expect(await screen.findByText('Informe seu nome')).toBeInTheDocument();
     expect(mockedPost).not.toHaveBeenCalled();
@@ -35,7 +35,7 @@ describe('ContactForm', () => {
     await user.type(screen.getByLabelText('E-mail'), 'maria@exemplo.com');
     await user.type(screen.getByLabelText('Telefone'), '85999999999');
     await user.type(screen.getByLabelText('Mensagem'), 'Preciso conversar sobre uma entrega.');
-    await user.click(screen.getByRole('button', { name: 'Enviar solicitacao' }));
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitação' }));
 
     await waitFor(() => expect(mockedPost).toHaveBeenCalledWith('/public/contatos', {
       nome: 'Maria Souza',

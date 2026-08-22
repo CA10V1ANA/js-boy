@@ -564,53 +564,6 @@ a {
   align-items: start;
 }
 
-.aboutGrid {
-  display: grid;
-  grid-template-columns: 0.8fr 1.2fr;
-  gap: 48px;
-  align-items: start;
-}
-
-.aboutCard {
-  padding: 34px;
-  color: #ffffff;
-  background: #111111;
-  border-radius: 8px;
-}
-
-.aboutCard h3 {
-  margin: 0 0 14px;
-  font-size: 28px;
-}
-
-.aboutCard p {
-  margin: 0;
-  color: #e5e7eb;
-  line-height: 1.65;
-}
-
-.aboutStats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 30px;
-}
-
-.aboutStats span {
-  display: grid;
-  gap: 4px;
-  padding: 16px;
-  color: #111111;
-  background: var(--yellow);
-  border-radius: 8px;
-  font-weight: 800;
-}
-
-.aboutStats strong {
-  font-size: 26px;
-  line-height: 1;
-}
-
 .contactList {
   display: grid;
   gap: 16px;
@@ -753,6 +706,10 @@ a {
 .siteFooter .siteBrandMark {
   width: 40px;
   height: 40px;
+}
+
+.siteFooter .siteBrandMark svg {
+  color: #111111;
 }
 
 .siteFooter .siteBrand strong {
@@ -2822,8 +2779,7 @@ tbody tr:hover {
 
   .siteHeroInner,
   .companiesGrid,
-  .contactGrid,
-  .aboutGrid {
+  .contactGrid {
     grid-template-columns: 1fr;
   }
 
@@ -2958,8 +2914,7 @@ tbody tr:hover {
   .stepsGrid,
   .servicesGrid,
   .footerGrid,
-  .formRow,
-  .aboutStats {
+  .formRow {
     grid-template-columns: 1fr;
   }
 

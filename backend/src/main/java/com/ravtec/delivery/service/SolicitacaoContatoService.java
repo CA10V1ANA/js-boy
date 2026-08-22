@@ -51,7 +51,7 @@ public class SolicitacaoContatoService {
     @Transactional
     public SolicitacaoContatoResponse alterarStatus(UUID id, StatusSolicitacaoContato status) {
         var contato = repository.findById(id)
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Solicitacao de contato nao encontrada"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Solicitação de contato não encontrada"));
         contato.setStatus(status);
         return toResponse(contato);
     }

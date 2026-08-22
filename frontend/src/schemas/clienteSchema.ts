@@ -8,10 +8,10 @@ export const clienteSchema = z.object({
     const size = digits(value).length;
     return size >= 10 && size <= 15;
   }, 'Telefone deve conter entre 10 e 15 digitos'),
-  whatsapp: z.string().refine((value) => !value || (digits(value).length >= 10 && digits(value).length <= 15), 'WhatsApp invalido'),
-  email: z.string().email('E-mail invalido').max(180).optional().or(z.literal('')),
+  whatsapp: z.string().refine((value) => !value || (digits(value).length >= 10 && digits(value).length <= 15), 'WhatsApp inválido'),
+  email: z.string().email('E-mail inválido').max(180).optional().or(z.literal('')),
   documento: z.string().refine((value) => !value || [11, 14].includes(digits(value).length), 'Informe um CPF ou CNPJ valido'),
-  endereco: z.string().trim().min(1, 'Informe o endereco').max(180),
+  endereco: z.string().trim().min(1, 'Informe o endereço').max(180),
   numero: z.string().max(20),
   semNumero: z.boolean(),
   complemento: z.string().max(120),
@@ -22,7 +22,7 @@ export const clienteSchema = z.object({
   observacoes: z.string().max(500).optional().or(z.literal('')),
 }).refine((data) => data.semNumero || data.numero.trim().length > 0, {
   path: ['numero'],
-  message: 'Informe o numero ou marque sem numero',
+  message: 'Informe o número ou marque sem número',
 });
 
 export type ClienteFormData = z.infer<typeof clienteSchema>;

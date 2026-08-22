@@ -29,7 +29,7 @@ export function RowMenu({ items }: RowMenuProps) {
 
   return (
     <div className="rowMenu" ref={ref}>
-      <button className="rowMenuButton" onClick={() => setOpen((value) => !value)} type="button" aria-label="Mais acoes">
+      <button className="rowMenuButton" onClick={() => setOpen((value) => !value)} type="button" aria-label="Mais ações">
         <MoreHorizontal size={16} />
       </button>
       {open ? (

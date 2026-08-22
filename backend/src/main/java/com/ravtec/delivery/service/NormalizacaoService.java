@@ -20,7 +20,7 @@ public class NormalizacaoService {
     public String telefoneObrigatorio(String valor) {
         var normalizado = digitos(valor);
         if (normalizado == null || normalizado.length() < 10 || normalizado.length() > 15) {
-            throw new IllegalArgumentException("Telefone deve conter entre 10 e 15 digitos");
+            throw new IllegalArgumentException("Telefone deve conter entre 10 e 15 dígitos");
         }
         return normalizado;
     }
@@ -35,7 +35,7 @@ public class NormalizacaoService {
             return null;
         }
         if (!(cpfValido(normalizado) || cnpjValido(normalizado))) {
-            throw new IllegalArgumentException("CPF ou CNPJ invalido");
+            throw new IllegalArgumentException("CPF ou CNPJ inválido");
         }
         return normalizado;
     }
@@ -43,7 +43,7 @@ public class NormalizacaoService {
     public String cpf(String valor) {
         var normalizado = digitos(valor);
         if (!cpfValido(normalizado)) {
-            throw new IllegalArgumentException("CPF invalido");
+            throw new IllegalArgumentException("CPF inválido");
         }
         return normalizado;
     }

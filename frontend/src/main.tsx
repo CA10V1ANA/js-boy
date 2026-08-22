@@ -32,7 +32,7 @@ import { RoleRoute } from './routes/RoleRoute';
 import { roleHomePath } from './routes/roleHome';
 import { useAuth } from './contexts/AuthContext';
 import {
-  AboutPage, CompaniesPage, ContactPage, HowItWorksPage, LandingPage, PublicLayout, ServicesPage,
+  CompaniesPage, ContactPage, HowItWorksPage, LandingPage, PublicLayout, ServicesPage,
 } from './pages/LandingPage';
 
 function HomeRedirect() {
@@ -47,7 +47,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <LandingPage /> }, { path: 'servicos', element: <ServicesPage /> },
       { path: 'como-funciona', element: <HowItWorksPage /> }, { path: 'para-empresas', element: <CompaniesPage /> },
-      { path: 'sobre', element: <AboutPage /> }, { path: 'contato', element: <ContactPage /> },
+      { path: 'contato', element: <ContactPage /> },
     ],
   },
   { path: '/login', element: <LoginPage /> },

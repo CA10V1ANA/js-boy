@@ -141,7 +141,7 @@ public class ClienteService {
     public ClienteResponse criarAcesso(UUID id, CriarAcessoClienteRequest request) {
         var cliente = buscarEntidade(id);
         if (!cliente.isAtivo()) {
-            throw new IllegalStateException("Cliente inativo nao pode receber acesso");
+            throw new IllegalStateException("Cliente inativo não pode receber acesso");
         }
         if (cliente.getUsuario() != null) {
             throw new IllegalArgumentException("Cliente ja possui acesso ao sistema");
@@ -171,7 +171,7 @@ public class ClienteService {
             throw new IllegalArgumentException("Informe o numero ou marque explicitamente sem numero");
         }
         if (request.cep() != null && !request.cep().isBlank() && normalizacao.digitos(request.cep()).length() != 8) {
-            throw new IllegalArgumentException("CEP deve conter 8 digitos");
+            throw new IllegalArgumentException("O CEP deve conter 8 dígitos");
         }
         if (request.estado() != null && !request.estado().isBlank() && request.estado().trim().length() != 2) {
             throw new IllegalArgumentException("Estado deve conter a sigla com 2 letras");
@@ -199,6 +199,6 @@ public class ClienteService {
 
     private com.ravtec.delivery.entity.Cliente buscarEntidade(UUID id) {
         return clienteRepository.findById(id)
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Cliente nao encontrado"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Cliente não encontrado"));
     }
 }

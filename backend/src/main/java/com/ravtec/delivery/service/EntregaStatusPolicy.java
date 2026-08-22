@@ -19,20 +19,20 @@ public class EntregaStatusPolicy {
 
     public void validarTransicao(StatusEntrega atual, StatusEntrega destino) {
         if (atual == null || destino == null || !TRANSICOES.getOrDefault(atual, Set.of()).contains(destino)) {
-            throw new IllegalStateException("Transicao de status nao permitida: " + atual + " -> " + destino);
+            throw new IllegalStateException("Transição de status não permitida: " + atual + " -> " + destino);
         }
     }
 
     public void validarTransicaoDoEntregador(StatusEntrega atual, StatusEntrega destino) {
         validarTransicao(atual, destino);
         if (!DESTINOS_DO_ENTREGADOR.contains(destino)) {
-            throw new IllegalStateException("Entregador nao pode realizar a transicao: " + atual + " -> " + destino);
+            throw new IllegalStateException("Entregador não pode realizar a transição: " + atual + " -> " + destino);
         }
     }
 
     public void validarEdicaoAntesDaColeta(StatusEntrega status) {
         if (!ESTADOS_ANTES_DA_COLETA.contains(status)) {
-            throw new IllegalStateException("Entrega nao pode ser editada ou redesignada apos a coleta");
+            throw new IllegalStateException("A entrega não pode ser editada ou redesignada após a coleta");
         }
     }
 

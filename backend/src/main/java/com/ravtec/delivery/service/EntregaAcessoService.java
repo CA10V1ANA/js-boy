@@ -22,7 +22,7 @@ public class EntregaAcessoService {
         }
         if (perfil == PerfilAcesso.CLIENTE) {
             return entregaRepository.findByIdAndClienteUsuarioId(entregaId, identidadeAtual.principal().getId())
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega nao encontrada"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega não encontrada"));
         }
         if (perfil == PerfilAcesso.ENTREGADOR) {
             return exigirDoEntregador(entregaId);
@@ -33,18 +33,18 @@ public class EntregaAcessoService {
     public Entrega exigirDoEntregador(UUID entregaId) {
         identidadeAtual.entregadorObrigatorio();
         return entregaRepository.findByIdAndEntregadorUsuarioId(entregaId, identidadeAtual.principal().getId())
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega nao encontrada"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega não encontrada"));
     }
 
     public Entrega exigirDoEntregadorParaAtualizacao(UUID entregaId) {
         identidadeAtual.entregadorObrigatorioParaAtualizacao();
         return entregaRepository.findDoEntregadorParaAtualizacao(
             entregaId, identidadeAtual.principal().getId()
-        ).orElseThrow(() -> new RecursoNaoEncontradoException("Entrega nao encontrada"));
+        ).orElseThrow(() -> new RecursoNaoEncontradoException("Entrega não encontrada"));
     }
 
     public Entrega buscar(UUID entregaId) {
         return entregaRepository.findById(entregaId)
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega nao encontrada"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega não encontrada"));
     }
 }

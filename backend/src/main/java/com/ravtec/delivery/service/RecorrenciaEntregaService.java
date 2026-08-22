@@ -31,7 +31,7 @@ public class RecorrenciaEntregaService {
         }
         ZoneId.of(r.fusoHorario());
         var cliente = clienteRepository.findById(r.clienteId())
-            .filter(Cliente::isAtivo).orElseThrow(() -> new RecursoNaoEncontradoException("Cliente nao encontrado"));
+            .filter(Cliente::isAtivo).orElseThrow(() -> new RecursoNaoEncontradoException("Cliente não encontrado"));
         var item = new RecorrenciaEntrega();
         item.setCliente(cliente); item.setFrequencia(r.frequencia()); item.setDataInicial(r.dataInicial());
         item.setDataFinal(r.dataFinal()); item.setDiasSemana(limpar(r.diasSemana()));
@@ -66,7 +66,7 @@ public class RecorrenciaEntregaService {
     @Transactional
     public RecorrenciaResponse alterarAtiva(UUID id, boolean ativa) {
         var item = repository.findById(id)
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Recorrencia nao encontrada"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Recorrência não encontrada"));
         item.setAtiva(ativa);
         return toResponse(item);
     }

@@ -102,7 +102,7 @@ export function ActionMenu({ items }: { items: ActionItem[] }) {
 
   return (
     <div className="actionMenu" ref={ref}>
-      <button className="ellipsisButton" type="button" onClick={() => setOpen((current) => !current)} aria-label="Mais acoes">
+      <button className="ellipsisButton" type="button" onClick={() => setOpen((current) => !current)} aria-label="Mais ações">
         <MoreVertical size={18} />
       </button>
       {open ? (

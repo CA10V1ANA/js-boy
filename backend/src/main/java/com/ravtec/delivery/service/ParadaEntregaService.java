@@ -32,7 +32,7 @@ public class ParadaEntregaService {
         validarOrdem(requests);
         var existentes = repository.findByEntregaIdOrderByOrdem(entrega.getId());
         if (!existentes.isEmpty()) {
-            throw new IllegalStateException("Paradas existentes nao podem ser substituidas silenciosamente");
+            throw new IllegalStateException("Paradas existentes não podem ser substituídas silenciosamente");
         }
         var entidades = requests.stream().map(request -> criar(entrega, request)).toList();
         return repository.saveAll(entidades).stream().map(this::toResponse).toList();
@@ -49,7 +49,7 @@ public class ParadaEntregaService {
         var entrega = acessoService.exigirDoEntregador(entregaId);
         var paradas = repository.findByEntregaIdOrderByOrdem(entregaId);
         var parada = paradas.stream().filter(item -> item.getId().equals(paradaId)).findFirst()
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Parada nao encontrada"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Parada não encontrada"));
         if (versao != null && !Objects.equals(versao, parada.getVersion())) {
             throw new IllegalStateException("A parada foi alterada; recarregue os dados");
         }
@@ -59,7 +59,7 @@ public class ParadaEntregaService {
             throw new IllegalStateException("Conclua as paradas anteriores primeiro");
         }
         if (parada.getTipo() == TipoParada.ENTREGA) {
-            throw new IllegalStateException("A parada de entrega e concluida pelo comprovante com codigo do destinatario");
+            throw new IllegalStateException("A parada de entrega é concluída pelo comprovante com código do destinatário");
         }
         parada.setStatus(StatusParada.CONCLUIDA);
         parada.setRealizadaEm(OffsetDateTime.now());

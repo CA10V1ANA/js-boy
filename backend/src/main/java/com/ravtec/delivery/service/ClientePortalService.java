@@ -40,7 +40,7 @@ public class ClientePortalService {
     public EntregaClienteResponse minhaEntrega(UUID id) {
         identidadeAtual.clienteObrigatorio();
         var entrega = entregaRepository.findByIdAndClienteUsuarioId(id, identidadeAtual.principal().getId())
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega nao encontrada"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega não encontrada"));
         return entregaMapper.toClienteResponse(entrega);
     }
 }

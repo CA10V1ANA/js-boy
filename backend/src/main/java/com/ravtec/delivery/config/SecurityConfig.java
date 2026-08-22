@@ -54,7 +54,7 @@ public class SecurityConfig {
             .authenticationProvider(authenticationProvider())
             .exceptionHandling(exceptions -> exceptions
                 .authenticationEntryPoint((request, response, exception) ->
-                    response.sendError(401, "Autenticacao obrigatoria"))
+                    response.sendError(401, "Autenticação obrigatória"))
                 .accessDeniedHandler((request, response, exception) ->
                     response.sendError(403, "Acesso negado")))
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

@@ -64,7 +64,7 @@ public class ConfiguracaoPrecoService {
 
     public ConfiguracaoPreco buscarAtual() {
         return configuracaoPrecoRepository.findAll().stream().findFirst()
-            .orElseThrow(() -> new IllegalStateException("Configuracao de preco nao encontrada"));
+            .orElseThrow(() -> new IllegalStateException("Configuração de preço não encontrada"));
     }
 
     private ConfiguracaoPrecoResponse toResponse(ConfiguracaoPreco config) {

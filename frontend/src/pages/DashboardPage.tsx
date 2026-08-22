@@ -117,7 +117,7 @@ export function DashboardPage() {
       const response = await api.get<DashboardResumo>('/dashboard/resumo');
       setResumo(response.data);
     } catch {
-      showToast('Nao foi possivel carregar o dashboard.', 'error');
+      showToast('Não foi possível carregar o painel.', 'error');
     }
   }
 
@@ -132,7 +132,7 @@ export function DashboardPage() {
       setEntregas(entregasResponse.data);
       setPagamentos(pagamentosResponse.data);
     } catch {
-      showToast('Nao foi possivel carregar os dados da operacao.', 'error');
+      showToast('Não foi possível carregar os dados da operação.', 'error');
     }
   }
 
@@ -231,13 +231,13 @@ export function DashboardPage() {
     { label: 'Nova entrega', sub: 'Cadastrar', icon: Plus, tone: 'yellow', to: '/entregas', perfil: 'PROPRIETARIO' },
     { label: 'Registrar pagamento', sub: 'Recebimento', icon: DollarSign, tone: 'green', to: '/pagamentos', perfil: 'PROPRIETARIO' },
     { label: 'Novo cliente', sub: 'Cadastrar', icon: UserPlus, tone: 'slate', to: '/clientes', perfil: 'TODOS' },
-    { label: 'Relatorios', sub: 'Visualizar', icon: BarChart3, tone: 'navy', to: '/relatorios', perfil: 'PROPRIETARIO' },
+    { label: 'Relatórios', sub: 'Visualizar', icon: BarChart3, tone: 'navy', to: '/relatorios', perfil: 'PROPRIETARIO' },
   ].filter((acao) => acao.perfil === 'TODOS' || ehProprietario);
 
   return (
     <main className="page">
       <div className="statusRibbon">
-        <span className="ribbonLive">OPERACAO ATIVA</span>
+        <span className="ribbonLive">OPERAÇÃO ATIVA</span>
         <div className="ribbonItem">
           <Package size={17} />
           <div>
@@ -257,7 +257,7 @@ export function DashboardPage() {
             <div className="ribbonItem">
               <Truck size={17} />
               <div>
-                <small>EM TRANSITO</small>
+                <small>EM TRÂNSITO</small>
                 <strong>{money(valorEmTransito)}</strong>
               </div>
             </div>
@@ -278,7 +278,7 @@ export function DashboardPage() {
 
       <div className={ehProprietario ? 'dashGrid' : undefined}>
         <div>
-          <h2 className="sectionTitle">Resumo da operacao</h2>
+          <h2 className="sectionTitle">Resumo da operação</h2>
 
           <section className="metricGrid">
             {kpis.map((kpi) => (
@@ -307,7 +307,7 @@ export function DashboardPage() {
                   <thead>
                     <tr>
                       <th style={{ paddingLeft: 20 }}>Entrega</th>
-                      <th>Destinatario</th>
+                      <th>Destinatário</th>
                       <th>Status</th>
                       <th>Entregador</th>
                       <th style={{ textAlign: 'right', paddingRight: 20 }}>Valor</th>
@@ -371,7 +371,7 @@ export function DashboardPage() {
             </div>
 
             <div className="panelCard" style={{ padding: '18px 20px 20px' }}>
-              <h2 style={{ margin: '0 0 15px', fontSize: 15, fontWeight: 700 }}>Acoes rapidas</h2>
+              <h2 style={{ margin: '0 0 15px', fontSize: 15, fontWeight: 700 }}>Ações rápidas</h2>
               <div className="quickGrid">
                 {quickActions.map((acao) => (
                   <button className="quickTile" key={acao.label} type="button" onClick={() => navigate(acao.to)}>

@@ -54,12 +54,12 @@ public class FuncionarioService {
 
     private Usuario buscarFuncionario(UUID id) {
         var usuario = usuarioRepository.findById(id)
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Funcionario nao encontrado"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Funcionário não encontrado"));
 
         if ((usuario.getPerfil() != PerfilAcesso.FUNCIONARIO
             && usuario.getPerfil() != PerfilAcesso.ENTREGADOR)
             || usuario.getEntregador() == null) {
-            throw new RecursoNaoEncontradoException("Funcionario nao encontrado");
+            throw new RecursoNaoEncontradoException("Funcionário não encontrado");
         }
 
         return usuario;

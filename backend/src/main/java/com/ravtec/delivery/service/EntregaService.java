@@ -149,9 +149,9 @@ public class EntregaService {
         versionamento.validar(versao, entrega.getVersion());
         entregaStatusPolicy.validarEdicaoAntesDaColeta(entrega.getStatus());
         var entregador = entregadorRepository.findById(request.entregadorId())
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Entregador nao encontrado"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Entregador não encontrado"));
         if (!entregador.isAtivo()) {
-            throw new IllegalStateException("Entregador inativo nao pode ser designado");
+            throw new IllegalStateException("Entregador inativo não pode ser designado");
         }
         var anteriorId = entrega.getEntregador() == null ? null : entrega.getEntregador().getId();
         var statusAnterior = entrega.getStatus();
@@ -168,9 +168,9 @@ public class EntregaService {
 
     private void preencher(Entrega entrega, EntregaRequest request) {
         var cliente = clienteRepository.findById(request.clienteId())
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Cliente nao encontrado"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Cliente não encontrado"));
         if (!cliente.isAtivo()) {
-            throw new IllegalStateException("Cliente inativo nao pode receber nova entrega");
+            throw new IllegalStateException("Cliente inativo não pode receber uma nova entrega");
         }
         var config = configuracaoPrecoService.buscarAtual();
         var distancia = request.distanciaKm().setScale(2, RoundingMode.HALF_UP);
@@ -185,16 +185,16 @@ public class EntregaService {
         var valorFinal = request.valorFinal() == null
             ? valorCalculado : request.valorFinal().setScale(2, RoundingMode.HALF_UP);
         if (valorFinal.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("O valor final nao pode ser negativo");
+            throw new IllegalArgumentException("O valor final não pode ser negativo");
         }
         entrega.setCliente(cliente);
         if (request.entregadorId() == null) {
             entrega.setEntregador(null);
         } else {
             var entregador = entregadorRepository.findById(request.entregadorId())
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Entregador nao encontrado"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Entregador não encontrado"));
             if (!entregador.isAtivo()) {
-                throw new IllegalStateException("Entregador inativo nao pode ser designado");
+                throw new IllegalStateException("Entregador inativo não pode ser designado");
             }
             entrega.setEntregador(entregador);
         }
@@ -290,12 +290,12 @@ public class EntregaService {
 
     private Entrega buscarEntidade(UUID id) {
         return entregaRepository.findById(id)
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega nao encontrada"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega não encontrada"));
     }
 
     private Entrega buscarMinhaEntrega(UUID id) {
         return entregaRepository.findByIdAndEntregadorUsuarioId(id, identidadeAtual.principal().getId())
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega nao encontrada"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega não encontrada"));
     }
 
     private String gerarCodigo() {

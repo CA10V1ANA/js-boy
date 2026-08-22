@@ -90,7 +90,7 @@ class ClienteServiceTest {
 
         assertThatThrownBy(() -> clienteService.consultar(id))
             .isInstanceOf(RecursoNaoEncontradoException.class)
-            .hasMessage("Cliente nao encontrado");
+            .hasMessage("Cliente não encontrado");
     }
 
     @Test

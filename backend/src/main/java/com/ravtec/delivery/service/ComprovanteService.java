@@ -76,7 +76,7 @@ public class ComprovanteService {
         var entregador = entrega.getEntregador();
         DesafioComprovanteService.Confirmacao confirmacao = null;
         var parada = paradaId == null ? null : paradaRepository.findByIdAndEntregaId(paradaId, entregaId)
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Parada nao encontrada"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Parada não encontrada"));
         if (tipo == TipoComprovante.ENTREGA) {
             confirmacao = desafioService.consumir(entrega, paradaId, otp);
             parada = confirmacao.parada();
@@ -135,7 +135,7 @@ public class ComprovanteService {
     public ResponseEntity<InputStreamResource> baixar(UUID entregaId, UUID comprovanteId) {
         acessoService.exigirLeitura(entregaId);
         var c = repository.findByIdAndEntregaId(comprovanteId, entregaId)
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Comprovante nao encontrado"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Comprovante não encontrado"));
         if (c.getStorageKey() == null) throw new RecursoNaoEncontradoException("Comprovante sem arquivo");
         return ResponseEntity.ok()
             .cacheControl(CacheControl.noStore())
@@ -155,16 +155,16 @@ public class ComprovanteService {
                 return new ArquivoValidado(bytes, "application/pdf", ".pdf");
             }
             try (ImageInputStream input = ImageIO.createImageInputStream(new ByteArrayInputStream(bytes))) {
-                if (input == null) throw new IllegalArgumentException("Conteudo do arquivo invalido");
+                if (input == null) throw new IllegalArgumentException("Conteúdo do arquivo inválido");
                 Iterator<ImageReader> leitores = ImageIO.getImageReaders(input);
-                if (!leitores.hasNext()) throw new IllegalArgumentException("Conteudo do arquivo invalido");
+                if (!leitores.hasNext()) throw new IllegalArgumentException("Conteúdo do arquivo inválido");
                 ImageReader leitor = leitores.next();
                 try {
                     leitor.setInput(input, false, true);
                     String formato = leitor.getFormatName().toLowerCase(Locale.ROOT);
                     boolean png = formato.equals("png");
                     if (!png && !formato.equals("jpeg") && !formato.equals("jpg")) {
-                        throw new IllegalArgumentException("Formato de imagem nao suportado");
+                        throw new IllegalArgumentException("Formato de imagem não suportado");
                     }
                     int quadros = leitor.getNumImages(true);
                     if (quadros != 1) throw new IllegalArgumentException("A imagem deve ter somente um quadro");
@@ -185,7 +185,7 @@ public class ComprovanteService {
                     BufferedImage image = leitor.read(0);
                     var output = new ByteArrayOutputStream();
                     if (!ImageIO.write(image, png ? "png" : "jpg", output)) {
-                        throw new IllegalArgumentException("Formato de imagem nao suportado");
+                        throw new IllegalArgumentException("Formato de imagem não suportado");
                     }
                     if (output.size() > maxBytes) {
                         throw new IllegalArgumentException("Imagem processada acima do limite permitido");
@@ -197,7 +197,7 @@ public class ComprovanteService {
                 }
             }
         } catch (IOException e) {
-            throw new IllegalArgumentException("Nao foi possivel ler o arquivo", e);
+            throw new IllegalArgumentException("Não foi possível ler o arquivo", e);
         }
     }
 

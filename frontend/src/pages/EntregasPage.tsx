@@ -114,7 +114,7 @@ export function EntregasPage() {
       });
       setEntregas(response.data);
     } catch {
-      showToast('Nao foi possivel carregar entregas.', 'error');
+      showToast('Não foi possível carregar as entregas.', 'error');
     }
   }
 
@@ -216,7 +216,7 @@ export function EntregasPage() {
       showToast('Status atualizado.', 'success');
       await carregarEntregas();
     } catch {
-      showToast('Nao foi possivel atualizar o status.', 'error');
+      showToast('Não foi possível atualizar o status.', 'error');
     }
   }
 
@@ -226,7 +226,7 @@ export function EntregasPage() {
       showToast('Entregador designado.', 'success');
       await carregarEntregas();
     } catch {
-      showToast('Nao foi possivel designar o entregador.', 'error');
+      showToast('Não foi possível designar o entregador.', 'error');
     }
   }
 
@@ -270,7 +270,7 @@ export function EntregasPage() {
         <div className="filterSearch">
           <Search size={17} color="#ABA89B" />
           <input
-            placeholder="Pesquisar por codigo ou cliente"
+            placeholder="Pesquisar por código ou cliente"
             value={busca}
             onChange={(event) => setBusca(event.target.value)}
             onKeyDown={(event) => event.key === 'Enter' && carregarEntregas()}
@@ -300,7 +300,7 @@ export function EntregasPage() {
             <thead>
               <tr>
                 <th>Entrega</th>
-                <th>Destinatario</th>
+                <th>Destinatário</th>
                 <th>Status</th>
                 <th>Entregador</th>
                 <th style={{ textAlign: 'right' }}>Valor</th>
@@ -334,7 +334,7 @@ export function EntregasPage() {
                       { label: 'Editar entrega', icon: <Pencil size={16} />, onClick: () => abrirWizardEdicao(entrega) },
                       { label: 'Alterar status', icon: <Check size={16} />, onClick: () => abrirStatusModal(entrega) },
                       { label: 'Designar entregador', icon: <UserRoundCheck size={16} />, onClick: () => abrirDesignarModal(entrega) },
-                      { label: 'Ver historico', icon: <History size={16} />, onClick: () => setHistoricoEntrega(entrega) },
+                      { label: 'Ver histórico', icon: <History size={16} />, onClick: () => setHistoricoEntrega(entrega) },
                       { label: 'Cancelar entrega', icon: <Ban size={16} />, onClick: () => cancelarEntrega(entrega), danger: true },
                     ]} />
                   </td>
@@ -370,7 +370,7 @@ export function EntregasPage() {
                 </button>
               ) : (
                 <button className="darkButton" type="button" onClick={() => setWizardStep((step) => Math.min(4, step + 1))}>
-                  Proximo <ArrowRight size={16} />
+                  Próximo <ArrowRight size={16} />
                 </button>
               )}
             </div>
@@ -416,7 +416,7 @@ export function EntregasPage() {
             <div className="modalFormGrid" style={{ marginBottom: 0 }}>
               <label>
                 Endereco de origem
-                <input placeholder="Rua, numero" value={form.enderecoOrigem} onChange={(event) => setForm({ ...form, enderecoOrigem: event.target.value })} required />
+                <input placeholder="Rua, número" value={form.enderecoOrigem} onChange={(event) => setForm({ ...form, enderecoOrigem: event.target.value })} required />
               </label>
               <label>
                 Bairro
@@ -431,7 +431,7 @@ export function EntregasPage() {
             <div className="modalFormGrid">
               <label>
                 Endereco de destino
-                <input placeholder="Rua, numero" value={form.enderecoDestino} onChange={(event) => setForm({ ...form, enderecoDestino: event.target.value })} required />
+                <input placeholder="Rua, número" value={form.enderecoDestino} onChange={(event) => setForm({ ...form, enderecoDestino: event.target.value })} required />
               </label>
               <label>
                 Bairro
@@ -447,7 +447,7 @@ export function EntregasPage() {
             ) : null}
             <div className="modalFormGrid" style={{ marginBottom: 0 }}>
               <label>
-                Destinatario
+                Destinatário
                 <input placeholder="Nome de quem recebe" value={form.destinatarioNome} onChange={(event) => setForm({ ...form, destinatarioNome: event.target.value })} required />
               </label>
               <label>
@@ -462,11 +462,11 @@ export function EntregasPage() {
           <>
             <label style={{ marginBottom: 14, display: 'grid', gap: 7 }}>
               Mercadoria
-              <input placeholder="O que sera transportado" value={form.descricaoMercadoria} onChange={(event) => setForm({ ...form, descricaoMercadoria: event.target.value })} required />
+              <input placeholder="O que será transportado" value={form.descricaoMercadoria} onChange={(event) => setForm({ ...form, descricaoMercadoria: event.target.value })} required />
             </label>
             <label style={{ display: 'grid', gap: 7 }}>
-              Observacoes
-              <textarea rows={3} placeholder="Instrucoes para o entregador (opcional)" value={form.observacoes} onChange={(event) => setForm({ ...form, observacoes: event.target.value })} />
+              Observações
+              <textarea rows={3} placeholder="Instruções para o entregador (opcional)" value={form.observacoes} onChange={(event) => setForm({ ...form, observacoes: event.target.value })} />
             </label>
           </>
         ) : null}
@@ -597,7 +597,7 @@ export function EntregasPage() {
               </div>
             </div>
           ))}
-          {!historicoEntrega?.historico?.length ? <p style={{ color: '#8c9096' }}>Sem registros de historico.</p> : null}
+          {!historicoEntrega?.historico?.length ? <p style={{ color: '#8c9096' }}>Sem registros de histórico.</p> : null}
         </div>
       </Modal>
     </main>

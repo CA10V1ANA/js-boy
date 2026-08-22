@@ -10,7 +10,7 @@ public record ContatoPublicoRequest(
     @Size(max = 140) String empresa,
     @NotBlank @Email @Size(max = 180) String email,
     @NotBlank
-    @Pattern(regexp = "\\+?[0-9]{10,15}", message = "deve conter de 10 a 15 digitos")
+    @Pattern(regexp = "\\+?[0-9]{10,15}", message = "deve conter de 10 a 15 dígitos")
     String telefone,
     @NotBlank @Size(min = 10, max = 2000) String mensagem,
     @Size(max = 200) String website

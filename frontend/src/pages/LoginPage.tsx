@@ -40,7 +40,7 @@ export function LoginPage() {
       await login(formatEmailInput(data.email), data.senha);
       navigate(redirectTo, { replace: true });
     } catch {
-      setErro('E-mail ou senha invalidos.');
+      setErro('E-mail ou senha inválidos.');
     }
   }
 

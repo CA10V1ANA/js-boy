@@ -33,7 +33,7 @@ export function PagamentosPage() {
       ]);
       setItems(payments.data); setDeliveries(deliveryResponse.data); setReport(reportResponse.data);
     } catch (reason) {
-      setError(apiErrorMessage(reason, 'Nao foi possivel carregar os dados financeiros.'));
+      setError(apiErrorMessage(reason, 'Não foi possível carregar os dados financeiros.'));
     } finally {
       setLoading(false);
     }
@@ -69,7 +69,7 @@ export function PagamentosPage() {
       }, { headers: { 'Idempotency-Key': idempotencyKey('refund') } });
       setSuccess('Estorno registrado.'); setRefund(null); await load();
     } catch (reason) {
-      setError(apiErrorMessage(reason, 'Nao foi possivel registrar o estorno.'));
+      setError(apiErrorMessage(reason, 'Não foi possível registrar o estorno.'));
     } finally { setBusy(false); }
   }
 
@@ -82,11 +82,11 @@ export function PagamentosPage() {
       {success ? <FeedbackMessage tone="success">{success}</FeedbackMessage> : null}
       {error ? <FeedbackMessage tone="error">{error}</FeedbackMessage> : null}
       <section className="metricGrid cols-3">
-        <article className="metricCard"><span>Recebido liquido</span><strong>{money(report.valorRecebido)}</strong></article>
+        <article className="metricCard"><span>Recebido líquido</span><strong>{money(report.valorRecebido)}</strong></article>
         <article className="metricCard"><span>Pendente</span><strong>{money(report.valorPendente)}</strong></article>
         <article className="metricCard"><span>Recebimentos</span><strong>{report.pagamentosRegistrados}</strong></article>
       </section>
-      {items.length === 0 ? <EmptyState title="Nenhum lancamento financeiro" /> : (
+      {items.length === 0 ? <EmptyState title="Nenhum lançamento financeiro" /> : (
         <section className="responsiveList">
           {items.map((payment) => (
             <article className="userCard" key={payment.id}>
@@ -102,7 +102,7 @@ export function PagamentosPage() {
           <label>Entrega<select value={form.entregaId} onChange={(e) => setForm({ ...form, entregaId: e.target.value })} required><option value="">Selecione</option>{deliveries.map((delivery) => <option key={delivery.id} value={delivery.id}>{delivery.codigo} - {delivery.clienteNome}</option>)}</select></label>
           <div className="formGrid"><label>Valor<input type="number" min="0.01" step="0.01" placeholder="0,00" value={form.valor} onChange={(e) => setForm({ ...form, valor: e.target.value })} required /></label><label>Forma<select value={form.formaPagamento} onChange={(e) => setForm({ ...form, formaPagamento: e.target.value as FormaPagamento })}>{formas.map((forma) => <option key={forma}>{forma}</option>)}</select></label></div>
           <label>Comprovante<input value={form.comprovante} onChange={(e) => setForm({ ...form, comprovante: e.target.value })} /></label>
-          <label>Observacoes<textarea rows={3} value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} /></label>
+          <label>Observações<textarea rows={3} value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} /></label>
           <button className="primaryButton" type="submit" disabled={busy}>Revisar pagamento</button>
         </form>
       </Modal>

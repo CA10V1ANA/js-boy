@@ -1,5 +1,5 @@
 import {
-  BarChart3, Building2, CreditCard, FileClock, Home, LogOut, MapPinned, Menu, Package,
+  BarChart3, Bike, Building2, CreditCard, FileClock, Home, LogOut, MapPinned, Menu,
   Settings, ShieldCheck, Landmark, Sun, Truck, User, UserCog, Users, X,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -9,17 +9,17 @@ import { normalizePerfil } from '../routes/roleHome';
 import { PerfilAcesso } from '../types';
 
 const items: Array<{ to: string; label: string; icon: typeof Home; perfis: PerfilAcesso[] }> = [
-  { to: '/dashboard', label: 'Visao geral', icon: Home, perfis: ['PROPRIETARIO'] },
+  { to: '/dashboard', label: 'Visão geral', icon: Home, perfis: ['PROPRIETARIO'] },
   { to: '/entregas', label: 'Entregas', icon: Truck, perfis: ['PROPRIETARIO'] },
   { to: '/entregadores', label: 'Entregadores', icon: User, perfis: ['PROPRIETARIO'] },
   { to: '/clientes', label: 'Clientes', icon: Users, perfis: ['PROPRIETARIO'] },
   { to: '/pagamentos', label: 'Pagamentos', icon: CreditCard, perfis: ['PROPRIETARIO'] },
-  { to: '/relatorios', label: 'Relatorios', icon: BarChart3, perfis: ['PROPRIETARIO'] },
+  { to: '/relatorios', label: 'Relatórios', icon: BarChart3, perfis: ['PROPRIETARIO'] },
   { to: '/auditoria', label: 'Auditoria', icon: FileClock, perfis: ['PROPRIETARIO'] },
-  { to: '/usuarios', label: 'Usuarios', icon: UserCog, perfis: ['PROPRIETARIO'] },
-  { to: '/configuracoes/preco', label: 'Precos', icon: Settings, perfis: ['PROPRIETARIO'] },
+  { to: '/usuarios', label: 'Usuários', icon: UserCog, perfis: ['PROPRIETARIO'] },
+  { to: '/configuracoes/preco', label: 'Preços', icon: Settings, perfis: ['PROPRIETARIO'] },
   { to: '/configuracoes/empresa', label: 'Empresa', icon: Building2, perfis: ['PROPRIETARIO'] },
-  { to: '/financeiro', label: 'RazÃƒÂ£o financeira', icon: Landmark, perfis: ['PROPRIETARIO'] },
+  { to: '/financeiro', label: 'Razão financeira', icon: Landmark, perfis: ['PROPRIETARIO'] },
   { to: '/privacidade', label: 'Privacidade', icon: ShieldCheck, perfis: ['PROPRIETARIO'] },
   { to: '/minhas-entregas', label: 'Painel operacional', icon: MapPinned, perfis: ['ENTREGADOR', 'FUNCIONARIO'] },
   { to: '/portal', label: 'Portal do cliente', icon: User, perfis: ['CLIENTE'] },
@@ -34,7 +34,7 @@ function saudacao() {
   return hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
 }
 function profileLabel(perfil?: PerfilAcesso) {
-  if (perfil === 'PROPRIETARIO') return 'Proprietario';
+  if (perfil === 'PROPRIETARIO') return 'Proprietário';
   if (perfil === 'CLIENTE') return 'Cliente';
   return 'Entregador';
 }
@@ -51,7 +51,7 @@ export function AppLayout() {
   const isClientPortal = location.pathname.startsWith('/portal');
   const current = visibleItems.find((item) => location.pathname.startsWith(item.to));
   const title = isDashboard || isCourierPortal ? `${saudacao()}, ${(usuario?.nome || '').split(' ')[0]}.` : current?.label || 'JS BOY';
-  const subtitle = isDashboard ? 'Visao geral da operacao.' : isCourierPortal ? 'Rotas, clientes e comprovantes.' : isClientPortal ? 'Solicitacoes, acompanhamento e conta.' : 'Painel de entregas';
+  const subtitle = isDashboard ? 'Visão geral da operação.' : isCourierPortal ? 'Rotas, clientes e comprovantes.' : isClientPortal ? 'Solicitações, acompanhamento e conta.' : 'Painel de entregas';
 
   function handleLogout() {
     logout();
@@ -63,7 +63,7 @@ export function AppLayout() {
       {menuOpen ? <button className="sidebarBackdrop" type="button" aria-label="Fechar menu" onClick={() => setMenuOpen(false)} /> : null}
       <aside className={menuOpen ? 'sidebar open' : 'sidebar'}>
         <div className="brand">
-          <span className="brandMark"><Package size={20} /></span>
+          <span className="brandMark"><Bike size={20} strokeWidth={2.7} /></span>
           <span><strong>JS BOY</strong><small>DESPACHO</small></span>
           <button className="sidebarClose" type="button" aria-label="Fechar menu" onClick={() => setMenuOpen(false)}><X size={20} /></button>
         </div>

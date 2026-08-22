@@ -103,7 +103,7 @@ public class EntregadorService {
     public EntregadorResponse criarAcesso(UUID id, CriarAcessoEntregadorRequest request) {
         var entregador = buscarEntidade(id);
         if (!entregador.isAtivo()) {
-            throw new IllegalStateException("Entregador inativo nao pode receber acesso");
+            throw new IllegalStateException("Entregador inativo não pode receber acesso");
         }
         if (entregador.getUsuario() != null) {
             throw new IllegalArgumentException("Entregador ja possui acesso ao sistema");
@@ -145,6 +145,6 @@ public class EntregadorService {
 
     private com.ravtec.delivery.entity.Entregador buscarEntidade(UUID id) {
         return entregadorRepository.findById(id)
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Entregador nao encontrado"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Entregador não encontrado"));
     }
 }

@@ -48,7 +48,7 @@ export function EntregadoresPage() {
       });
       setEntregadores(response.data);
     } catch {
-      showToast('Nao foi possivel carregar entregadores.', 'error');
+      showToast('Não foi possível carregar os entregadores.', 'error');
     }
   }
 
@@ -104,13 +104,13 @@ export function EntregadoresPage() {
   }
 
   async function alterarStatus(entregador: Entregador) {
-    if (!window.confirm('Confirma a alteracao de status de ' + entregador.nome + '?')) return;
+    if (!window.confirm('Confirma a alteração de status de ' + entregador.nome + '?')) return;
     try {
       await api.patch(`/entregadores/${entregador.id}/status`, { ativo: !entregador.ativo }, { headers: { 'If-Match': String(entregador.versao) } });
       showToast(entregador.ativo ? 'Entregador desativado.' : 'Entregador ativado.', 'success');
       await carregarEntregadores();
     } catch {
-      showToast('Nao foi possivel alterar o status do entregador.', 'error');
+      showToast('Não foi possível alterar o status do entregador.', 'error');
     }
   }
 
@@ -127,7 +127,7 @@ export function EntregadoresPage() {
       setAccessModalOpen(false);
       await carregarEntregadores();
     } catch {
-      showToast('Nao foi possivel criar o acesso. Verifique se o e-mail ja existe.', 'error');
+      showToast('Não foi possível criar o acesso. Verifique se o e-mail já existe.', 'error');
     }
   }
 
@@ -202,7 +202,7 @@ export function EntregadoresPage() {
                     </td>
                     <td>{formatPhone(entregador.telefone)}</td>
                     <td style={{ fontSize: 13, color: 'var(--body-2)' }}>{sentenceCase(entregador.tipoVeiculo)}{entregador.placaVeiculo ? ` · ${entregador.placaVeiculo}` : ''}</td>
-                    <td><span className={entregador.disponivel ? 'statusBadge active dot' : 'statusBadge dot'}>{entregador.disponivel ? 'Disponivel' : 'Ocupado'}</span></td>
+                    <td><span className={entregador.disponivel ? 'statusBadge active dot' : 'statusBadge dot'}>{entregador.disponivel ? 'Disponível' : 'Ocupado'}</span></td>
                     <td><span className={entregador.ativo ? 'statusBadge active' : 'statusBadge danger'}>{entregador.ativo ? 'Ativo' : 'Inativo'}</span></td>
                     <td>
                       <TableActions actions={menuItems} />
@@ -233,9 +233,9 @@ export function EntregadoresPage() {
           </label>
           <label>
             Senha inicial
-            <input type="password" minLength={8} autoComplete="new-password" placeholder="Minimo de 8 caracteres" value={accessForm.senha} onChange={(event) => setAccessForm({ ...accessForm, senha: event.target.value })} required />
+            <input type="password" minLength={12} autoComplete="new-password" placeholder="Mínimo de 12 caracteres" value={accessForm.senha} onChange={(event) => setAccessForm({ ...accessForm, senha: event.target.value })} required />
           </label>
-          <p className="formHelp">A senha sera armazenada de forma protegida e nao podera ser visualizada depois.</p>
+          <p className="formHelp">A senha será armazenada de forma protegida e não poderá ser visualizada depois.</p>
           <button className="primaryButton" type="submit"><KeyRound size={17} /> Criar acesso</button>
         </form>
       </Modal>
@@ -278,7 +278,7 @@ export function EntregadoresPage() {
           </div>
           <label className="checkboxLine">
             <input type="checkbox" checked={form.disponivel} onChange={(event) => setForm({ ...form, disponivel: event.target.checked })} />
-            Disponivel para entregas
+            Disponível para entregas
           </label>
           <button className="primaryButton" disabled={carregando} type="submit">{editingId ? 'Salvar' : 'Cadastrar'}</button>
         </form>

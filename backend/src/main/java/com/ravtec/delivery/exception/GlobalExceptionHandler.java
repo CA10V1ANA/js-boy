@@ -23,21 +23,21 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     ResponseEntity<ApiErrorResponse> handleNotFound(RecursoNaoEncontradoException e, HttpServletRequest request) {
-        return build(HttpStatus.NOT_FOUND, "Recurso nao encontrado", e.getMessage(), request);
+        return build(HttpStatus.NOT_FOUND, "Recurso não encontrado", e.getMessage(), request);
     }
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ApiErrorResponse> handleValidation(MethodArgumentNotValidException e, HttpServletRequest request) {
         var mensagem = e.getBindingResult().getFieldErrors().stream()
             .map(error -> error.getField() + ": " + error.getDefaultMessage()).collect(Collectors.joining("; "));
-        return build(HttpStatus.BAD_REQUEST, "Dados invalidos", mensagem, request);
+        return build(HttpStatus.BAD_REQUEST, "Dados inválidos", mensagem, request);
     }
     @ExceptionHandler(IllegalArgumentException.class)
     ResponseEntity<ApiErrorResponse> handleIllegalArgument(IllegalArgumentException e, HttpServletRequest request) {
-        return build(HttpStatus.BAD_REQUEST, "Requisicao invalida", e.getMessage(), request);
+        return build(HttpStatus.BAD_REQUEST, "Requisição inválida", e.getMessage(), request);
     }
     @ExceptionHandler(IllegalStateException.class)
     ResponseEntity<ApiErrorResponse> handleIllegalState(IllegalStateException e, HttpServletRequest request) {
-        return build(HttpStatus.CONFLICT, "Estado invalido", e.getMessage(), request);
+        return build(HttpStatus.CONFLICT, "Estado inválido", e.getMessage(), request);
     }
     @ExceptionHandler({ConflitoException.class, ObjectOptimisticLockingFailureException.class})
     ResponseEntity<ApiErrorResponse> handleConflict(Exception e, HttpServletRequest request) {
@@ -48,11 +48,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     ResponseEntity<ApiErrorResponse> handleDataConflict(DataIntegrityViolationException e, HttpServletRequest request) {
         return build(HttpStatus.CONFLICT, "Conflito",
-            "A operacao conflita com dados existentes ou foi processada simultaneamente", request);
+            "A operação conflita com dados existentes ou foi processada simultaneamente", request);
     }
     @ExceptionHandler(LimiteRequisicoesException.class)
     ResponseEntity<ApiErrorResponse> handleRateLimit(LimiteRequisicoesException e, HttpServletRequest request) {
-        var body = new ApiErrorResponse(OffsetDateTime.now(), 429, "Limite de requisicoes",
+        var body = new ApiErrorResponse(OffsetDateTime.now(), 429, "Limite de requisições",
             e.getMessage(), request.getRequestURI());
         return ResponseEntity.status(429).header(HttpHeaders.RETRY_AFTER, "600").body(body);
     }
@@ -64,12 +64,12 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(AuthenticationException.class)
     ResponseEntity<ApiErrorResponse> handleAuthentication(AuthenticationException e, HttpServletRequest request) {
-        return build(HttpStatus.UNAUTHORIZED, "Credenciais invalidas", "E-mail ou senha invalidos", request);
+        return build(HttpStatus.UNAUTHORIZED, "Credenciais inválidas", "E-mail ou senha inválidos", request);
     }
     @ExceptionHandler(AccessDeniedException.class)
     ResponseEntity<ApiErrorResponse> handleAccessDenied(AccessDeniedException e, HttpServletRequest request) {
         return build(HttpStatus.FORBIDDEN, "Acesso negado",
-            "Voce nao tem permissao para acessar este recurso", request);
+            "Você não tem permissão para acessar este recurso", request);
     }
     @ExceptionHandler(Exception.class)
     ResponseEntity<ApiErrorResponse> handleGeneric(Exception e, HttpServletRequest request) {

@@ -65,7 +65,7 @@ public class AuthController {
     ) {
         recuperacaoSenhaService.solicitar(request.email(), httpRequest.getRemoteAddr());
         return ResponseEntity.accepted().body(Map.of(
-            "message", "Se a conta existir, as instrucoes serao enviadas"
+            "message", "Se a conta existir, as instruções serão enviadas"
         ));
     }
 

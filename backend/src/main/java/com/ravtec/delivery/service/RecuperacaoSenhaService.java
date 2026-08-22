@@ -61,7 +61,7 @@ public class RecuperacaoSenhaService {
         validarSenha(senha);
         var item = repository.findByTokenHash(tokens.hash(token))
             .filter(PasswordResetToken::ativo)
-            .orElseThrow(() -> new BadCredentialsException("Token invalido ou expirado"));
+            .orElseThrow(() -> new BadCredentialsException("Token inválido ou expirado"));
         item.setUsadoEm(OffsetDateTime.now());
         item.getUsuario().setSenhaHash(passwordEncoder.encode(senha));
         refreshTokens.revogarAtivosDoUsuario(item.getUsuario().getId(), OffsetDateTime.now());

@@ -89,4 +89,13 @@ export function parseBusinessConfig(env: BusinessEnv): BusinessConfig {
   };
 }
 
-export const businessConfig = parseBusinessConfig(import.meta.env);
+const defaultBusinessEnv: BusinessEnv = {
+  VITE_BUSINESS_PHONE: '+55 85 8807-1980',
+  VITE_BUSINESS_EMAIL: 'empresajsboy@gmail.com',
+  VITE_BUSINESS_INSTAGRAM: 'jsboy2021',
+};
+
+export const businessConfig = parseBusinessConfig({
+  ...defaultBusinessEnv,
+  ...import.meta.env,
+});

@@ -17,9 +17,8 @@ export function PagePlaceholder({ title, description, actionLabel }: PagePlaceho
 
       <section className="emptyState">
         <strong>Estrutura pronta para a proxima etapa</strong>
-        <span>Os formularios, tabelas e integracao com a API entram nas etapas seguintes do MVP.</span>
+        <span>Os formulários, tabelas e a integração com a API entram nas etapas seguintes do projeto.</span>
       </section>
     </main>
   );
 }
-

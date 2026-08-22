@@ -62,7 +62,7 @@ describe('LoginPage', () => {
     await user.click(form.getByRole('button', { name: 'Entrar' }));
 
     await waitFor(() => expect(login).toHaveBeenCalledWith('usuario@exemplo.com', 'senha-segura'));
-    expect(screen.queryByText('E-mail ou senha invalidos.')).not.toBeInTheDocument();
+    expect(screen.queryByText('E-mail ou senha inválidos.')).not.toBeInTheDocument();
   });
 
   it('mostra mensagem de erro quando o login falha', async () => {
@@ -75,7 +75,7 @@ describe('LoginPage', () => {
     await user.type(form.getByLabelText('Senha'), 'senha-incorreta');
     await user.click(form.getByRole('button', { name: 'Entrar' }));
 
-    expect(await screen.findByText('E-mail ou senha invalidos.')).toBeInTheDocument();
+    expect(await screen.findByText('E-mail ou senha inválidos.')).toBeInTheDocument();
   });
 
   it('nao preenche credenciais nem oferece cadastro publico', () => {

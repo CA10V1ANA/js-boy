@@ -18,7 +18,7 @@ export function UsuariosPage() {
   const load = useCallback(async () => {
     setLoading(true); setError('');
     try { setItems((await api.get<UsuarioSistema[]>('/usuarios')).data); }
-    catch (reason) { setError(apiErrorMessage(reason, 'Nao foi possivel carregar os usuarios.')); }
+    catch (reason) { setError(apiErrorMessage(reason, 'Não foi possível carregar os usuários.')); }
     finally { setLoading(false); }
   }, []);
   useEffect(() => { void load(); }, [load]);
@@ -29,14 +29,14 @@ export function UsuariosPage() {
     try {
       await api.patch(`/usuarios/${pending.id}/status`, { ativo: !pending.ativo });
       setSuccess(pending.ativo ? 'Usuario desativado.' : 'Usuario ativado.'); setPending(null); await load();
-    } catch (reason) { setError(apiErrorMessage(reason, 'Nao foi possivel alterar o usuario.')); }
+    } catch (reason) { setError(apiErrorMessage(reason, 'Não foi possível alterar o usuário.')); }
     finally { setBusy(false); }
   }
 
   return (
     <main className="page">
-      <div className="pageHeader"><div><h1>Usuarios</h1><p>Acessos vinculados aos perfis reais da operacao.</p></div></div>
-      <section className="infoBanner"><span className="infoBannerIcon"><KeyRound size={20} /></span><div><strong>Senhas permanecem protegidas</strong><p>Por seguranca, o sistema exibe apenas uma representacao mascarada. Nenhuma senha verdadeira pode ser consultada, nem pelo proprietario.</p></div></section>
+      <div className="pageHeader"><div><h1>Usuários</h1><p>Acessos vinculados aos perfis reais da operação.</p></div></div>
+      <section className="infoBanner"><span className="infoBannerIcon"><KeyRound size={20} /></span><div><strong>Senhas permanecem protegidas</strong><p>Por segurança, o sistema exibe apenas uma representação mascarada. Nenhuma senha verdadeira pode ser consultada, nem pelo proprietário.</p></div></section>
       {success ? <FeedbackMessage tone="success">{success}</FeedbackMessage> : null}
       {loading ? <LoadingState label="Carregando usuarios..." /> : null}
       {!loading && error ? <ErrorState message={error} onRetry={() => void load()} /> : null}
@@ -53,7 +53,7 @@ export function UsuariosPage() {
           </tr>)}
         </tbody></table></div></section>
       ) : null}
-      <ConfirmDialog open={pending !== null} title={`${pending?.ativo ? 'Desativar' : 'Ativar'} usuario?`} description="A mudanca afeta o proximo acesso desta conta." confirmLabel={pending?.ativo ? 'Desativar' : 'Ativar'} danger={pending?.ativo} busy={busy} onCancel={() => setPending(null)} onConfirm={() => void toggle()} />
+      <ConfirmDialog open={pending !== null} title={`${pending?.ativo ? 'Desativar' : 'Ativar'} usuário?`} description="A mudança afeta o próximo acesso desta conta." confirmLabel={pending?.ativo ? 'Desativar' : 'Ativar'} danger={pending?.ativo} busy={busy} onCancel={() => setPending(null)} onConfirm={() => void toggle()} />
     </main>
   );
 }

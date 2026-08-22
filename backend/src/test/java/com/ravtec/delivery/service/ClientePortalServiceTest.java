@@ -86,6 +86,6 @@ class ClientePortalServiceTest {
 
         assertThatThrownBy(() -> clientePortalService.minhaEntrega(entregaId))
             .isInstanceOf(RecursoNaoEncontradoException.class)
-            .hasMessage("Entrega nao encontrada");
+            .hasMessage("Entrega não encontrada");
     }
 }

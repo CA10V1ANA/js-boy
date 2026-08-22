@@ -65,7 +65,7 @@ public class PagamentoService {
     public PagamentoResponse registrar(String idempotencyKey, PagamentoRequest request) {
         var chave = validarChave(idempotencyKey);
         var entrega = entregaFinanceiraRepository.buscarParaAtualizacao(request.entregaId())
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega nao encontrada"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega não encontrada"));
         var valor = monetario(request.valor());
         validarValorPositivo(valor);
         validarData(request.pagoEm());
@@ -104,12 +104,12 @@ public class PagamentoService {
         var chave = validarChave(idempotencyKey);
         var originalSemLock = pagamentoRepository.findById(pagamentoId)
             .filter(item -> item.getTipo() == TipoLancamentoFinanceiro.RECEBIMENTO)
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Pagamento nao encontrado"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Pagamento não encontrado"));
         entregaFinanceiraRepository.buscarParaAtualizacao(originalSemLock.getEntrega().getId())
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega nao encontrada"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega não encontrada"));
         var original = pagamentoRepository.findById(pagamentoId)
             .filter(item -> item.getTipo() == TipoLancamentoFinanceiro.RECEBIMENTO)
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Pagamento nao encontrado"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Pagamento não encontrado"));
         var valor = monetario(request.valor());
         validarValorPositivo(valor);
         var hash = hashEstorno(original.getId(), request, valor);
@@ -155,7 +155,7 @@ public class PagamentoService {
     @Transactional(readOnly = true)
     public List<PagamentoResponse> listarPorEntrega(UUID entregaId) {
         if (!entregaRepository.existsById(entregaId)) {
-            throw new RecursoNaoEncontradoException("Entrega nao encontrada");
+            throw new RecursoNaoEncontradoException("Entrega não encontrada");
         }
         return pagamentoRepository.findByEntregaId(entregaId).stream().map(pagamentoMapper::toResponse).toList();
     }
@@ -201,7 +201,7 @@ public class PagamentoService {
 
     private void validarData(OffsetDateTime pagoEm) {
         if (pagoEm != null && pagoEm.isAfter(OffsetDateTime.now().plusMinutes(5))) {
-            throw new IllegalArgumentException("A data do pagamento nao pode estar no futuro");
+            throw new IllegalArgumentException("A data do pagamento não pode estar no futuro");
         }
     }
 

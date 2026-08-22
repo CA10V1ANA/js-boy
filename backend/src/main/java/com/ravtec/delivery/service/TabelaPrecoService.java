@@ -66,7 +66,7 @@ public class TabelaPrecoService {
         request.areas().forEach(item -> {
             var area = areasPorId.get(item.id());
             if (area == null) {
-                throw new RecursoNaoEncontradoException("Area de preco nao encontrada");
+                throw new RecursoNaoEncontradoException("Área de preço não encontrada");
             }
             versionamento.validar(item.versao(), area.getVersion());
             if (!area.isValorNegociado()) {
@@ -116,7 +116,7 @@ public class TabelaPrecoService {
         var tipo = validarTipo(tipoVeiculo);
         var minutos = tempoEsperaMinutos == null ? 0 : tempoEsperaMinutos;
         if (minutos < 0) {
-            throw new IllegalArgumentException("O tempo de espera nao pode ser negativo");
+            throw new IllegalArgumentException("O tempo de espera não pode ser negativo");
         }
         var blocosEspera = minutos / 30;
         var taxaEspera = config.getTaxaEsperaTrintaMinutos()
@@ -148,7 +148,7 @@ public class TabelaPrecoService {
 
         var base = tipo == TipoVeiculo.CARRO ? area.getValorCarro() : area.getValorMoto();
         if (base == null) {
-            throw new IllegalStateException("Valor nao configurado para " + area.getNome());
+            throw new IllegalStateException("Valor não configurado para " + area.getNome());
         }
         return resposta(
             bairro.get().getNome(), area.getCodigo(), area.getNome(), tipo, OrigemPreco.AREA,

@@ -46,14 +46,14 @@ public class DesafioComprovanteService {
         var destino = parada.getContatoTelefone() == null || parada.getContatoTelefone().isBlank()
             ? entrega.getDestinatarioTelefone() : parada.getContatoTelefone();
         if (destino == null || destino.isBlank()) {
-            throw new IllegalStateException("Destinatario sem telefone para confirmacao");
+            throw new IllegalStateException("Destinatário sem telefone para confirmação");
         }
         var agora = OffsetDateTime.now();
         var desafio = repository.findByEntregaIdParaAtualizacao(entregaId)
             .orElseGet(DesafioComprovanteEntrega::new);
         if (desafio.getId() != null && desafio.ativo(agora)
             && desafio.getUltimoEnvioEm().isAfter(agora.minusSeconds(segundosReenvio))) {
-            throw new LimiteRequisicoesException("Aguarde antes de solicitar outro codigo");
+            throw new LimiteRequisicoesException("Aguarde antes de solicitar outro código");
         }
         var codigo = String.format("%06d", random.nextInt(1_000_000));
         desafio.setEntrega(entrega);
@@ -78,10 +78,10 @@ public class DesafioComprovanteService {
         }
         var agora = OffsetDateTime.now();
         var desafio = repository.findByEntregaIdParaAtualizacao(entrega.getId())
-            .orElseThrow(() -> new BadCredentialsException("Codigo de confirmacao invalido ou expirado"));
+            .orElseThrow(() -> new BadCredentialsException("Código de confirmação inválido ou expirado"));
         if (!desafio.ativo(agora) || !desafio.getParada().getId().equals(parada.getId())
             || desafio.getTentativas() >= maxTentativas) {
-            throw new BadCredentialsException("Codigo de confirmacao invalido ou expirado");
+            throw new BadCredentialsException("Código de confirmação inválido ou expirado");
         }
         desafio.setTentativas(desafio.getTentativas() + 1);
         boolean valido = codigo != null && MessageDigest.isEqual(
@@ -92,7 +92,7 @@ public class DesafioComprovanteService {
             if (desafio.getTentativas() >= maxTentativas) {
                 desafio.setConsumidoEm(agora);
             }
-            throw new BadCredentialsException("Codigo de confirmacao invalido ou expirado");
+            throw new BadCredentialsException("Código de confirmação inválido ou expirado");
         }
         desafio.setConsumidoEm(agora);
         parada.setStatus(StatusParada.CONCLUIDA);
@@ -102,7 +102,7 @@ public class DesafioComprovanteService {
 
     private void exigirEmRota(Entrega entrega) {
         if (entrega.getStatus() != StatusEntrega.EM_ROTA) {
-            throw new IllegalStateException("Confirmacao de entrega permitida somente durante a rota");
+            throw new IllegalStateException("A confirmação de entrega é permitida somente durante a rota");
         }
     }
 

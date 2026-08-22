@@ -30,9 +30,9 @@ public class UsuarioService {
     @Transactional
     public UsuarioResponse alterarStatus(UUID id, StatusRequest request) {
         var usuario = usuarioRepository.findById(id)
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Usuario nao encontrado"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado"));
         if (usuario.getId().equals(identidadeAtual.principal().getId()) && !request.ativo()) {
-            throw new IllegalArgumentException("Voce nao pode desativar a propria conta");
+            throw new IllegalArgumentException("Você não pode desativar a própria conta");
         }
         var anterior = usuario.isAtivo();
         usuario.setAtivo(request.ativo());
