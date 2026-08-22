@@ -8,12 +8,15 @@ import {
   LockKeyhole,
   Mail,
   MapPin,
+  Menu,
   MessageCircle,
   PackageCheck,
   Phone,
   Route,
   UserRoundCheck,
+  X,
 } from 'lucide-react';
+import { useState } from 'react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
 import { ContactForm } from '../components/ContactForm';
 import { businessConfig, BusinessContact } from '../config/business';
@@ -105,17 +108,20 @@ export function Brand() {
 }
 
 export function PublicHeader() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <header className="siteHeader">
       <div className="siteContainer siteHeaderInner">
         <Brand />
-        <nav className="siteNav" aria-label="Navegação do site">
+        <nav className={menuOpen ? 'siteNav mobileOpen' : 'siteNav'} id="site-navigation" aria-label="Navegação do site">
           {navItems.map(([to, label]) => (
             <NavLink
               className={({ isActive }: { isActive: boolean }) => (isActive ? 'active' : '')}
               end={to === '/'}
               to={to}
               key={to}
+              onClick={() => setMenuOpen(false)}
             >
               {label}
             </NavLink>
@@ -125,6 +131,16 @@ export function PublicHeader() {
           <Link className="siteGhostButton" to="/contato">Solicitar contato</Link>
           <Link className="siteYellowButton small" to="/login">Entrar</Link>
         </div>
+        <button
+          className="siteMenuButton"
+          type="button"
+          aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'}
+          aria-controls="site-navigation"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          {menuOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
       </div>
     </header>
   );

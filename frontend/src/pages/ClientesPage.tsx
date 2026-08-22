@@ -139,7 +139,7 @@ export function ClientesPage() {
         <section className="adminList">
           <div className="tableWrap">
             <table className="responsiveTable">
-              <thead><tr><th>Cliente</th><th>Contato</th><th>Localidade</th><th>Status</th><th style={{ textAlign: 'right' }}>Acoes</th></tr></thead>
+              <thead><tr><th>Cliente</th><th>Contato</th><th>Localidade</th><th>Status</th><th style={{ textAlign: 'right' }}>Ações</th></tr></thead>
               <tbody>
                 {visible.map((client) => (
                   <tr key={client.id}>
@@ -147,7 +147,7 @@ export function ClientesPage() {
                     <td data-label="Contato"><strong className="cellPrimary">{formatPhone(client.telefone)}</strong><span className="cellSub">{client.email || 'E-mail não informado'}</span></td>
                     <td data-label="Localidade">{titleCase(client.cidade)} / {(client.estado || '--').toUpperCase()}</td>
                     <td data-label="Status"><span className={`statusBadge ${client.ativo ? 'active' : 'danger'}`}>{client.ativo ? 'Ativo' : 'Inativo'}</span></td>
-                    <td data-label="Acoes">
+                    <td data-label="Ações">
                       <TableActions actions={[
                         { label: 'Editar cliente', icon: <Pencil size={16} />, onClick: () => openEdit(client) },
                         ...(!client.possuiAcesso ? [{ label: 'Criar acesso', icon: <KeyRound size={16} />, onClick: () => setAccess({ client, email: formatEmailInput(client.email || ''), password: '' }) }] : []),

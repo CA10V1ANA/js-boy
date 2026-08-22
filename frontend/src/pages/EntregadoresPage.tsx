@@ -163,15 +163,15 @@ export function EntregadoresPage() {
 
       <div className="adminList" style={{ overflow: 'visible' }}>
         <div className="tableWrap">
-          <table>
+          <table className="responsiveTable">
             <thead>
               <tr>
                 <th>Entregador</th>
                 <th>Telefone</th>
-                <th>Veiculo</th>
+                <th>Veículo</th>
                 <th>Disponibilidade</th>
                 <th>Status</th>
-                <th style={{ textAlign: 'right' }}>Acoes</th>
+                <th style={{ textAlign: 'right' }}>Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -191,7 +191,7 @@ export function EntregadoresPage() {
 
                 return (
                   <tr key={entregador.id}>
-                    <td>
+                    <td data-label="Entregador">
                       <div className="nameCell">
                         <span className="avatarTile tone-yellow">{iniciais(entregador.nome)}</span>
                         <div>
@@ -200,17 +200,17 @@ export function EntregadoresPage() {
                         </div>
                       </div>
                     </td>
-                    <td>{formatPhone(entregador.telefone)}</td>
-                    <td style={{ fontSize: 13, color: 'var(--body-2)' }}>{sentenceCase(entregador.tipoVeiculo)}{entregador.placaVeiculo ? ` · ${entregador.placaVeiculo}` : ''}</td>
-                    <td><span className={entregador.disponivel ? 'statusBadge active dot' : 'statusBadge dot'}>{entregador.disponivel ? 'Disponível' : 'Ocupado'}</span></td>
-                    <td><span className={entregador.ativo ? 'statusBadge active' : 'statusBadge danger'}>{entregador.ativo ? 'Ativo' : 'Inativo'}</span></td>
-                    <td>
+                    <td data-label="Telefone">{formatPhone(entregador.telefone)}</td>
+                    <td data-label="Veículo" style={{ fontSize: 13, color: 'var(--body-2)' }}>{sentenceCase(entregador.tipoVeiculo)}{entregador.placaVeiculo ? ` · ${entregador.placaVeiculo}` : ''}</td>
+                    <td data-label="Disponibilidade"><span className={entregador.disponivel ? 'statusBadge active dot' : 'statusBadge dot'}>{entregador.disponivel ? 'Disponível' : 'Ocupado'}</span></td>
+                    <td data-label="Status"><span className={entregador.ativo ? 'statusBadge active' : 'statusBadge danger'}>{entregador.ativo ? 'Ativo' : 'Inativo'}</span></td>
+                    <td data-label="Ações">
                       <TableActions actions={menuItems} />
                     </td>
                   </tr>
                 );
               })}
-              {entregadores.length === 0 ? <tr><td colSpan={6}>Nenhum entregador encontrado.</td></tr> : null}
+              {entregadores.length === 0 ? <tr><td className="responsiveTableEmpty" colSpan={6}>Nenhum entregador encontrado.</td></tr> : null}
             </tbody>
           </table>
         </div>

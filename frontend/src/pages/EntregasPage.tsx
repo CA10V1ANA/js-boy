@@ -296,7 +296,7 @@ export function EntregasPage() {
 
       <div className="adminList" style={{ overflow: 'visible' }}>
         <div className="tableWrap">
-          <table>
+          <table className="responsiveTable">
             <thead>
               <tr>
                 <th>Entrega</th>
@@ -304,21 +304,21 @@ export function EntregasPage() {
                 <th>Status</th>
                 <th>Entregador</th>
                 <th style={{ textAlign: 'right' }}>Valor</th>
-                <th style={{ textAlign: 'right' }}>Acoes</th>
+                <th style={{ textAlign: 'right' }}>Ações</th>
               </tr>
             </thead>
             <tbody>
               {entregasFiltradas.map((entrega, index) => (
                 <tr key={entrega.id}>
-                  <td><strong className="publicRecordCode">{publicDeliveryCode(index)}</strong><span className="cellSub">Registro operacional</span></td>
-                  <td>
+                  <td data-label="Entrega"><strong className="publicRecordCode">{publicDeliveryCode(index)}</strong><span className="cellSub">Registro operacional</span></td>
+                  <td data-label="Destinatário">
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontWeight: 700, color: 'var(--ink)', fontSize: 13 }}>{titleCase(entrega.destinatarioNome)}</div>
                       <div style={{ color: 'var(--faint)', fontSize: 11.5 }}>{titleCase(entrega.clienteNome)} · {titleCase(entrega.bairroDestino)}</div>
                     </div>
                   </td>
-                  <td><span className={toneStatus(entrega.status)}>{labelStatus(entrega.status)}</span></td>
-                  <td>
+                  <td data-label="Status"><span className={toneStatus(entrega.status)}>{labelStatus(entrega.status)}</span></td>
+                  <td data-label="Entregador">
                     {entrega.entregadorNome ? (
                       <div className="nameCell" style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--body-2)' }}>
                         <span className="avatarTile tone-yellow" style={{ width: 26, height: 26, fontSize: 10 }}>{iniciais(entrega.entregadorNome)}</span>
@@ -328,8 +328,8 @@ export function EntregasPage() {
                       <span style={{ color: '#C6C1B4' }}>—</span>
                     )}
                   </td>
-                  <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--ink)' }}>{money(entrega.valorFinal)}</td>
-                  <td>
+                  <td data-label="Valor" style={{ fontWeight: 700, color: 'var(--ink)' }}>{money(entrega.valorFinal)}</td>
+                  <td data-label="Ações">
                     <TableActions actions={[
                       { label: 'Editar entrega', icon: <Pencil size={16} />, onClick: () => abrirWizardEdicao(entrega) },
                       { label: 'Alterar status', icon: <Check size={16} />, onClick: () => abrirStatusModal(entrega) },
@@ -340,7 +340,7 @@ export function EntregasPage() {
                   </td>
                 </tr>
               ))}
-              {entregasFiltradas.length === 0 ? <tr><td colSpan={6}>Nenhuma entrega encontrada.</td></tr> : null}
+              {entregasFiltradas.length === 0 ? <tr><td className="responsiveTableEmpty" colSpan={6}>Nenhuma entrega encontrada.</td></tr> : null}
             </tbody>
           </table>
         </div>

@@ -10,7 +10,7 @@ export type TableAction = {
 
 export function TableActions({ actions }: { actions: TableAction[] }) {
   return (
-    <div className="tableActions" aria-label="Acoes do registro">
+    <div className="tableActions" aria-label="Ações do registro">
       {actions.map((action) => (
         <button
           key={action.label}

@@ -246,6 +246,9 @@ td .cellSub { display: block; margin-top: 3px; color: var(--faint); font-size: 1
   .modalFooterActions > span { display: none; }
   .privacyFields,
   .financeSummary { grid-template-columns: 1fr; }
+  .privacyActionsList td:last-child { text-align: left; }
+  .privacyActionsList .secondaryButton,
+  .privacyActionsList .dangerButton { width: 100%; }
   .settingsSubmit .primaryButton { width: 100%; }
   .infoBanner { align-items: flex-start; }
 }

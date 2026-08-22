@@ -303,7 +303,7 @@ export function DashboardPage() {
                 <button className="smallButton" type="button" onClick={() => navigate('/entregas')}>Ver todas</button>
               </div>
               <div className="tableWrap">
-                <table style={{ minWidth: 640 }}>
+                <table className="responsiveTable">
                   <thead>
                     <tr>
                       <th style={{ paddingLeft: 20 }}>Entrega</th>
@@ -316,15 +316,15 @@ export function DashboardPage() {
                   <tbody>
                     {entregasEmAndamento.map((entrega, index) => (
                       <tr key={entrega.id}>
-                        <td style={{ paddingLeft: 20 }}><strong className="publicRecordCode">{publicDeliveryCode(index)}</strong></td>
-                        <td>
+                        <td data-label="Entrega"><strong className="publicRecordCode">{publicDeliveryCode(index)}</strong></td>
+                        <td data-label="Destinatário">
                           <div style={{ minWidth: 0 }}>
                             <div style={{ fontWeight: 700, color: 'var(--ink)', fontSize: 13 }}>{entrega.destinatarioNome}</div>
                             <div style={{ color: 'var(--faint)', fontSize: 11.5 }}>{entrega.bairroDestino}</div>
                           </div>
                         </td>
-                        <td><span className={toneStatus(entrega.status)}>{labelStatus(entrega.status)}</span></td>
-                        <td>
+                        <td data-label="Status"><span className={toneStatus(entrega.status)}>{labelStatus(entrega.status)}</span></td>
+                        <td data-label="Entregador">
                           {entrega.entregadorNome ? (
                             <div className="nameCell" style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--body-2)' }}>
                               <span className="avatarTile" style={{ width: 26, height: 26, fontSize: 10 }}>{iniciais(entrega.entregadorNome)}</span>
@@ -334,10 +334,10 @@ export function DashboardPage() {
                             <span style={{ color: '#C6C1B4' }}>—</span>
                           )}
                         </td>
-                        <td style={{ textAlign: 'right', paddingRight: 20, fontWeight: 700, color: 'var(--ink)' }}>{money(entrega.valorFinal)}</td>
+                        <td data-label="Valor" style={{ fontWeight: 700, color: 'var(--ink)' }}>{money(entrega.valorFinal)}</td>
                       </tr>
                     ))}
-                    {entregasEmAndamento.length === 0 ? <tr><td colSpan={5} style={{ paddingLeft: 20 }}>Nenhuma entrega em andamento.</td></tr> : null}
+                    {entregasEmAndamento.length === 0 ? <tr><td className="responsiveTableEmpty" colSpan={5}>Nenhuma entrega em andamento.</td></tr> : null}
                   </tbody>
                 </table>
               </div>

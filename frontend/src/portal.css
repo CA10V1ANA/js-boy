@@ -411,3 +411,17 @@
     overflow-x: auto;
   }
 }
+
+@media (max-width: 420px) {
+  .roleDeliveryMeta,
+  .clientDeliveryMeta {
+    grid-template-columns: 1fr;
+  }
+
+  .roleHero,
+  .roleDeliveryCard,
+  .clientDeliveryDetail {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+}
