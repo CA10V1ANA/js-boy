@@ -70,15 +70,15 @@ class _LoginPageState extends State<LoginPage> {
                   Row(
                     children: [
                       Container(
-                        width: 44,
+                        width: 60,
                         height: 44,
                         padding: const EdgeInsets.all(3),
                         decoration: BoxDecoration(
                           color: AppColors.amber,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(999),
                         ),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(9),
+                          borderRadius: BorderRadius.circular(999),
                           child: Image.asset(
                             'assets/branding/js-boy-logo-oficial.jpg',
                             fit: BoxFit.cover,
