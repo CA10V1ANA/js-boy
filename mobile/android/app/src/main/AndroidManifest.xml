@@ -6,7 +6,8 @@
         android:label="JS Boy Entregas"
         android:name="${applicationName}"
         android:usesCleartextTraffic="false"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@drawable/js_boy_logo_oficial"
+        android:roundIcon="@drawable/js_boy_logo_oficial">
         <activity
             android:name=".MainActivity"
             android:exported="true"

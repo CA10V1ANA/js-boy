@@ -6,7 +6,7 @@ import { apiErrorMessage } from '../services/apiError';
 import { ConfiguracaoEmpresa } from '../types';
 import { formatCep, formatEmailInput, formatPhone, onlyDigits } from '../utils/inputMasks';
 
-const empty: ConfiguracaoEmpresa = { id: '', nomeFantasia: 'JS Boy', telefone: '(85) 8807-1980', whatsapp: '', email: 'empresajsboy@gmail.com', cep: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', estado: '', horarioAtendimento: '', versao: 0 };
+const empty: ConfiguracaoEmpresa = { id: '', nomeFantasia: 'JS Boy', telefone: '(85) 98807-1980', whatsapp: '(85) 98807-1980', email: 'empresajsboy@gmail.com', cep: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', estado: '', horarioAtendimento: '', versao: 0 };
 const placeholders: Partial<Record<keyof ConfiguracaoEmpresa, string>> = { email: 'contato@exemplo.com', telefone: '(00) 00000-0000', whatsapp: '(00) 00000-0000', cep: '00000-000', estado: 'CE', horarioAtendimento: 'Seg. a sex., das 08:00 às 18:00' };
 const displayCompany = (data: ConfiguracaoEmpresa): ConfiguracaoEmpresa => ({ ...data, telefone: formatPhone(data.telefone), whatsapp: formatPhone(data.whatsapp), email: formatEmailInput(data.email), cep: formatCep(data.cep), estado: data.estado.toUpperCase().slice(0, 2) });
 function formatCompanyField(key: keyof ConfiguracaoEmpresa, value: string) {

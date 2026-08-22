@@ -72,12 +72,18 @@ class _LoginPageState extends State<LoginPage> {
                       Container(
                         width: 44,
                         height: 44,
+                        padding: const EdgeInsets.all(3),
                         decoration: BoxDecoration(
                           color: AppColors.amber,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(Icons.inventory_2_outlined,
-                            color: AppColors.amberInk),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(9),
+                          child: Image.asset(
+                            'assets/branding/js-boy-logo-oficial.jpg',
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Column(

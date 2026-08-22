@@ -90,7 +90,8 @@ export function parseBusinessConfig(env: BusinessEnv): BusinessConfig {
 }
 
 const defaultBusinessEnv: BusinessEnv = {
-  VITE_BUSINESS_PHONE: '+55 85 8807-1980',
+  VITE_BUSINESS_PHONE: '+55 85 98807-1980',
+  VITE_BUSINESS_WHATSAPP: '+55 85 98807-1980',
   VITE_BUSINESS_EMAIL: 'empresajsboy@gmail.com',
   VITE_BUSINESS_INSTAGRAM: 'jsboy2021',
 };
@@ -100,6 +101,8 @@ export const businessConfig = parseBusinessConfig({
   ...import.meta.env,
   VITE_BUSINESS_PHONE:
     import.meta.env.VITE_BUSINESS_PHONE?.trim() || defaultBusinessEnv.VITE_BUSINESS_PHONE,
+  VITE_BUSINESS_WHATSAPP:
+    import.meta.env.VITE_BUSINESS_WHATSAPP?.trim() || defaultBusinessEnv.VITE_BUSINESS_WHATSAPP,
   VITE_BUSINESS_EMAIL:
     import.meta.env.VITE_BUSINESS_EMAIL?.trim() || defaultBusinessEnv.VITE_BUSINESS_EMAIL,
   VITE_BUSINESS_INSTAGRAM:

@@ -1,5 +1,5 @@
 import {
-  BarChart3, Bike, Building2, CreditCard, FileClock, Home, LogOut, MapPinned, Menu,
+  BarChart3, Building2, CreditCard, FileClock, Home, LogOut, MapPinned, Menu,
   Settings, ShieldCheck, Landmark, Sun, Truck, User, UserCog, Users, X,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -63,7 +63,7 @@ export function AppLayout() {
       {menuOpen ? <button className="sidebarBackdrop" type="button" aria-label="Fechar menu" onClick={() => setMenuOpen(false)} /> : null}
       <aside className={menuOpen ? 'sidebar open' : 'sidebar'}>
         <div className="brand">
-          <span className="brandMark"><Bike size={20} strokeWidth={2.7} /></span>
+          <span className="brandMark"><img src="/assets/js-boy-logo-oficial.jpg" alt="" aria-hidden="true" /></span>
           <span><strong>JS BOY</strong><small>DESPACHO</small></span>
           <button className="sidebarClose" type="button" aria-label="Fechar menu" onClick={() => setMenuOpen(false)}><X size={20} /></button>
         </div>

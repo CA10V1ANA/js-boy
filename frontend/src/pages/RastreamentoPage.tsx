@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock3, PackageSearch } from 'lucide-react';
+import { CheckCircle2, Clock3 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ErrorState, LoadingState } from '../components/AsyncState';
@@ -38,7 +38,7 @@ export function RastreamentoPage() {
 
   return (
     <main className="trackingPage">
-      <Link className="trackingBrand" to="/"><PackageSearch aria-hidden="true" /> JS BOY</Link>
+      <Link className="trackingBrand" to="/"><img className="trackingBrandLogo" src="/assets/js-boy-logo-oficial.jpg" alt="" aria-hidden="true" /> JS BOY</Link>
       <section className="panelCard trackingCard">
         <span className="modalEyebrow">RASTREAMENTO SEGURO</span>
         <h1>{data.codigoPublico}</h1>

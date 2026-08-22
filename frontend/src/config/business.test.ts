@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { parseBusinessConfig } from './business';
+import { businessConfig, parseBusinessConfig } from './business';
 
 describe('parseBusinessConfig', () => {
+  it('mantém o WhatsApp oficial quando a variável de ambiente não foi preenchida', () => {
+    expect(businessConfig.phone?.value).toBe('+55 85 98807-1980');
+    expect(businessConfig.whatsapp?.href).toBe('https://wa.me/5585988071980');
+  });
+
   it('omite contatos ausentes ou invalidos sem inventar dados', () => {
     const config = parseBusinessConfig({
       VITE_BUSINESS_PHONE: 'telefone',

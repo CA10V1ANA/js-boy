@@ -18,6 +18,7 @@
 .deliveryDetail a { display: inline-flex; align-items: center; gap: .4rem; width: fit-content; }
 .trackingPage { width: min(720px, calc(100% - 2rem)); margin: 2rem auto; display: grid; gap: 1rem; }
 .trackingBrand { display: inline-flex; align-items: center; gap: .55rem; font-weight: 900; font-size: 1.15rem; width: fit-content; text-decoration: none; color: inherit; }
+.trackingBrandLogo { width: 34px; height: 34px; object-fit: cover; border: 3px solid #f5b400; border-radius: 9px; }
 .trackingCard h1 { margin: .25rem 0; }
 .trackingStatus { font-size: 1.2rem; }
 .trackingCard > p { display: flex; align-items: center; gap: .45rem; }

@@ -97,7 +97,7 @@ export function Brand() {
   return (
     <Link className="siteBrand" to="/" aria-label="JS Boy Início">
       <span className="siteBrandMark">
-        <Bike size={23} strokeWidth={3} />
+        <img src="/assets/js-boy-logo-oficial.jpg" alt="" aria-hidden="true" />
       </span>
       <span>
         <strong>JS BOY</strong>
@@ -178,7 +178,7 @@ export function SiteFooter() {
           ))}
         </div>
       </div>
-      <div className="siteCopyright">© {new Date().getFullYear()} JS Boy. <Bike size={13} /></div>
+      <div className="siteCopyright">© {new Date().getFullYear()} JS Boy. <img src="/assets/js-boy-logo-oficial.jpg" alt="" aria-hidden="true" /></div>
     </footer>
   );
 }
@@ -215,10 +215,16 @@ export function LandingPage() {
               ) : null}
             </div>
           </div>
-          <div className="siteHeroVisual" aria-hidden="true">
-            <div className="siteBikeBadge">
-              <Bike size={180} strokeWidth={2.8} />
-            </div>
+          <div className="siteHeroVisual">
+            {whatsapp ? (
+              <a className="siteBikeBadge officialLogoLink" href={whatsapp.href} target="_blank" rel="noreferrer" aria-label="Conversar com a JS Boy pelo WhatsApp">
+                <img src="/assets/js-boy-logo-oficial.jpg" alt="Logo oficial da JS Boy Entregas" />
+              </a>
+            ) : (
+              <div className="siteBikeBadge">
+                <img src="/assets/js-boy-logo-oficial.jpg" alt="Logo oficial da JS Boy Entregas" />
+              </div>
+            )}
           </div>
         </div>
       </section>
