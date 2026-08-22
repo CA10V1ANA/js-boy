@@ -98,4 +98,10 @@ const defaultBusinessEnv: BusinessEnv = {
 export const businessConfig = parseBusinessConfig({
   ...defaultBusinessEnv,
   ...import.meta.env,
+  VITE_BUSINESS_PHONE:
+    import.meta.env.VITE_BUSINESS_PHONE?.trim() || defaultBusinessEnv.VITE_BUSINESS_PHONE,
+  VITE_BUSINESS_EMAIL:
+    import.meta.env.VITE_BUSINESS_EMAIL?.trim() || defaultBusinessEnv.VITE_BUSINESS_EMAIL,
+  VITE_BUSINESS_INSTAGRAM:
+    import.meta.env.VITE_BUSINESS_INSTAGRAM?.trim() || defaultBusinessEnv.VITE_BUSINESS_INSTAGRAM,
 });
