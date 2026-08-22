@@ -5,7 +5,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 # npm can omit platform-specific optional packages when the lockfile was created
 # on another operating system. Install the required Alpine binding explicitly.
-RUN --mount=type=cache,target=/root/.npm \
+RUN --mount=type=cache,id=jsboy-frontend-npm,target=/root/.npm \
     npm ci --include=optional --no-audit --no-fund \
     && npm install --no-save --package-lock=false --no-audit --no-fund \
         @rolldown/binding-linux-x64-musl@1.1.5
