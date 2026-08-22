@@ -44,13 +44,14 @@ projetado e testado.
 |---|---|---|---|---|
 | `local` | configurável, habilitado por padrão | configurável; Compose o desabilita | origens locais explícitas | não exigido |
 | `test` | desabilitado | desabilitado | origem de teste | não exigido |
+| `staging` | desabilitado | desabilitado | variável obrigatória, sem wildcard | exigido |
 | `prod` | desabilitado | desabilitado | variável obrigatória, sem wildcard | exigido |
 
-O profile `prod` processa cabeçalhos encaminhados porque deve operar atrás de um
-reverse proxy controlado. O proxy encerra TLS, remove cabeçalhos encaminhados
-recebidos do público e define `X-Forwarded-Proto=https`. A porta do backend não
-deve ficar exposta diretamente à internet. Profiles local e test ignoram esses
-cabeçalhos.
+Os profiles `staging` e `prod` processam cabeçalhos encaminhados porque operam
+atrás de um reverse proxy controlado. O proxy encerra TLS, remove cabeçalhos
+encaminhados recebidos do público e define `X-Forwarded-Proto=https`. A porta do
+backend não deve ficar exposta diretamente à internet. Profiles local e test
+ignoram esses cabeçalhos.
 
 ## CORS
 
@@ -67,9 +68,11 @@ navegadores.
 
 ## Credenciais de desenvolvimento
 
-O seed existe somente no profile `local` e exige `SEED_OWNER_EMAIL` e
-`SEED_OWNER_PASSWORD`. Não há e-mail ou senha preenchidos no repositório. O
-profile `prod` não carrega o inicializador local.
+O bootstrap do proprietário existe nos profiles `local` e `staging`, exige
+ativação explícita em staging e senha inicial com pelo menos 12 caracteres. Em
+staging ele recusa bancos que já possuam outros usuários, é idempotente para o
+mesmo proprietário e deve ser desabilitado logo após o primeiro login. O profile
+`prod` nunca carrega esse inicializador.
 
 O arquivo `.env.example` contém apenas nomes de variáveis e valores públicos
 locais. O `.env` preenchido é ignorado pelo Git. Segredos de produção devem vir

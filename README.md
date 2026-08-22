@@ -301,6 +301,7 @@ O workflow de integração contínua executa essas validações em pushes e pull
 
 - [Execução local](docs/execucao-local.md)
 - [Matriz de permissões](docs/matriz-permissoes.md)
+- [Deploy de homologação no Railway](docs/deploy-railway-staging.md)
 - [Deploy de produção](docs/deploy-producao.md)
 - [Homologação e release mobile](docs/homologacao-release-mobile.md)
 - [Backup e restauração](docs/backup-restauracao.md)

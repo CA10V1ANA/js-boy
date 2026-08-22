@@ -63,7 +63,7 @@ describe('ClientesPage', () => {
     await user.type(screen.getByLabelText('Nome'), 'Joao Silva');
     await user.type(screen.getByLabelText('Telefone'), '11999990000');
     await user.click(screen.getByRole('button', { name: 'Proximo' }));
-    await user.type(screen.getByLabelText('Endereco'), 'Rua A, 100');
+    await user.type(screen.getByRole('textbox', { name: 'Endereco' }), 'Rua A, 100');
     await user.type(screen.getByLabelText('Bairro'), 'Centro');
     await user.type(screen.getByLabelText('Cidade'), 'Sao Paulo');
     await user.click(screen.getByRole('button', { name: 'Proximo' }));

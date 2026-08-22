@@ -12,16 +12,18 @@ FROM eclipse-temurin:21-jre-alpine
 ARG APP_UID=10001
 ARG APP_GID=10001
 
-RUN addgroup -S -g "${APP_GID}" jsboy \
+RUN apk add --no-cache su-exec \
+    && addgroup -S -g "${APP_GID}" jsboy \
     && adduser -S -D -H -u "${APP_UID}" -G jsboy jsboy \
     && mkdir -p /var/lib/jsboy/proofs \
     && chown -R jsboy:jsboy /var/lib/jsboy
 
 WORKDIR /app
 COPY --from=build --chown=jsboy:jsboy /workspace/target/js-boy-api-*.jar app.jar
+COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 USER jsboy
 EXPOSE 8080
 HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=5 \
-    CMD wget --quiet --tries=1 --spider http://localhost:8080/api/health || exit 1
-ENTRYPOINT ["java", "-jar", "app.jar"]
+    CMD wget --quiet --tries=1 --header="X-Forwarded-Proto: https" --spider http://localhost:8080/api/health || exit 1
+ENTRYPOINT ["docker-entrypoint.sh"]

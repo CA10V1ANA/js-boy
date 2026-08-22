@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@Profile({"local", "test"})
+@Profile({"local", "test", "staging"})
 @ConditionalOnProperty(
     name = "app.proof.otp.provider",
     havingValue = "local",

@@ -7,6 +7,7 @@
 
 ## Produção e continuidade
 
+- [Deploy de homologação no Railway](deploy-railway-staging.md)
 - [Deploy de produção](deploy-producao.md)
 - [Backup e restauração](backup-restauracao.md)
 - [Monitoramento e alertas](monitoramento-alertas.md)

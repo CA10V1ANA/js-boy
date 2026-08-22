@@ -22,6 +22,9 @@ springdoc:
     enabled: ${SWAGGER_ENABLED:true}
 
 app:
+  bootstrap:
+    owner:
+      enabled: ${APP_BOOTSTRAP_OWNER_ENABLED:true}
   security:
     jwt-secret: ${JWT_SECRET}
     jwt-expiration-minutes: ${JWT_EXPIRATION_MINUTES:15}
