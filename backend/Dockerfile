@@ -2,11 +2,9 @@
 FROM maven:3.9.9-eclipse-temurin-21-alpine AS build
 WORKDIR /workspace
 COPY pom.xml ./
-RUN --mount=type=cache,id=jsboy-backend-maven,target=/root/.m2 \
-    mvn -B -ntp -DskipTests dependency:go-offline
+RUN mvn -B -ntp -DskipTests dependency:go-offline
 COPY src ./src
-RUN --mount=type=cache,id=jsboy-backend-maven,target=/root/.m2 \
-    mvn -B -ntp -DskipTests package
+RUN mvn -B -ntp -DskipTests package
 
 FROM eclipse-temurin:21-jre-alpine
 ARG APP_UID=10001
