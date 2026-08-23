@@ -20,6 +20,7 @@ class _ClientePortalPageState extends State<ClientePortalPage> {
   Cliente? _cliente;
   List<Entrega> _entregas = [];
   List<Pagamento> _pagamentos = [];
+  ConfiguracaoEmpresa? _contato;
   bool _carregando = true;
   String? _erro;
 
@@ -40,6 +41,7 @@ class _ClientePortalPageState extends State<ClientePortalPage> {
         context.read<ClienteService>().meuCadastro(),
         context.read<EntregaService>().entregasDoCliente(),
         context.read<PagamentoService>().pagamentosDoCliente(),
+        context.read<ClienteService>().contato(),
       ]);
 
       if (!mounted) return;
@@ -47,6 +49,7 @@ class _ClientePortalPageState extends State<ClientePortalPage> {
         _cliente = resultados[0] as Cliente;
         _entregas = resultados[1] as List<Entrega>;
         _pagamentos = resultados[2] as List<Pagamento>;
+        _contato = resultados[3] as ConfiguracaoEmpresa;
         _carregando = false;
       });
     } on ApiException catch (error) {
@@ -58,6 +61,176 @@ class _ClientePortalPageState extends State<ClientePortalPage> {
     }
   }
 
+  Future<void> _solicitar() async {
+    final campos = <String, TextEditingController>{
+      for (final key in [
+        'enderecoOrigem',
+        'bairroOrigem',
+        'enderecoDestino',
+        'bairroDestino',
+        'destinatarioNome',
+        'destinatarioTelefone',
+        'descricaoMercadoria',
+        'observacoes',
+        'distanciaKm'
+      ])
+        key: TextEditingController(),
+    };
+    campos['distanciaKm']!.text = '0';
+    final formKey = GlobalKey<FormState>();
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Solicitar entrega'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(children: [
+                _campoSolicitacao(
+                    campos['enderecoOrigem']!, 'Endereço de origem'),
+                _campoSolicitacao(campos['bairroOrigem']!, 'Bairro de origem'),
+                _campoSolicitacao(
+                    campos['enderecoDestino']!, 'Endereço de destino'),
+                _campoSolicitacao(
+                    campos['bairroDestino']!, 'Bairro de destino'),
+                _campoSolicitacao(campos['destinatarioNome']!, 'Destinatário'),
+                _campoSolicitacao(
+                    campos['destinatarioTelefone']!, 'Telefone do destinatário',
+                    teclado: TextInputType.phone),
+                _campoSolicitacao(campos['descricaoMercadoria']!, 'Mercadoria'),
+                _campoSolicitacao(
+                    campos['distanciaKm']!, 'Distância estimada (km)',
+                    teclado:
+                        const TextInputType.numberWithOptions(decimal: true)),
+                TextFormField(
+                    controller: campos['observacoes'],
+                    decoration: const InputDecoration(labelText: 'Observações'),
+                    maxLines: 2),
+              ]),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancelar')),
+          FilledButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(dialogContext, true);
+              }
+            },
+            child: const Text('Enviar solicitação'),
+          ),
+        ],
+      ),
+    );
+    if (confirmar == true && mounted) {
+      try {
+        await context.read<EntregaService>().solicitarComoCliente({
+          for (final item in campos.entries)
+            item.key: item.key == 'distanciaKm'
+                ? double.parse(item.value.text.replaceAll(',', '.'))
+                : item.value.text.trim(),
+        });
+        if (mounted) {
+          mostrarMensagem(
+              context, 'Solicitação recebida. A JS Boy fará a análise.');
+          await _carregar();
+        }
+      } on ApiException catch (error) {
+        if (mounted) mostrarMensagem(context, error.message, erro: true);
+      }
+    }
+    for (final controller in campos.values) {
+      controller.dispose();
+    }
+  }
+
+  Widget _campoSolicitacao(TextEditingController controller, String label,
+      {TextInputType? teclado}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: teclado,
+        decoration: InputDecoration(labelText: label),
+        validator: (value) {
+          if (value == null || value.trim().isEmpty) return 'Campo obrigatório';
+          if (label.startsWith('Distância')) {
+            final numero = double.tryParse(value.replaceAll(',', '.'));
+            if (numero == null || numero < 0) return 'Distância inválida';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+  Future<void> _abrirDetalhes(Entrega entrega) async {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+          child: CircularProgressIndicator(color: AppColors.amber)),
+    );
+    try {
+      final detalhes =
+          await context.read<EntregaService>().detalhesCliente(entrega.id);
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop();
+      final paradas = detalhes['paradas']!;
+      final comprovantes = detalhes['comprovantes']!;
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) => SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            padding: const EdgeInsets.all(20),
+            children: [
+              Text('Entrega ${entrega.codigo}',
+                  style: AppTheme.display(size: 20)),
+              const SizedBox(height: 16),
+              const SectionTitle('Paradas'),
+              const SizedBox(height: 8),
+              if (paradas.isEmpty)
+                const Text('Nenhuma parada registrada.')
+              else
+                ...paradas.map((parada) => ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.place_outlined),
+                      title: Text(parada['endereco'] as String? ?? ''),
+                      subtitle: Text(
+                          '${parada['tipo'] ?? ''} · ${parada['status'] ?? ''}'),
+                    )),
+              const SizedBox(height: 12),
+              const SectionTitle('Comprovantes'),
+              const SizedBox(height: 8),
+              if (comprovantes.isEmpty)
+                const Text('Nenhum comprovante registrado.')
+              else
+                ...comprovantes.map((comprovante) => ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.verified_outlined),
+                      title:
+                          Text(comprovante['tipo'] as String? ?? 'Comprovante'),
+                      subtitle: Text(comprovante['recebedorNome'] as String? ??
+                          'Registro operacional protegido'),
+                    )),
+            ],
+          ),
+        ),
+      );
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop();
+      mostrarMensagem(context, error.message, erro: true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,6 +239,11 @@ class _ClientePortalPageState extends State<ClientePortalPage> {
         color: AppColors.amber,
         onRefresh: _carregar,
         child: _conteudo(),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _solicitar,
+        icon: const Icon(Icons.add),
+        label: const Text('Solicitar entrega'),
       ),
     );
   }
@@ -180,6 +358,13 @@ class _ClientePortalPageState extends State<ClientePortalPage> {
                     style: GoogleFonts.hankenGrotesk(
                         fontSize: 12, color: AppColors.faint),
                   ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                        onPressed: () => _abrirDetalhes(entrega),
+                        icon: const Icon(Icons.visibility_outlined),
+                        label: const Text('Ver detalhes')),
+                  ),
                 ],
               ),
             ),
@@ -224,6 +409,22 @@ class _ClientePortalPageState extends State<ClientePortalPage> {
               ],
             ),
           ),
+        if (_contato != null) ...[
+          const SizedBox(height: 24),
+          const SectionTitle('Fale com a JS Boy'),
+          const SizedBox(height: 12),
+          PanelCard(
+              child: Column(children: [
+            _linha('Empresa', _contato!.nomeFantasia),
+            if (_contato!.telefone.isNotEmpty)
+              _linha('Telefone', _contato!.telefone),
+            if (_contato!.whatsapp.isNotEmpty)
+              _linha('WhatsApp', _contato!.whatsapp),
+            if (_contato!.email.isNotEmpty) _linha('E-mail', _contato!.email),
+            if (_contato!.horarioAtendimento.isNotEmpty)
+              _linha('Horário', _contato!.horarioAtendimento),
+          ])),
+        ],
       ],
     );
   }

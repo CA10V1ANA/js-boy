@@ -60,6 +60,74 @@ class _PagamentosPageState extends State<PagamentosPage> {
     }
   }
 
+  Future<void> _estornar(Pagamento pagamento) async {
+    final valor =
+        TextEditingController(text: pagamento.valor.toStringAsFixed(2));
+    final motivo = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Registrar estorno'),
+        content: Form(
+          key: formKey,
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            TextFormField(
+              controller: valor,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(labelText: 'Valor'),
+              validator: (text) {
+                final numero =
+                    double.tryParse((text ?? '').replaceAll(',', '.'));
+                if (numero == null || numero <= 0 || numero > pagamento.valor) {
+                  return 'Informe um valor válido';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: motivo,
+              maxLength: 500,
+              decoration: const InputDecoration(labelText: 'Motivo'),
+              validator: (text) => text == null || text.trim().isEmpty
+                  ? 'Informe o motivo'
+                  : null,
+            ),
+          ]),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancelar')),
+          FilledButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(dialogContext, true);
+              }
+            },
+            child: const Text('Confirmar estorno'),
+          ),
+        ],
+      ),
+    );
+    if (confirmar == true && mounted) {
+      try {
+        await context.read<PagamentoService>().estornar(pagamento.id,
+            double.parse(valor.text.replaceAll(',', '.')), motivo.text.trim());
+        if (mounted) {
+          mostrarMensagem(context, 'Estorno registrado.');
+          await _carregar();
+        }
+      } on ApiException catch (error) {
+        if (mounted) mostrarMensagem(context, error.message, erro: true);
+      }
+    }
+    valor.dispose();
+    motivo.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -211,8 +279,19 @@ class _PagamentosPageState extends State<PagamentosPage> {
                                 style: GoogleFonts.hankenGrotesk(
                                     fontSize: 11.5, color: AppColors.faint),
                               ),
-                              trailing: Text(money(_pagamentos[i].valor),
-                                  style: AppTheme.display(size: 14)),
+                              trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(money(_pagamentos[i].valor),
+                                        style: AppTheme.display(size: 14)),
+                                    if (_pagamentos[i].tipo == 'RECEBIMENTO')
+                                      IconButton(
+                                        icon: const Icon(Icons.undo_outlined),
+                                        tooltip: 'Estornar',
+                                        onPressed: () =>
+                                            _estornar(_pagamentos[i]),
+                                      ),
+                                  ]),
                             ),
                           ],
                         ],

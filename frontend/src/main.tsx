@@ -17,6 +17,7 @@ import { ClientesPage } from './pages/ClientesPage';
 import { EntregadoresPage } from './pages/EntregadoresPage';
 import { EntregasPage } from './pages/EntregasPage';
 import { MinhasEntregasPage } from './pages/MinhasEntregasPage';
+import { MeuFaturamentoPage } from './pages/MeuFaturamentoPage';
 import { ConfiguracaoPrecoPage } from './pages/ConfiguracaoPrecoPage';
 import { PagamentosPage } from './pages/PagamentosPage';
 import { RelatoriosPage } from './pages/RelatoriosPage';
@@ -73,7 +74,10 @@ const router = createBrowserRouter([
         },
         {
           element: <RoleRoute perfis={['ENTREGADOR', 'FUNCIONARIO']} />,
-          children: [{ path: '/minhas-entregas', element: <MinhasEntregasPage /> }],
+          children: [
+            { path: '/minhas-entregas', element: <MinhasEntregasPage /> },
+            { path: '/meu-faturamento', element: <MeuFaturamentoPage /> },
+          ],
         },
         {
           element: <RoleRoute perfis={['CLIENTE']} />,

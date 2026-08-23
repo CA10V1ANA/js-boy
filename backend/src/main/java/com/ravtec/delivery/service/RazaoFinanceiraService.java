@@ -90,29 +90,80 @@ public class RazaoFinanceiraService {
     public RelatorioRazaoResponse relatorio(LocalDate inicio, LocalDate fim) {
         validarPeriodo(inicio, fim);
         ZoneId zone = ZoneId.of(zona);
-        var entregasPeriodo = entregas.findAll().stream().filter(e -> {
-            var data = e.getCriadoEm().atZoneSameInstant(zone).toLocalDate();
-            return !data.isBefore(inicio) && !data.isAfter(fim) && e.getStatus() != StatusEntrega.CANCELADA;
-        }).toList();
-        var pagamentosPeriodo = pagamentos.findAll().stream().filter(p -> {
-            var data = p.getPagoEm().atZoneSameInstant(zone).toLocalDate();
-            return !data.isBefore(inicio) && !data.isAfter(fim);
-        }).toList();
+        var inicioInstante = inicio.atStartOfDay(zone).toOffsetDateTime();
+        var fimExclusivo = fim.plusDays(1).atStartOfDay(zone).toOffsetDateTime();
+        var entregasPeriodo =
+            entregas.findByStatusAndConcluidaEmGreaterThanEqualAndConcluidaEmLessThanOrderByConcluidaEmAsc(
+                StatusEntrega.ENTREGUE, inicioInstante, fimExclusivo
+            );
+        var pagamentosPeriodo =
+            pagamentos.findByPagoEmGreaterThanEqualAndPagoEmLessThanOrderByPagoEmAsc(inicioInstante, fimExclusivo);
         var lancamentos = razao.findByCompetenciaBetweenOrderByOcorridoEm(inicio, fim);
         BigDecimal faturado = soma(entregasPeriodo.stream().map(Entrega::getValorFinal).toList());
-        BigDecimal recebido = soma(pagamentosPeriodo.stream().filter(p -> p.getTipo() == TipoLancamentoFinanceiro.RECEBIMENTO).map(Pagamento::getValor).toList());
-        BigDecimal estornado = soma(pagamentosPeriodo.stream().filter(p -> p.getTipo() == TipoLancamentoFinanceiro.ESTORNO).map(Pagamento::getValor).toList());
+        BigDecimal recebido = soma(pagamentosPeriodo.stream()
+            .filter(p -> p.getTipo() == TipoLancamentoFinanceiro.RECEBIMENTO)
+            .map(Pagamento::getValor).toList());
+        BigDecimal estornado = soma(pagamentosPeriodo.stream()
+            .filter(p -> p.getTipo() == TipoLancamentoFinanceiro.ESTORNO)
+            .map(Pagamento::getValor).toList());
         BigDecimal despesas = somaTipo(lancamentos, TipoLancamentoRazao.DESPESA, TipoLancamentoRazao.AJUSTE_DEBITO);
         BigDecimal taxas = somaTipo(lancamentos, TipoLancamentoRazao.TAXA);
         BigDecimal repasses = somaTipo(lancamentos, TipoLancamentoRazao.REPASSE_ENTREGADOR);
         BigDecimal creditos = somaTipo(lancamentos, TipoLancamentoRazao.AJUSTE_CREDITO);
         BigDecimal liquidoRecebido = recebido.subtract(estornado);
+        var entregaIds = entregasPeriodo.stream().map(Entrega::getId).toList();
+        BigDecimal recebidoDoFaturamento = entregaIds.isEmpty()
+            ? BigDecimal.ZERO : pagamentos.somarSaldoPorEntregas(entregaIds);
+        BigDecimal resultadoCompetencia =
+            faturado.add(creditos).subtract(despesas).subtract(taxas).subtract(repasses);
+        BigDecimal resultadoCaixa =
+            liquidoRecebido.add(creditos).subtract(despesas).subtract(taxas).subtract(repasses);
+        var entregasPorCliente = entregasPeriodo.stream()
+            .collect(Collectors.groupingBy(
+                e -> e.getCliente().getNome(), LinkedHashMap::new, Collectors.counting()
+            ));
+        var entregasPorEntregador = entregasPeriodo.stream().filter(e -> e.getEntregador() != null)
+            .collect(Collectors.groupingBy(
+                e -> e.getEntregador().getNome(), LinkedHashMap::new, Collectors.counting()
+            ));
         return new RelatorioRazaoResponse(inicio, fim, faturado, recebido,
-            faturado.subtract(liquidoRecebido).max(BigDecimal.ZERO), estornado, despesas, taxas, repasses,
-            liquidoRecebido.add(creditos).subtract(despesas).subtract(taxas).subtract(repasses),
-            entregasPeriodo.stream().collect(Collectors.groupingBy(e -> e.getCliente().getNome(), Collectors.counting())),
-            entregasPeriodo.stream().filter(e -> e.getEntregador() != null)
-                .collect(Collectors.groupingBy(e -> e.getEntregador().getNome(), Collectors.counting())));
+            faturado.subtract(recebidoDoFaturamento).max(BigDecimal.ZERO),
+            estornado, despesas, taxas, repasses, resultadoCaixa,
+            entregasPorCliente, entregasPorEntregador, entregasPeriodo.size(),
+            recebidoDoFaturamento, resultadoCompetencia, resultadoCaixa,
+            agrupar(entregasPeriodo, true), agrupar(entregasPeriodo, false));
+    }
+
+    @Transactional(readOnly = true)
+    public ExtratoMensalEntregadorResponse extratoEntregador(LocalDate inicio, LocalDate fim) {
+        validarPeriodo(inicio, fim);
+        ZoneId zone = ZoneId.of(zona);
+        var items = entregas
+            .findByEntregadorUsuarioIdAndStatusAndConcluidaEmGreaterThanEqualAndConcluidaEmLessThanOrderByConcluidaEmAsc(
+                identidade.principal().getId(), StatusEntrega.ENTREGUE,
+                inicio.atStartOfDay(zone).toOffsetDateTime(),
+                fim.plusDays(1).atStartOfDay(zone).toOffsetDateTime()
+            );
+        return new ExtratoMensalEntregadorResponse(inicio, fim, items.size(),
+            soma(items.stream().map(Entrega::getValorFinal).toList()),
+            items.stream().map(e -> new ItemExtratoMensalEntregadorResponse(
+                e.getId(), e.getCodigo(), e.getCliente().getNome(), e.getConcluidaEm(), e.getValorFinal()
+            )).toList());
+    }
+
+    private List<ResumoFaturamentoAgrupadoResponse> agrupar(List<Entrega> items, boolean porCliente) {
+        record Chave(UUID id, String nome) {}
+        return items.stream().filter(e -> porCliente || e.getEntregador() != null)
+            .collect(Collectors.groupingBy(e -> porCliente
+                ? new Chave(e.getCliente().getId(), e.getCliente().getNome())
+                : new Chave(e.getEntregador().getId(), e.getEntregador().getNome()),
+                LinkedHashMap::new, Collectors.toList()))
+            .entrySet().stream().map(entry -> new ResumoFaturamentoAgrupadoResponse(
+                entry.getKey().id(), entry.getKey().nome(), entry.getValue().size(),
+                soma(entry.getValue().stream().map(Entrega::getValorFinal).toList())
+            ))
+            .sorted(Comparator.comparing(ResumoFaturamentoAgrupadoResponse::valorFaturado).reversed())
+            .toList();
     }
 
     private BigDecimal somaTipo(List<LancamentoRazao> items, TipoLancamentoRazao... tipos) {

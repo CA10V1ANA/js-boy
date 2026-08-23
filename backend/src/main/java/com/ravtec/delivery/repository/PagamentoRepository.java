@@ -3,11 +3,13 @@ package com.ravtec.delivery.repository;
 import com.ravtec.delivery.entity.Pagamento;
 import com.ravtec.delivery.entity.TipoLancamentoFinanceiro;
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface PagamentoRepository extends JpaRepository<Pagamento, UUID> {
     List<Pagamento> findByEntregaId(UUID entregaId);
@@ -15,6 +17,10 @@ public interface PagamentoRepository extends JpaRepository<Pagamento, UUID> {
     List<Pagamento> findByEntregaClienteUsuarioIdOrderByPagoEmDesc(UUID usuarioId);
 
     Optional<Pagamento> findByIdempotencyKey(String idempotencyKey);
+
+    List<Pagamento> findByPagoEmGreaterThanEqualAndPagoEmLessThanOrderByPagoEmAsc(
+        OffsetDateTime inicio, OffsetDateTime fim
+    );
 
     @Query("""
         select coalesce(sum(
@@ -25,6 +31,16 @@ public interface PagamentoRepository extends JpaRepository<Pagamento, UUID> {
         where p.entrega.id = :entregaId
         """)
     BigDecimal somarSaldoPorEntrega(UUID entregaId);
+
+    @Query("""
+        select coalesce(sum(
+            case when p.tipo = com.ravtec.delivery.entity.TipoLancamentoFinanceiro.RECEBIMENTO
+                then p.valor else -p.valor end
+        ), 0)
+        from Pagamento p
+        where p.entrega.id in :entregaIds
+        """)
+    BigDecimal somarSaldoPorEntregas(@Param("entregaIds") List<UUID> entregaIds);
 
     @Query("""
         select coalesce(sum(p.valor), 0)

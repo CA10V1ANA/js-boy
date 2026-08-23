@@ -93,7 +93,7 @@ export function RelatoriosPage() {
   }, [entregas]);
 
   const metricas = [
-    { label: 'Faturamento no mês', value: money(relatorio.valorRecebido), nota: relatorio.valorPendente > 0 ? `${money(relatorio.valorPendente)} pendente` : 'tudo recebido', tone: relatorio.valorPendente > 0 ? '#C67A15' : '#2E8B57' },
+    { label: 'Recebido acumulado', value: money(relatorio.valorRecebido), nota: relatorio.valorPendente > 0 ? `${money(relatorio.valorPendente)} pendente` : 'tudo recebido', tone: relatorio.valorPendente > 0 ? '#C67A15' : '#2E8B57' },
     { label: 'Entregas concluídas', value: String(entregues), nota: `de ${entregas.length} no total`, tone: '#2E8B57' },
     { label: 'Ticket médio', value: money(ticketMedio), nota: `${relatorio.pagamentosRegistrados} transações`, tone: '#ABA89B' },
     { label: 'Taxa de conclusão', value: `${taxaConclusao}%`, nota: `${canceladas} cancelada${canceladas === 1 ? '' : 's'}`, tone: canceladas > 0 ? '#C67A15' : '#2E8B57' },

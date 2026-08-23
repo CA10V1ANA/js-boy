@@ -45,6 +45,8 @@ public class PagamentoService {
     private final PagamentoMapper pagamentoMapper;
     @Autowired(required = false)
     private AuditoriaService auditoriaService;
+    @Autowired(required = false)
+    private ControleFechamentoFinanceiroService controleFechamento;
 
     @Transactional(readOnly = true)
     public List<PagamentoResponse> listar() {
@@ -74,6 +76,8 @@ public class PagamentoService {
         if (existente != null) {
             return pagamentoMapper.toResponse(existente);
         }
+        var pagoEm = request.pagoEm() == null ? OffsetDateTime.now() : request.pagoEm();
+        validarPeriodoAberto(pagoEm);
         var recebido = pagamentoRepository.somarSaldoPorEntrega(entrega.getId());
         var saldo = monetario(entrega.getValorFinal().subtract(recebido));
         if (valor.compareTo(saldo) > 0) {
@@ -84,7 +88,7 @@ public class PagamentoService {
         pagamento.setValor(valor);
         pagamento.setFormaPagamento(request.formaPagamento());
         pagamento.setTipo(TipoLancamentoFinanceiro.RECEBIMENTO);
-        pagamento.setPagoEm(request.pagoEm() == null ? OffsetDateTime.now() : request.pagoEm());
+        pagamento.setPagoEm(pagoEm);
         pagamento.setComprovante(limpar(request.comprovante()));
         pagamento.setObservacoes(limpar(request.observacoes()));
         pagamento.setUsuarioResponsavel(usuarioAtual().getUsuario());
@@ -117,6 +121,8 @@ public class PagamentoService {
         if (existente != null) {
             return pagamentoMapper.toResponse(existente);
         }
+        var estornadoEm = OffsetDateTime.now();
+        validarPeriodoAberto(estornadoEm);
         var jaEstornado = pagamentoRepository.somarEstornosDoLancamento(original.getId());
         var disponivel = monetario(original.getValor().subtract(jaEstornado));
         if (valor.compareTo(disponivel) > 0) {
@@ -131,7 +137,7 @@ public class PagamentoService {
         estorno.setUsuarioResponsavel(usuarioAtual().getUsuario());
         estorno.setIdempotencyKey(chave);
         estorno.setPayloadHash(hash);
-        estorno.setPagoEm(OffsetDateTime.now());
+        estorno.setPagoEm(estornadoEm);
         estorno.setMotivo(request.motivo().trim());
         var salvo = pagamentoRepository.saveAndFlush(estorno);
         auditar("ESTORNO_REGISTRADO", salvo, Map.of(
@@ -230,6 +236,12 @@ public class PagamentoService {
 
     private String limpar(String value) {
         return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    private void validarPeriodoAberto(OffsetDateTime ocorridoEm) {
+        if (controleFechamento != null) {
+            controleFechamento.validarAberto(ocorridoEm);
+        }
     }
 
     private void auditar(String acao, Pagamento item, Object depois, String motivo) {

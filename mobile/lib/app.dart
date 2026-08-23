@@ -33,6 +33,12 @@ class JsBoyApp extends StatelessWidget {
         Provider(create: (_) => PagamentoService(client)),
         Provider(create: (_) => DashboardService(client)),
         Provider(create: (_) => ConfiguracaoPrecoService(client)),
+        Provider(create: (_) => FuncionarioService(client)),
+        Provider(create: (_) => AuditoriaService(client)),
+        Provider(create: (_) => UsuarioService(client)),
+        Provider(create: (_) => ConfiguracaoEmpresaService(client)),
+        Provider(create: (_) => PrivacidadeService(client)),
+        Provider(create: (_) => RazaoFinanceiraService(client)),
         ChangeNotifierProvider(
           create: (context) => AuthController(
             storage: storage,

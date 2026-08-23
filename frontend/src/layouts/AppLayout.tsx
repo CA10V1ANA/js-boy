@@ -22,6 +22,7 @@ const items: Array<{ to: string; label: string; icon: typeof Home; perfis: Perfi
   { to: '/financeiro', label: 'Razão financeira', icon: Landmark, perfis: ['PROPRIETARIO'] },
   { to: '/privacidade', label: 'Privacidade', icon: ShieldCheck, perfis: ['PROPRIETARIO'] },
   { to: '/minhas-entregas', label: 'Painel operacional', icon: MapPinned, perfis: ['ENTREGADOR', 'FUNCIONARIO'] },
+  { to: '/meu-faturamento', label: 'Meu faturamento', icon: Landmark, perfis: ['ENTREGADOR', 'FUNCIONARIO'] },
   { to: '/portal', label: 'Portal do cliente', icon: User, perfis: ['CLIENTE'] },
 ];
 

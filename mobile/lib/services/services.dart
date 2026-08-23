@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../core/api/api_client.dart';
 import '../models/models.dart';
 
@@ -87,6 +89,16 @@ class ClienteService {
   Future<void> alterarStatus(String id, bool ativo) async {
     try {
       await client.dio.patch('/clientes/$id/status', data: {'ativo': ativo});
+    } catch (error) {
+      throw client.translate(error);
+    }
+  }
+
+  Future<ConfiguracaoEmpresa> contato() async {
+    try {
+      final response = await client.dio.get('/cliente/contato');
+      return ConfiguracaoEmpresa.fromJson(
+          response.data as Map<String, dynamic>);
     } catch (error) {
       throw client.translate(error);
     }
@@ -219,6 +231,32 @@ class EntregaService {
       throw client.translate(error);
     }
   }
+
+  Future<void> solicitarComoCliente(Map<String, dynamic> dados) async {
+    try {
+      await client.dio.post('/cliente/entregas', data: dados);
+    } catch (error) {
+      throw client.translate(error);
+    }
+  }
+
+  Future<Map<String, List<Map<String, dynamic>>>> detalhesCliente(
+      String entregaId) async {
+    try {
+      final respostas = await Future.wait([
+        client.dio.get('/cliente/entregas/$entregaId/paradas'),
+        client.dio.get('/cliente/entregas/$entregaId/comprovantes'),
+      ]);
+      return {
+        'paradas':
+            (respostas[0].data as List<dynamic>).cast<Map<String, dynamic>>(),
+        'comprovantes':
+            (respostas[1].data as List<dynamic>).cast<Map<String, dynamic>>(),
+      };
+    } catch (error) {
+      throw client.translate(error);
+    }
+  }
 }
 
 class PagamentoService {
@@ -260,6 +298,19 @@ class PagamentoService {
   Future<void> registrar(Map<String, dynamic> dados) async {
     try {
       await client.dio.post('/pagamentos', data: dados);
+    } catch (error) {
+      throw client.translate(error);
+    }
+  }
+
+  Future<void> estornar(String id, double valor, String motivo) async {
+    try {
+      await client.dio.post('/pagamentos/$id/estornos',
+          data: {'valor': valor, 'motivo': motivo},
+          options: Options(headers: {
+            'Idempotency-Key':
+                'mobile-estorno-${DateTime.now().microsecondsSinceEpoch}'
+          }));
     } catch (error) {
       throw client.translate(error);
     }
@@ -307,6 +358,41 @@ class ConfiguracaoPrecoService {
       throw client.translate(error);
     }
   }
+
+  Future<TabelaPreco> consultarTabela() async {
+    try {
+      final response = await client.dio.get('/configuracoes/preco/tabela');
+      return TabelaPreco.fromJson(response.data as Map<String, dynamic>);
+    } catch (error) {
+      throw client.translate(error);
+    }
+  }
+
+  Future<TabelaPreco> atualizarTabela(TabelaPreco tabela) async {
+    try {
+      final response = await client.dio.put('/configuracoes/preco/tabela',
+          data: {
+            'taxaRetorno': tabela.taxaRetorno,
+            'taxaEsperaTrintaMinutos': tabela.taxaEsperaTrintaMinutos,
+            'taxaInicialFallback': tabela.taxaInicialFallback,
+            'valorPorKmFallback': tabela.valorPorKmFallback,
+            'valorMinimoFallback': tabela.valorMinimoFallback,
+            'areas': tabela.areas
+                .map((area) => {
+                      'id': area.id,
+                      'valorMoto': area.valorNegociado ? null : area.valorMoto,
+                      'valorCarro':
+                          area.valorNegociado ? null : area.valorCarro,
+                      'versao': area.versao,
+                    })
+                .toList(),
+          },
+          options: Options(headers: {'If-Match': tabela.versao.toString()}));
+      return TabelaPreco.fromJson(response.data as Map<String, dynamic>);
+    } catch (error) {
+      throw client.translate(error);
+    }
+  }
 }
 
 class FuncionarioService {
@@ -345,3 +431,148 @@ class FuncionarioService {
     }
   }
 }
+
+class AuditoriaService {
+  final ApiClient client;
+  AuditoriaService(this.client);
+
+  Future<List<Auditoria>> listar({String? entidade}) async {
+    try {
+      final response = await client.dio.get('/auditorias', queryParameters: {
+        if (entidade != null && entidade.isNotEmpty) 'entidade': entidade,
+      });
+      return (response.data as List<dynamic>)
+          .map((item) => Auditoria.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } catch (error) {
+      throw client.translate(error);
+    }
+  }
+}
+
+class UsuarioService {
+  final ApiClient client;
+  UsuarioService(this.client);
+
+  Future<List<UsuarioSistema>> listar() async {
+    try {
+      final response = await client.dio.get('/usuarios');
+      return (response.data as List<dynamic>)
+          .map((item) => UsuarioSistema.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } catch (error) {
+      throw client.translate(error);
+    }
+  }
+
+  Future<void> alterarStatus(String id, bool ativo) async {
+    try {
+      await client.dio.patch('/usuarios/$id/status', data: {'ativo': ativo});
+    } catch (error) {
+      throw client.translate(error);
+    }
+  }
+}
+
+class ConfiguracaoEmpresaService {
+  final ApiClient client;
+  ConfiguracaoEmpresaService(this.client);
+
+  Future<ConfiguracaoEmpresa> consultar() async {
+    try {
+      final response = await client.dio.get('/configuracoes/empresa');
+      return ConfiguracaoEmpresa.fromJson(
+          response.data as Map<String, dynamic>);
+    } catch (error) {
+      throw client.translate(error);
+    }
+  }
+
+  Future<ConfiguracaoEmpresa> atualizar(
+      ConfiguracaoEmpresa atual, Map<String, dynamic> dados) async {
+    try {
+      final response = await client.dio.put('/configuracoes/empresa',
+          data: dados,
+          options: Options(headers: {'If-Match': atual.versao.toString()}));
+      return ConfiguracaoEmpresa.fromJson(
+          response.data as Map<String, dynamic>);
+    } catch (error) {
+      throw client.translate(error);
+    }
+  }
+}
+
+class PrivacidadeService {
+  final ApiClient client;
+  PrivacidadeService(this.client);
+
+  Future<Map<String, dynamic>> exportar(String clienteId) async {
+    try {
+      final response =
+          await client.dio.get('/lgpd/clientes/$clienteId/exportacao');
+      return response.data as Map<String, dynamic>;
+    } catch (error) {
+      throw client.translate(error);
+    }
+  }
+
+  Future<void> anonimizar(String clienteId, String justificativa) async {
+    try {
+      await client.dio.post('/lgpd/clientes/$clienteId/anonimizacao',
+          queryParameters: {'justificativa': justificativa});
+    } catch (error) {
+      throw client.translate(error);
+    }
+  }
+}
+
+class RazaoFinanceiraService {
+  final ApiClient client;
+  RazaoFinanceiraService(this.client);
+
+  Future<RelatorioRazao> relatorio(DateTime inicio, DateTime fim) async {
+    try {
+      final response = await client.dio.get('/financeiro/relatorio',
+          queryParameters: {'inicio': _apiDate(inicio), 'fim': _apiDate(fim)});
+      return RelatorioRazao.fromJson(response.data as Map<String, dynamic>);
+    } catch (error) {
+      throw client.translate(error);
+    }
+  }
+
+  Future<void> registrar(
+      {required String tipo,
+      required String descricao,
+      required double valor,
+      required DateTime competencia}) async {
+    try {
+      await client.dio.post('/financeiro/lancamentos',
+          data: {
+            'tipo': tipo,
+            'descricao': descricao,
+            'valor': valor,
+            'competencia': _apiDate(competencia)
+          },
+          options: Options(headers: {
+            'Idempotency-Key':
+                'mobile-razao-${DateTime.now().microsecondsSinceEpoch}'
+          }));
+    } catch (error) {
+      throw client.translate(error);
+    }
+  }
+
+  Future<ExtratoEntregador> extrato(DateTime inicio, DateTime fim) async {
+    try {
+      final response = await client.dio.get(
+          '/operacao-entregador/financeiro/extrato',
+          queryParameters: {'inicio': _apiDate(inicio), 'fim': _apiDate(fim)});
+      return ExtratoEntregador.fromJson(response.data as Map<String, dynamic>);
+    } catch (error) {
+      throw client.translate(error);
+    }
+  }
+}
+
+String _apiDate(DateTime value) =>
+    '${value.year.toString().padLeft(4, '0')}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}';

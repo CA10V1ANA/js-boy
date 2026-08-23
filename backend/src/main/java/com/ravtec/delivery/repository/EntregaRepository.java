@@ -4,6 +4,7 @@ import com.ravtec.delivery.entity.Entrega;
 import com.ravtec.delivery.entity.StatusEntrega;
 import jakarta.persistence.LockModeType;
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -29,6 +30,14 @@ public interface EntregaRepository extends JpaRepository<Entrega, UUID> {
     List<Entrega> findByClienteUsuarioIdOrderByCriadoEmDesc(UUID usuarioId);
 
     Optional<Entrega> findByIdAndClienteUsuarioId(UUID id, UUID usuarioId);
+
+    List<Entrega> findByStatusAndConcluidaEmGreaterThanEqualAndConcluidaEmLessThanOrderByConcluidaEmAsc(
+        StatusEntrega status, OffsetDateTime inicio, OffsetDateTime fim
+    );
+
+    List<Entrega> findByEntregadorUsuarioIdAndStatusAndConcluidaEmGreaterThanEqualAndConcluidaEmLessThanOrderByConcluidaEmAsc(
+        UUID usuarioId, StatusEntrega status, OffsetDateTime inicio, OffsetDateTime fim
+    );
 
     long countByStatus(StatusEntrega status);
 

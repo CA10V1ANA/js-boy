@@ -6,6 +6,13 @@ import '../../core/theme/app_theme.dart';
 import '../../models/models.dart';
 import '../../state/auth_controller.dart';
 import '../../widgets/ui.dart';
+import '../auditoria/auditoria_page.dart';
+import '../config/configuracao_empresa_page.dart';
+import '../faturamento/meu_faturamento_page.dart';
+import '../faturamento/razao_financeira_page.dart';
+import '../funcionarios/funcionarios_page.dart';
+import '../privacidade/privacidade_page.dart';
+import '../usuarios/usuarios_page.dart';
 import '../config/configuracoes_page.dart';
 import '../entregadores/entregadores_page.dart';
 import '../pagamentos/pagamentos_page.dart';
@@ -67,13 +74,37 @@ class MaisPage extends StatelessWidget {
                   _item(context, Icons.credit_card_outlined, 'Pagamentos',
                       const PagamentosPage()),
                   const Divider(height: 1),
-                  _item(context, Icons.bar_chart_outlined, 'Relatorios',
+                  _item(context, Icons.bar_chart_outlined, 'Relatórios',
                       const RelatoriosPage()),
                   const Divider(height: 1),
-                  _item(context, Icons.settings_outlined, 'Configuracoes',
+                  _item(context, Icons.settings_outlined, 'Preços',
                       const ConfiguracoesPage()),
+                  const Divider(height: 1),
+                  _item(context, Icons.people_alt_outlined, 'Funcionários',
+                      const FuncionariosPage()),
+                  const Divider(height: 1),
+                  _item(context, Icons.manage_accounts_outlined, 'Usuários',
+                      const UsuariosPage()),
+                  const Divider(height: 1),
+                  _item(context, Icons.history_outlined, 'Auditoria',
+                      const AuditoriaPage()),
+                  const Divider(height: 1),
+                  _item(context, Icons.business_outlined, 'Empresa',
+                      const ConfiguracaoEmpresaPage()),
+                  const Divider(height: 1),
+                  _item(context, Icons.account_balance_outlined,
+                      'Razão financeira', const RazaoFinanceiraPage()),
+                  const Divider(height: 1),
+                  _item(context, Icons.privacy_tip_outlined, 'Privacidade',
+                      const PrivacidadePage()),
                 ],
               ),
+            ),
+          if (usuario?.perfil.ehEntregador == true)
+            PanelCard(
+              padding: EdgeInsets.zero,
+              child: _item(context, Icons.account_balance_wallet_outlined,
+                  'Meu faturamento', const MeuFaturamentoPage()),
             ),
           const SizedBox(height: 16),
           PanelCard(

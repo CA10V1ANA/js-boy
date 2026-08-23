@@ -212,6 +212,7 @@ class Pagamento {
   final DateTime pagoEm;
   final String? comprovante;
   final String? observacoes;
+  final String tipo;
 
   Pagamento({
     required this.id,
@@ -223,6 +224,7 @@ class Pagamento {
     required this.pagoEm,
     this.comprovante,
     this.observacoes,
+    required this.tipo,
   });
 
   factory Pagamento.fromJson(Map<String, dynamic> json) => Pagamento(
@@ -236,6 +238,7 @@ class Pagamento {
         pagoEm: DateTime.parse(json['pagoEm'] as String),
         comprovante: json['comprovante'] as String?,
         observacoes: json['observacoes'] as String?,
+        tipo: json['tipo'] as String? ?? 'RECEBIMENTO',
       );
 }
 
@@ -388,4 +391,284 @@ class Funcionario {
         email: json['email'] as String,
         ativo: json['ativo'] as bool,
       );
+}
+
+class Auditoria {
+  final String id;
+  final String usuarioNome;
+  final PerfilAcesso perfil;
+  final String acao;
+  final String entidade;
+  final String? motivo;
+  final DateTime ocorridoEm;
+
+  Auditoria(
+      {required this.id,
+      required this.usuarioNome,
+      required this.perfil,
+      required this.acao,
+      required this.entidade,
+      this.motivo,
+      required this.ocorridoEm});
+
+  factory Auditoria.fromJson(Map<String, dynamic> json) => Auditoria(
+      id: json['id'] as String,
+      usuarioNome: json['usuarioNome'] as String? ?? 'Sistema',
+      perfil: PerfilAcesso.fromApi(json['perfil'] as String),
+      acao: json['acao'] as String? ?? '',
+      entidade: json['entidade'] as String? ?? '',
+      motivo: json['motivo'] as String?,
+      ocorridoEm: DateTime.parse(json['ocorridoEm'] as String));
+}
+
+class UsuarioSistema {
+  final String id;
+  final String nome;
+  final String email;
+  final PerfilAcesso perfil;
+  final bool ativo;
+  final String? vinculo;
+
+  UsuarioSistema(
+      {required this.id,
+      required this.nome,
+      required this.email,
+      required this.perfil,
+      required this.ativo,
+      this.vinculo});
+
+  factory UsuarioSistema.fromJson(Map<String, dynamic> json) => UsuarioSistema(
+      id: json['id'] as String,
+      nome: json['nome'] as String,
+      email: json['email'] as String,
+      perfil: PerfilAcesso.fromApi(json['perfil'] as String),
+      ativo: json['ativo'] as bool,
+      vinculo: json['vinculo'] as String?);
+}
+
+class ConfiguracaoEmpresa {
+  final String id;
+  final String nomeFantasia;
+  final String telefone;
+  final String whatsapp;
+  final String email;
+  final String cep;
+  final String logradouro;
+  final String numero;
+  final String complemento;
+  final String bairro;
+  final String cidade;
+  final String estado;
+  final String horarioAtendimento;
+  final int versao;
+
+  ConfiguracaoEmpresa(
+      {required this.id,
+      required this.nomeFantasia,
+      required this.telefone,
+      required this.whatsapp,
+      required this.email,
+      required this.cep,
+      required this.logradouro,
+      required this.numero,
+      required this.complemento,
+      required this.bairro,
+      required this.cidade,
+      required this.estado,
+      required this.horarioAtendimento,
+      required this.versao});
+
+  factory ConfiguracaoEmpresa.fromJson(Map<String, dynamic> json) =>
+      ConfiguracaoEmpresa(
+          id: json['id'] as String,
+          nomeFantasia: json['nomeFantasia'] as String? ?? '',
+          telefone: json['telefone'] as String? ?? '',
+          whatsapp: json['whatsapp'] as String? ?? '',
+          email: json['email'] as String? ?? '',
+          cep: json['cep'] as String? ?? '',
+          logradouro: json['logradouro'] as String? ?? '',
+          numero: json['numero'] as String? ?? '',
+          complemento: json['complemento'] as String? ?? '',
+          bairro: json['bairro'] as String? ?? '',
+          cidade: json['cidade'] as String? ?? '',
+          estado: json['estado'] as String? ?? '',
+          horarioAtendimento: json['horarioAtendimento'] as String? ?? '',
+          versao: (json['versao'] as num?)?.toInt() ?? 0);
+}
+
+class ResumoFaturamentoAgrupado {
+  final String id;
+  final String nome;
+  final int entregas;
+  final double valorFaturado;
+
+  ResumoFaturamentoAgrupado(
+      {required this.id,
+      required this.nome,
+      required this.entregas,
+      required this.valorFaturado});
+
+  factory ResumoFaturamentoAgrupado.fromJson(Map<String, dynamic> json) =>
+      ResumoFaturamentoAgrupado(
+          id: json['id'] as String,
+          nome: json['nome'] as String? ?? '',
+          entregas: (json['entregas'] as num?)?.toInt() ?? 0,
+          valorFaturado: _toDouble(json['valorFaturado']));
+}
+
+class RelatorioRazao {
+  final double faturado;
+  final double recebido;
+  final double pendente;
+  final double estornado;
+  final double despesas;
+  final double taxas;
+  final double repassesEntregadores;
+  final double resultadoCompetencia;
+  final List<ResumoFaturamentoAgrupado> faturamentoPorCliente;
+  final List<ResumoFaturamentoAgrupado> faturamentoPorEntregador;
+
+  RelatorioRazao(
+      {required this.faturado,
+      required this.recebido,
+      required this.pendente,
+      required this.estornado,
+      required this.despesas,
+      required this.taxas,
+      required this.repassesEntregadores,
+      required this.resultadoCompetencia,
+      required this.faturamentoPorCliente,
+      required this.faturamentoPorEntregador});
+
+  factory RelatorioRazao.fromJson(Map<String, dynamic> json) => RelatorioRazao(
+      faturado: _toDouble(json['faturado']),
+      recebido: _toDouble(json['recebido']),
+      pendente: _toDouble(json['pendente']),
+      estornado: _toDouble(json['estornado']),
+      despesas: _toDouble(json['despesas']),
+      taxas: _toDouble(json['taxas']),
+      repassesEntregadores: _toDouble(json['repassesEntregadores']),
+      resultadoCompetencia: _toDouble(json['resultadoCompetencia']),
+      faturamentoPorCliente: (json['faturamentoPorCliente'] as List<dynamic>? ??
+              [])
+          .map((item) =>
+              ResumoFaturamentoAgrupado.fromJson(item as Map<String, dynamic>))
+          .toList(),
+      faturamentoPorEntregador: (json['faturamentoPorEntregador']
+                  as List<dynamic>? ??
+              [])
+          .map((item) =>
+              ResumoFaturamentoAgrupado.fromJson(item as Map<String, dynamic>))
+          .toList());
+}
+
+class ItemExtratoEntregador {
+  final String entregaId;
+  final String codigo;
+  final String clienteNome;
+  final DateTime concluidaEm;
+  final double valorFaturado;
+
+  ItemExtratoEntregador(
+      {required this.entregaId,
+      required this.codigo,
+      required this.clienteNome,
+      required this.concluidaEm,
+      required this.valorFaturado});
+
+  factory ItemExtratoEntregador.fromJson(Map<String, dynamic> json) =>
+      ItemExtratoEntregador(
+          entregaId: json['entregaId'] as String,
+          codigo: json['codigo'] as String? ?? '',
+          clienteNome: json['clienteNome'] as String? ?? '',
+          concluidaEm: DateTime.parse(json['concluidaEm'] as String),
+          valorFaturado: _toDouble(json['valorFaturado']));
+}
+
+class ExtratoEntregador {
+  final int entregasConcluidas;
+  final double valorFaturado;
+  final List<ItemExtratoEntregador> itens;
+
+  ExtratoEntregador(
+      {required this.entregasConcluidas,
+      required this.valorFaturado,
+      required this.itens});
+
+  factory ExtratoEntregador.fromJson(
+          Map<String, dynamic> json) =>
+      ExtratoEntregador(
+          entregasConcluidas:
+              (json['entregasConcluidas'] as num?)?.toInt() ?? 0,
+          valorFaturado: _toDouble(json['valorFaturado']),
+          itens: (json['itens'] as List<dynamic>? ?? [])
+              .map((item) =>
+                  ItemExtratoEntregador.fromJson(item as Map<String, dynamic>))
+              .toList());
+}
+
+class AreaPreco {
+  final String id;
+  final String nome;
+  final bool valorNegociado;
+  final List<String> bairros;
+  final int versao;
+  double? valorMoto;
+  double? valorCarro;
+
+  AreaPreco(
+      {required this.id,
+      required this.nome,
+      required this.valorNegociado,
+      required this.bairros,
+      required this.versao,
+      this.valorMoto,
+      this.valorCarro});
+
+  factory AreaPreco.fromJson(Map<String, dynamic> json) => AreaPreco(
+      id: json['id'] as String,
+      nome: json['nome'] as String? ?? '',
+      valorNegociado: json['valorNegociado'] as bool? ?? false,
+      bairros: (json['bairros'] as List<dynamic>? ?? []).cast<String>(),
+      versao: (json['versao'] as num?)?.toInt() ?? 0,
+      valorMoto:
+          json['valorMoto'] == null ? null : _toDouble(json['valorMoto']),
+      valorCarro:
+          json['valorCarro'] == null ? null : _toDouble(json['valorCarro']));
+}
+
+class TabelaPreco {
+  final String configuracaoId;
+  final String nome;
+  final int versao;
+  double taxaRetorno;
+  double taxaEsperaTrintaMinutos;
+  double taxaInicialFallback;
+  double valorPorKmFallback;
+  double valorMinimoFallback;
+  final List<AreaPreco> areas;
+
+  TabelaPreco(
+      {required this.configuracaoId,
+      required this.nome,
+      required this.versao,
+      required this.taxaRetorno,
+      required this.taxaEsperaTrintaMinutos,
+      required this.taxaInicialFallback,
+      required this.valorPorKmFallback,
+      required this.valorMinimoFallback,
+      required this.areas});
+
+  factory TabelaPreco.fromJson(Map<String, dynamic> json) => TabelaPreco(
+      configuracaoId: json['configuracaoId'] as String,
+      nome: json['nome'] as String? ?? 'Tabela de preços por bairro',
+      versao: (json['versao'] as num?)?.toInt() ?? 0,
+      taxaRetorno: _toDouble(json['taxaRetorno']),
+      taxaEsperaTrintaMinutos: _toDouble(json['taxaEsperaTrintaMinutos']),
+      taxaInicialFallback: _toDouble(json['taxaInicialFallback']),
+      valorPorKmFallback: _toDouble(json['valorPorKmFallback']),
+      valorMinimoFallback: _toDouble(json['valorMinimoFallback']),
+      areas: (json['areas'] as List<dynamic>? ?? [])
+          .map((item) => AreaPreco.fromJson(item as Map<String, dynamic>))
+          .toList());
 }
