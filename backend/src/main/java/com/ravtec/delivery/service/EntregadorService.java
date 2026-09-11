@@ -76,6 +76,7 @@ public class EntregadorService {
         }
         entregadorMapper.updateEntity(entregador, request);
         auditar("ENTREGADOR_ATUALIZADO", id, anterior, resumo(entregador));
+        entregadorRepository.flush();
         return entregadorMapper.toResponse(entregador);
     }
 
@@ -96,6 +97,7 @@ public class EntregadorService {
         }
         auditar(request.ativo() ? "ENTREGADOR_ATIVADO" : "ENTREGADOR_DESATIVADO", id,
             Map.of("ativo", anterior), Map.of("ativo", entregador.isAtivo()));
+        entregadorRepository.flush();
         return entregadorMapper.toResponse(entregador);
     }
 

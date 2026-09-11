@@ -44,6 +44,7 @@ public class ConfiguracaoPrecoService {
             auditoriaService.registrar("PRECO_ALTERADO", "CONFIGURACAO_PRECO", config.getId(),
                 anterior, resumo(config), null);
         }
+        configuracaoPrecoRepository.flush();
         return toResponse(config);
     }
 

@@ -114,6 +114,7 @@ public class ClienteService {
         }
         clienteMapper.updateEntity(cliente, request);
         auditar("CLIENTE_ATUALIZADO", id, anterior, resumo(cliente), null);
+        clienteRepository.flush();
         return clienteMapper.toResponse(cliente);
     }
 

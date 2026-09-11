@@ -33,7 +33,7 @@ class SolicitacaoEntregaClienteServiceTest {
         var entregaId = UUID.randomUUID();
         when(response.id()).thenReturn(entregaId);
         when(response.historico()).thenReturn(List.of());
-        when(entregaService.criar(any())).thenReturn(response);
+        when(entregaService.criar(any(), isNull(), eq(StatusEntrega.SOLICITADA))).thenReturn(response);
         var entrega = new Entrega();
         entrega.setId(entregaId); entrega.setCodigo("JSB-TESTE"); entrega.setCliente(cliente);
         entrega.setEnderecoOrigem("Origem"); entrega.setBairroOrigem("Centro");
@@ -47,7 +47,7 @@ class SolicitacaoEntregaClienteServiceTest {
             "Caixa", null, BigDecimal.ONE, null, null, null, null));
 
         var captor = ArgumentCaptor.forClass(EntregaRequest.class);
-        verify(entregaService).criar(captor.capture());
+        verify(entregaService).criar(captor.capture(), isNull(), eq(StatusEntrega.SOLICITADA));
         assertThat(captor.getValue().clienteId()).isEqualTo(cliente.getId());
         assertThat(captor.getValue().entregadorId()).isNull();
         assertThat(captor.getValue().valorFinal()).isNull();

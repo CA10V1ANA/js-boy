@@ -54,9 +54,9 @@ public class SecurityConfig {
             .authenticationProvider(authenticationProvider())
             .exceptionHandling(exceptions -> exceptions
                 .authenticationEntryPoint((request, response, exception) ->
-                    response.sendError(401, "Autenticação obrigatória"))
+                    response.setStatus(401))
                 .accessDeniedHandler((request, response, exception) ->
-                    response.sendError(403, "Acesso negado")))
+                    response.setStatus(403)))
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> {
                 auth.requestMatchers("/auth/login", "/auth/refresh", "/auth/logout", "/auth/password/**", "/api/health", "/public/**").permitAll();

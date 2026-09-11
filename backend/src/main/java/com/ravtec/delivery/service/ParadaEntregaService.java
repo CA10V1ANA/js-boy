@@ -65,6 +65,7 @@ public class ParadaEntregaService {
         parada.setRealizadaEm(OffsetDateTime.now());
         auditoriaService.registrar("PARADA_CONCLUIDA", "PARADA", parada.getId(), null,
             Map.of("entregaId", entrega.getId(), "ordem", parada.getOrdem()), null);
+        repository.flush();
         return toResponse(parada);
     }
 
