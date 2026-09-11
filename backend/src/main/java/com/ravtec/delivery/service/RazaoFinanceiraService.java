@@ -26,11 +26,13 @@ public class RazaoFinanceiraService {
     private final IdentidadeAtual identidade;
     private final TokenSeguroService hash;
     private final AuditoriaService auditoria;
+    private final CoordenacaoFinanceiraService coordenacao;
     @Value("${app.business-zone:America/Fortaleza}") private String zona;
 
     @Transactional
     public LancamentoRazaoResponse registrar(String chave, LancamentoRazaoRequest request) {
         validarChave(chave);
+        coordenacao.bloquear();
         if (fechamentos.existsByInicioLessThanEqualAndFimGreaterThanEqualAndReabertoEmIsNull(
             request.competencia(), request.competencia())) {
             throw new ConflitoException("Periodo financeiro fechado");
@@ -64,10 +66,15 @@ public class RazaoFinanceiraService {
     @Transactional
     public UUID fechar(LocalDate inicio, LocalDate fim) {
         validarPeriodo(inicio, fim);
-        if (fechamentos.findByInicioAndFim(inicio, fim).filter(FechamentoFinanceiro::fechado).isPresent()) {
+        coordenacao.bloquear();
+        var anterior = fechamentos.findByInicioAndFim(inicio, fim);
+        if (anterior.filter(FechamentoFinanceiro::fechado).isPresent()) {
             throw new ConflitoException("Periodo ja fechado");
         }
-        var item = new FechamentoFinanceiro();
+        var item = anterior.orElseGet(FechamentoFinanceiro::new);
+        item.setReabertoEm(null);
+        item.setMotivoReabertura(null);
+        item.setUsuarioReabertura(null);
         item.setInicio(inicio); item.setFim(fim); item.setFechadoEm(OffsetDateTime.now(ZoneId.of(zona)));
         item.setUsuarioFechamento(identidade.usuario()); fechamentos.save(item);
         auditoria.registrar("PERIODO_FINANCEIRO_FECHADO", "FECHAMENTO", item.getId(), null,
@@ -78,6 +85,7 @@ public class RazaoFinanceiraService {
     @Transactional
     public void reabrir(UUID id, String motivo) {
         if (motivo == null || motivo.isBlank()) throw new IllegalArgumentException("Motivo obrigatorio");
+        coordenacao.bloquear();
         var item = fechamentos.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException("Fechamento não encontrado"));
         if (!item.fechado()) throw new ConflitoException("Periodo ja reaberto");
         item.setReabertoEm(OffsetDateTime.now(ZoneId.of(zona))); item.setMotivoReabertura(motivo.trim());
@@ -99,6 +107,8 @@ public class RazaoFinanceiraService {
         var pagamentosPeriodo =
             pagamentos.findByPagoEmGreaterThanEqualAndPagoEmLessThanOrderByPagoEmAsc(inicioInstante, fimExclusivo);
         var lancamentos = razao.findByCompetenciaBetweenOrderByOcorridoEm(inicio, fim);
+        var lancamentosCaixa = razao.findByOcorridoEmGreaterThanEqualAndOcorridoEmLessThanOrderByOcorridoEm(
+            inicioInstante, fimExclusivo);
         BigDecimal faturado = soma(entregasPeriodo.stream().map(Entrega::getValorFinal).toList());
         BigDecimal recebido = soma(pagamentosPeriodo.stream()
             .filter(p -> p.getTipo() == TipoLancamentoFinanceiro.RECEBIMENTO)
@@ -113,11 +123,14 @@ public class RazaoFinanceiraService {
         BigDecimal liquidoRecebido = recebido.subtract(estornado);
         var entregaIds = entregasPeriodo.stream().map(Entrega::getId).toList();
         BigDecimal recebidoDoFaturamento = entregaIds.isEmpty()
-            ? BigDecimal.ZERO : pagamentos.somarSaldoPorEntregas(entregaIds);
+            ? BigDecimal.ZERO : pagamentos.somarSaldoPorEntregasAte(entregaIds, fimExclusivo);
         BigDecimal resultadoCompetencia =
             faturado.add(creditos).subtract(despesas).subtract(taxas).subtract(repasses);
         BigDecimal resultadoCaixa =
-            liquidoRecebido.add(creditos).subtract(despesas).subtract(taxas).subtract(repasses);
+            liquidoRecebido.add(somaTipo(lancamentosCaixa, TipoLancamentoRazao.AJUSTE_CREDITO))
+                .subtract(somaTipo(lancamentosCaixa, TipoLancamentoRazao.DESPESA,
+                    TipoLancamentoRazao.AJUSTE_DEBITO, TipoLancamentoRazao.TAXA,
+                    TipoLancamentoRazao.REPASSE_ENTREGADOR));
         var entregasPorCliente = entregasPeriodo.stream()
             .collect(Collectors.groupingBy(
                 e -> e.getCliente().getNome(), LinkedHashMap::new, Collectors.counting()

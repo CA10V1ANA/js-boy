@@ -8,7 +8,20 @@ import { formatCep, formatEmailInput, formatPhone, onlyDigits } from '../utils/i
 
 const empty: ConfiguracaoEmpresa = { id: '', nomeFantasia: 'JS Boy', telefone: '(85) 98807-1980', whatsapp: '(85) 98807-1980', email: 'empresajsboy@gmail.com', cep: '', logradouro: '', numero: '', complemento: '', bairro: '', cidade: '', estado: '', horarioAtendimento: '', versao: 0 };
 const placeholders: Partial<Record<keyof ConfiguracaoEmpresa, string>> = { email: 'contato@exemplo.com', telefone: '(00) 00000-0000', whatsapp: '(00) 00000-0000', cep: '00000-000', estado: 'CE', horarioAtendimento: 'Seg. a sex., das 08:00 às 18:00' };
-const displayCompany = (data: ConfiguracaoEmpresa): ConfiguracaoEmpresa => ({ ...data, telefone: formatPhone(data.telefone), whatsapp: formatPhone(data.whatsapp), email: formatEmailInput(data.email), cep: formatCep(data.cep), estado: data.estado.toUpperCase().slice(0, 2) });
+const displayCompany = (data: ConfiguracaoEmpresa): ConfiguracaoEmpresa => ({
+  ...data,
+  telefone: formatPhone(data.telefone ?? ''),
+  whatsapp: formatPhone(data.whatsapp ?? ''),
+  email: formatEmailInput(data.email ?? ''),
+  cep: formatCep(data.cep ?? ''),
+  logradouro: data.logradouro ?? '',
+  numero: data.numero ?? '',
+  complemento: data.complemento ?? '',
+  bairro: data.bairro ?? '',
+  cidade: data.cidade ?? '',
+  estado: (data.estado ?? '').toUpperCase().slice(0, 2),
+  horarioAtendimento: data.horarioAtendimento ?? '',
+});
 function formatCompanyField(key: keyof ConfiguracaoEmpresa, value: string) {
   if (key === 'telefone' || key === 'whatsapp') return formatPhone(value);
   if (key === 'email') return formatEmailInput(value);

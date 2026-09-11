@@ -30,6 +30,7 @@ public class ConfiguracaoEmpresaService {
         preencher(config, request);
         auditoriaService.registrar("CONFIGURACAO_EMPRESA_ALTERADA", "CONFIGURACAO_EMPRESA", config.getId(),
             anterior, resumo(config), null);
+        repository.flush();
         return toResponse(config);
     }
 

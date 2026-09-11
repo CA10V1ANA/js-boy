@@ -92,6 +92,16 @@ app:
     poll-ms: ${APP_NOTIFICATIONS_POLL_MS:30000}
   password-reset:
     provider: ${APP_PASSWORD_RESET_PROVIDER}
+  frontend-url: ${PUBLIC_FRONTEND_URL}
+  twilio:
+    account-sid: ${TWILIO_ACCOUNT_SID:}
+    auth-token: ${TWILIO_AUTH_TOKEN:}
+    from: ${TWILIO_FROM:}
+    whatsapp: ${TWILIO_WHATSAPP:true}
+    content-sid: ${TWILIO_CONTENT_SID:}
+  resend:
+    api-key: ${RESEND_API_KEY:}
+    from: ${RESEND_FROM:}
   business-zone: ${BUSINESS_TIME_ZONE:America/Fortaleza}
 
 management:

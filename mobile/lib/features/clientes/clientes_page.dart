@@ -75,6 +75,64 @@ class _ClientesPageState extends State<ClientesPage> {
     }
   }
 
+  Future<void> _criarAcesso(Cliente cliente) async {
+    final email = TextEditingController(text: cliente.email ?? '');
+    final senha = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Acesso de ${cliente.nome}'),
+        content: Form(
+          key: formKey,
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            TextFormField(
+              controller: email,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(labelText: 'E-mail de acesso'),
+              validator: (value) => value == null || !value.contains('@')
+                  ? 'Informe um e-mail válido'
+                  : null,
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: senha,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Senha inicial'),
+              validator: (value) => value == null || value.length < 6
+                  ? 'Use pelo menos 6 caracteres'
+                  : null,
+            ),
+          ]),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancelar')),
+          FilledButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(dialogContext, true);
+              }
+            },
+            child: const Text('Criar acesso'),
+          ),
+        ],
+      ),
+    );
+    if (confirmar == true && mounted) {
+      try {
+        await context.read<ClienteService>().criarAcesso(
+            cliente.id, email.text.trim().toLowerCase(), senha.text);
+        if (mounted) mostrarMensagem(context, 'Acesso do cliente criado.');
+      } on ApiException catch (error) {
+        if (mounted) mostrarMensagem(context, error.message, erro: true);
+      }
+    }
+    email.dispose();
+    senha.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -151,10 +209,16 @@ class _ClientesPageState extends State<ClientesPage> {
                                     if (acao == 'status') {
                                       _alterarStatus(cliente);
                                     }
+                                    if (acao == 'acesso') {
+                                      _criarAcesso(cliente);
+                                    }
                                   },
                                   itemBuilder: (_) => [
                                     const PopupMenuItem(
                                         value: 'editar', child: Text('Editar')),
+                                    const PopupMenuItem(
+                                        value: 'acesso',
+                                        child: Text('Criar acesso')),
                                     PopupMenuItem(
                                       value: 'status',
                                       child: Text(cliente.ativo

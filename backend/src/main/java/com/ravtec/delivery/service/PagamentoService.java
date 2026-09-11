@@ -76,6 +76,9 @@ public class PagamentoService {
         if (existente != null) {
             return pagamentoMapper.toResponse(existente);
         }
+        if (entrega.getStatus() == com.ravtec.delivery.entity.StatusEntrega.CANCELADA) {
+            throw new ConflitoException("Entrega cancelada não pode receber novos pagamentos");
+        }
         var pagoEm = request.pagoEm() == null ? OffsetDateTime.now() : request.pagoEm();
         validarPeriodoAberto(pagoEm);
         var recebido = pagamentoRepository.somarSaldoPorEntrega(entrega.getId());
@@ -152,9 +155,11 @@ public class PagamentoService {
     public RelatorioFinanceiroResponse relatorio() {
         var valorEntregas = entregaRepository.somarValorTotal();
         var valorRecebido = pagamentoRepository.somarSaldoFinanceiro();
+        var pendencias = calcularPendencias();
         return new RelatorioFinanceiroResponse(
-            valorEntregas, valorRecebido, valorEntregas.subtract(valorRecebido).max(BigDecimal.ZERO),
-            pagamentoRepository.countByTipo(TipoLancamentoFinanceiro.RECEBIMENTO), calcularPendencias()
+            valorEntregas, valorRecebido,
+            pendencias.stream().map(PendenciaFinanceiraResponse::valorPendente).reduce(BigDecimal.ZERO, BigDecimal::add),
+            pagamentoRepository.countByTipo(TipoLancamentoFinanceiro.RECEBIMENTO), pendencias
         );
     }
 
@@ -167,14 +172,7 @@ public class PagamentoService {
     }
 
     private List<PendenciaFinanceiraResponse> calcularPendencias() {
-        return entregaRepository.findAll().stream().map(entrega -> {
-            var valorPago = pagamentoRepository.somarSaldoPorEntrega(entrega.getId());
-            var pendente = entrega.getValorFinal().subtract(valorPago).max(BigDecimal.ZERO);
-            return new PendenciaFinanceiraResponse(
-                entrega.getId(), entrega.getCodigo(), entrega.getCliente().getNome(),
-                entrega.getValorFinal(), valorPago, pendente
-            );
-        }).filter(item -> item.valorPendente().compareTo(BigDecimal.ZERO) > 0).toList();
+        return pagamentoRepository.consultarPendencias();
     }
 
     private Pagamento buscarIdempotente(String chave, String payloadHash) {

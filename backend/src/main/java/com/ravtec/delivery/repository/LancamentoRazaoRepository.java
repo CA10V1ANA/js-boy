@@ -6,4 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface LancamentoRazaoRepository extends JpaRepository<LancamentoRazao, UUID> {
     Optional<LancamentoRazao> findByChaveIdempotencia(String chave);
     List<LancamentoRazao> findByCompetenciaBetweenOrderByOcorridoEm(LocalDate inicio, LocalDate fim);
+    List<LancamentoRazao> findByOcorridoEmGreaterThanEqualAndOcorridoEmLessThanOrderByOcorridoEm(
+        java.time.OffsetDateTime inicio, java.time.OffsetDateTime fim);
 }

@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, ArrowRight, Check, KeyRound, Pencil, Plus, Search, ToggleLeft, ToggleRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, KeyRound, MessageCircle, Pencil, Plus, Search, ToggleLeft, ToggleRight } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { ConfirmDialog, EmptyState, ErrorState, LoadingState } from '../components/AsyncState';
@@ -12,6 +12,7 @@ import { apiErrorMessage } from '../services/apiError';
 import { Cliente } from '../types';
 import { titleCase } from '../utils/display';
 import { formatCep, formatCpfOrCnpj, formatEmailInput, formatPhone, onlyDigits } from '../utils/inputMasks';
+import { whatsappHref } from '../utils/whatsapp';
 
 const emptyForm: ClienteFormData = {
   nome: '', telefone: '', whatsapp: '', email: '', documento: '', endereco: '', numero: 'S/N',
@@ -149,6 +150,7 @@ export function ClientesPage() {
                     <td data-label="Status"><span className={`statusBadge ${client.ativo ? 'active' : 'danger'}`}>{client.ativo ? 'Ativo' : 'Inativo'}</span></td>
                     <td data-label="Ações">
                       <TableActions actions={[
+                        ...(whatsappHref(client.whatsapp || client.telefone, client.nome) ? [{ label: 'Falar pelo WhatsApp', icon: <MessageCircle size={16} />, onClick: () => window.open(whatsappHref(client.whatsapp || client.telefone, client.nome), '_blank', 'noopener,noreferrer') }] : []),
                         { label: 'Editar cliente', icon: <Pencil size={16} />, onClick: () => openEdit(client) },
                         ...(!client.possuiAcesso ? [{ label: 'Criar acesso', icon: <KeyRound size={16} />, onClick: () => setAccess({ client, email: formatEmailInput(client.email || ''), password: '' }) }] : []),
                         { label: client.ativo ? 'Desativar cliente' : 'Ativar cliente', icon: client.ativo ? <ToggleLeft size={16} /> : <ToggleRight size={16} />, onClick: () => setStatusPending(client), danger: client.ativo },

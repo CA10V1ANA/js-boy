@@ -9,7 +9,7 @@ class NotificacaoOutboxServiceTest {
     @Test
     void naoDuplicaEventoComMesmaChave() {
         var repository = mock(NotificacaoOutboxRepository.class);
-        var provider = mock(NotificacaoProvider.class);
+        var provider = mock(NotificacaoWorker.class);
         when(repository.existsByChaveIdempotencia("entrega:1:coleta")).thenReturn(true);
         var service = new NotificacaoOutboxService(repository, provider);
 

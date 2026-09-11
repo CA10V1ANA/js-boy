@@ -16,8 +16,8 @@ import {
   UserRoundCheck,
   X,
 } from 'lucide-react';
-import { useState } from 'react';
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { ContactForm } from '../components/ContactForm';
 import { businessConfig, BusinessContact } from '../config/business';
 
@@ -166,6 +166,7 @@ export function SiteFooter() {
           <h3>Acesso</h3>
           <Link to="/login">Entrar no sistema</Link>
           <Link to="/contato">Solicitar contato</Link>
+          <Link to="/politica-de-privacidade">Política de Privacidade</Link>
         </div>
         <div>
           <h3>Contato</h3>
@@ -184,12 +185,39 @@ export function SiteFooter() {
 }
 
 export function PublicLayout() {
+  const whatsapp = businessConfig.whatsapp;
+  const { pathname } = useLocation();
+  const [showTop, setShowTop] = useState(false);
+  useEffect(() => {
+    const pages: Record<string, [string, string]> = {
+      '/': ['JS BOY - Entregas Empresariais', 'Gestão de entregas empresariais com acompanhamento, comprovantes e controle financeiro.'],
+      '/servicos': ['Serviços de entrega | JS BOY', 'Conheça os serviços de coleta, entrega e acompanhamento operacional da JS Boy.'],
+      '/como-funciona': ['Como funciona | JS BOY', 'Entenda como contratar e acompanhar entregas com a JS Boy.'],
+      '/para-empresas': ['Soluções para clientes | JS BOY', 'Operação de entregas para pessoas e empresas com acesso protegido.'],
+      '/contato': ['Contato | JS BOY', 'Fale com a JS Boy e solicite uma avaliação da sua necessidade de entrega.'],
+      '/politica-de-privacidade': ['Política de Privacidade | JS BOY', 'Saiba como a JS Boy trata e protege dados pessoais.'],
+    };
+    const [title, description] = pages[pathname] || pages['/'];
+    document.title = title;
+    document.querySelector('meta[name="description"]')?.setAttribute('content', description);
+    let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
+    canonical.href = `${window.location.origin}${pathname}`;
+  }, [pathname]);
+  useEffect(() => {
+    const update = () => setShowTop(window.scrollY > 480);
+    update(); window.addEventListener('scroll', update, { passive: true });
+    return () => window.removeEventListener('scroll', update);
+  }, []);
   return (
-    <main className="sitePage">
+    <div className="sitePage">
+      <a className="skipLink" href="#conteudo-principal">Pular para o conteúdo</a>
       <PublicHeader />
-      <Outlet />
+      <main id="conteudo-principal"><Outlet /></main>
       <SiteFooter />
-    </main>
+      {whatsapp?.href ? <a className="floatingAction floatingWhatsapp" href={whatsapp.href} target="_blank" rel="noreferrer" aria-label="Falar com a JS Boy pelo WhatsApp"><MessageCircle size={22} aria-hidden="true" /></a> : null}
+      {showTop ? <button className="floatingAction floatingTop" type="button" aria-label="Voltar ao topo" onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}>↑</button> : null}
+    </div>
   );
 }
 
@@ -257,7 +285,7 @@ export function ServicesPage() {
     <section className="siteSection publicStandalone">
       <div className="siteContainer">
         <div className="siteSectionTitle">
-          <h2>Serviços</h2>
+          <h1>Serviços</h1>
           <p>O escopo de cada entrega é confirmado diretamente pela JS Boy.</p>
         </div>
         <div className="servicesGrid">
@@ -279,7 +307,7 @@ export function HowItWorksPage() {
     <section className="siteSection publicStandalone">
       <div className="siteContainer">
         <div className="siteSectionTitle">
-          <h2>Como funciona</h2>
+          <h1>Como funciona</h1>
           <p>O cadastro não é público: a JS Boy confirma cada novo acesso.</p>
         </div>
         <div className="stepsGrid">
@@ -301,7 +329,7 @@ export function CompaniesPage() {
     <section className="siteSection publicStandalone">
       <div className="siteContainer">
         <div className="siteSectionTitle">
-          <h2>Para clientes</h2>
+          <h1>Para clientes</h1>
           <p>A JS Boy atende pessoas e empresas conforme avaliação da necessidade.</p>
         </div>
         <div className="companiesGrid">
@@ -338,7 +366,7 @@ export function ContactPage() {
       <div className="siteContainer contactGrid">
         <div>
           <div className="siteSectionTitle">
-            <h2>Fale com a JS Boy</h2>
+            <h1>Fale com a JS Boy</h1>
             <p>Envie uma solicitação para a equipe avaliar sua necessidade.</p>
           </div>
           <div className="contactList">

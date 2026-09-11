@@ -99,8 +99,41 @@ export function RelatoriosPage() {
     { label: 'Taxa de conclusão', value: `${taxaConclusao}%`, nota: `${canceladas} cancelada${canceladas === 1 ? '' : 's'}`, tone: canceladas > 0 ? '#C67A15' : '#2E8B57' },
   ];
 
+  const faturamentoMensal = useMemo(() => {
+    const valores = new Map<string, number>();
+    pagamentos.filter((item) => item.tipo === 'RECEBIMENTO').forEach((item) => {
+      const date = new Date(item.pagoEm || item.criadoEm);
+      if (!Number.isNaN(date.getTime())) {
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        valores.set(key, (valores.get(key) || 0) + item.valor);
+      }
+    });
+    return Array.from(valores.entries()).sort(([a], [b]) => a.localeCompare(b)).slice(-6).map(([mes, valor]) => ({
+      mes: new Intl.DateTimeFormat('pt-BR', { month: 'short', year: '2-digit', timeZone: 'UTC' }).format(new Date(`${mes}-01T00:00:00Z`)), valor,
+    }));
+  }, [pagamentos]);
+
+  async function exportarPdf() {
+    try {
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
+      doc.setFontSize(18); doc.text('JS BOY - Relatorio financeiro', 14, 18);
+      doc.setFontSize(10); doc.text(`Gerado em ${new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date())}`, 14, 25);
+      doc.setFontSize(12);
+      metricas.forEach((item, index) => doc.text(`${item.label}: ${item.value} (${item.nota})`, 14, 38 + index * 8));
+      doc.text('Faturamento por mes', 14, 78);
+      const max = Math.max(...faturamentoMensal.map((item) => item.valor), 1);
+      faturamentoMensal.forEach((item, index) => {
+        const y = 88 + index * 12; doc.text(`${item.mes}: ${money(item.valor)}`, 14, y);
+        doc.setFillColor(233, 168, 28); doc.rect(72, y - 4, (item.valor / max) * 110, 5, 'F');
+      });
+      doc.save(`relatorio-js-boy-${new Date().toISOString().slice(0, 10)}.pdf`);
+    } catch { showToast('Não foi possível gerar o PDF.', 'error'); }
+  }
+
   return (
     <main className="page">
+      <div className="reportToolbar"><div><h1>Relatórios</h1><p>Visão consolidada da operação e do faturamento.</p></div><button className="primaryButton" type="button" onClick={() => void exportarPdf()}>Baixar relatório em PDF</button></div>
       <section className="metricGrid">
         {metricas.map((metrica) => (
           <article className="metricCard" key={metrica.label}>
@@ -111,6 +144,11 @@ export function RelatoriosPage() {
             </div>
           </article>
         ))}
+      </section>
+
+      <section className="panelCard revenueChart" aria-labelledby="revenue-chart-title">
+        <h2 id="revenue-chart-title">Faturamento dos últimos meses</h2>
+        {faturamentoMensal.length ? <div className="revenueBars">{faturamentoMensal.map((item) => <div className="revenueBarItem" key={item.mes}><strong>{money(item.valor)}</strong><div className="revenueBarTrack"><span style={{ width: `${Math.max(4, (item.valor / Math.max(...faturamentoMensal.map((entry) => entry.valor), 1)) * 100)}%` }} /></div><span>{item.mes}</span></div>)}</div> : <p className="emptyChart">Os pagamentos recebidos aparecerão aqui por mês.</p>}
       </section>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }} className="reportGrid">

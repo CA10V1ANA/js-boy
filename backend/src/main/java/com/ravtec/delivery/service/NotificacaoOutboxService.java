@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class NotificacaoOutboxService {
     private final NotificacaoOutboxRepository repository;
-    private final NotificacaoProvider provider;
+    private final NotificacaoWorker worker;
 
     @Transactional
     public void enfileirar(Entrega entrega, String evento, String chave) {
@@ -33,29 +33,8 @@ public class NotificacaoOutboxService {
     }
 
     @Scheduled(fixedDelayString = "${app.notifications.poll-ms:30000}")
-    @Transactional
     public void processarPendentes() {
-        var agora = OffsetDateTime.now();
-        for (var item : repository.findTop50ByStatusAndProximaTentativaEmLessThanEqualOrderByCriadoEm(
-            StatusNotificacao.PENDENTE, agora
-        )) {
-            try {
-                item.setStatus(StatusNotificacao.PROCESSANDO);
-                item.setTentativas(item.getTentativas() + 1);
-                provider.enviar(item);
-                item.setStatus(StatusNotificacao.ENVIADA);
-                item.setProcessadaEm(OffsetDateTime.now());
-                item.setUltimoErro(null);
-            } catch (RuntimeException exception) {
-                item.setUltimoErro("Falha temporaria do provedor");
-                if (item.getTentativas() >= 5) {
-                    item.setStatus(StatusNotificacao.FALHOU);
-                } else {
-                    item.setStatus(StatusNotificacao.PENDENTE);
-                    item.setProximaTentativaEm(agora.plusMinutes(item.getTentativas()));
-                }
-            }
-        }
+        for (int i = 0; i < 50 && worker.processarUma(); i++) { /* bounded batch */ }
     }
 
     private String mascarar(String value) {

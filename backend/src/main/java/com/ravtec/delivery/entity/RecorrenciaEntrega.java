@@ -21,6 +21,7 @@ public class RecorrenciaEntrega extends BaseEntity {
     @Column(nullable = false)
     private LocalDate dataInicial;
     private LocalDate dataFinal;
+    private LocalDate geradaAte;
     @Column(length = 40)
     private String diasSemana;
     @Column(nullable = false, length = 60)

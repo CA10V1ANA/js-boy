@@ -22,13 +22,14 @@ public class ReconciliacaoArmazenamentoService {
         int orfas = 0;
         for (var chave : armazenamento.listarChaves()) {
             if (!referenciadas.contains(chave)) {
-                armazenamento.excluir(chave);
+                // An uncommitted upload may already exist on disk. Reconciliation
+                // reports candidates; deletion requires an independent retention workflow.
                 orfas++;
             }
         }
         long ausentes = referenciadas.stream().filter(chave -> !armazenamento.existe(chave)).count();
         if (orfas > 0 || ausentes > 0) {
-            log.warn("proof_storage_reconciliation orphan_deleted={} missing_references={}", orfas, ausentes);
+            log.warn("proof_storage_reconciliation orphan_candidates={} missing_references={}", orfas, ausentes);
         }
     }
 }

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ravtec.delivery.dto.DesignarEntregadorRequest;
@@ -68,7 +69,7 @@ class EntregaServiceTest {
         entregaService = new EntregaService(
             entregaRepository, clienteRepository, entregadorRepository,
             historicoEntregaRepository, configuracaoPrecoService, tabelaPrecoService, new EntregaMapper(),
-            identidadeAtual, new EntregaStatusPolicy()
+            identidadeAtual, new EntregaStatusPolicy(), org.mockito.Mockito.mock(ParadaEntregaService.class)
         );
         ReflectionTestUtils.setField(entregaService, "comprovanteRepository", comprovanteRepository);
 
@@ -174,6 +175,7 @@ class EntregaServiceTest {
         var response = entregaService.alterarStatusMinhaEntrega(entrega.getId(), new EntregaStatusRequest(StatusEntrega.COLETADA));
 
         assertThat(response.status()).isEqualTo(StatusEntrega.COLETADA);
+        verify(entregaRepository).flush();
     }
 
     @Test

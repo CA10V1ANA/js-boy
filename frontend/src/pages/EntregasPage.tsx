@@ -183,6 +183,19 @@ export function EntregasPage() {
     setWizardStep(1);
   }
 
+  function avancarWizard() {
+    const faltando = wizardStep === 1
+      ? !form.clienteId || !form.enderecoOrigem.trim() || !form.bairroOrigem.trim()
+      : wizardStep === 2
+        ? !form.enderecoDestino.trim() || !form.bairroDestino.trim() || !form.destinatarioNome.trim() || onlyDigits(form.destinatarioTelefone).length < 10
+        : !form.descricaoMercadoria.trim();
+    if (faltando) {
+      showToast('Preencha os campos obrigatórios desta etapa antes de continuar.', 'error');
+      return;
+    }
+    setWizardStep((step) => Math.min(4, step + 1));
+  }
+
   async function finalizarWizard() {
     const payload = {
       ...form,
@@ -369,7 +382,7 @@ export function EntregasPage() {
                   <Check size={16} /> {editingId ? 'Salvar entrega' : 'Cadastrar entrega'}
                 </button>
               ) : (
-                <button className="darkButton" type="button" onClick={() => setWizardStep((step) => Math.min(4, step + 1))}>
+                <button className="darkButton" type="button" onClick={avancarWizard}>
                   Próximo <ArrowRight size={16} />
                 </button>
               )}

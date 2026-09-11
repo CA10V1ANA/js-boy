@@ -22,6 +22,7 @@ public class RecorrenciaEntregaService {
     private final ConfiguracaoPrecoService precoService;
     private final com.ravtec.delivery.security.IdentidadeAtual identidadeAtual;
     private final NotificacaoOutboxService notificacaoService;
+    private final EntregaService entregaService;
 
     @Transactional
     public RecorrenciaResponse criar(RecorrenciaRequest r) {
@@ -52,13 +53,16 @@ public class RecorrenciaEntregaService {
         for (var recorrencia : repository.findByAtivaTrue()) {
             LocalDate fim = recorrencia.getDataFinal() == null || recorrencia.getDataFinal().isAfter(ate)
                 ? ate : recorrencia.getDataFinal();
-            for (LocalDate data = recorrencia.getDataInicial(); !data.isAfter(fim); data = data.plusDays(1)) {
+            LocalDate inicio = recorrencia.getGeradaAte() == null ? recorrencia.getDataInicial()
+                : recorrencia.getGeradaAte().plusDays(1);
+            for (LocalDate data = inicio; !data.isAfter(fim); data = data.plusDays(1)) {
                 if (ocorreNaData(recorrencia, data)
                     && !ocorrenciaRepository.existsByRecorrenciaIdAndDataOcorrencia(recorrencia.getId(), data)) {
                     criarOcorrencia(recorrencia, data);
                     geradas++;
                 }
             }
+            if (!fim.isBefore(inicio)) recorrencia.setGeradaAte(fim);
         }
         return geradas;
     }
@@ -72,18 +76,12 @@ public class RecorrenciaEntregaService {
     }
 
     private void criarOcorrencia(RecorrenciaEntrega r, LocalDate data) {
-        var config = precoService.buscarAtual();
-        var distancia = r.getDistanciaKm().setScale(2, RoundingMode.HALF_UP);
-        var entrega = new Entrega();
-        entrega.setCodigo("JSB-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
-        entrega.setCliente(r.getCliente()); entrega.setEnderecoOrigem(r.getEnderecoOrigem());
-        entrega.setBairroOrigem(r.getBairroOrigem()); entrega.setEnderecoDestino(r.getEnderecoDestino());
-        entrega.setBairroDestino(r.getBairroDestino()); entrega.setDestinatarioNome(r.getDestinatarioNome());
-        entrega.setDestinatarioTelefone(r.getDestinatarioTelefone());
-        entrega.setDescricaoMercadoria(r.getDescricaoMercadoria()); entrega.setDistanciaKm(distancia);
-        entrega.setTaxaInicial(config.getTaxaInicial()); entrega.setValorPorKm(config.getValorPorKm());
-        entrega.setValorCalculado(precoService.calcularValor(config, distancia));
-        entrega.setValorFinal(entrega.getValorCalculado()); entrega.setStatus(StatusEntrega.AGENDADA);
+        var criada = entregaService.criar(new EntregaRequest(
+            r.getCliente().getId(), null, r.getEnderecoOrigem(), r.getBairroOrigem(),
+            r.getEnderecoDestino(), r.getBairroDestino(), r.getDestinatarioNome(),
+            r.getDestinatarioTelefone(), r.getDescricaoMercadoria(), null,
+            r.getDistanciaKm(), null, null), null, StatusEntrega.AGENDADA);
+        var entrega = entregaRepository.findById(criada.id()).orElseThrow();
         var zone = ZoneId.of(r.getFusoHorario());
         var inicio = r.getHoraInicio() == null ? LocalTime.of(8, 0) : r.getHoraInicio();
         var fim = r.getHoraFim() == null ? inicio.plusHours(2) : r.getHoraFim();
@@ -91,10 +89,6 @@ public class RecorrenciaEntregaService {
         entrega.setAgendadaFim(data.atTime(fim).atZone(zone).toOffsetDateTime());
         entrega.setFusoHorario(r.getFusoHorario());
         entregaRepository.save(entrega);
-        var historico = new HistoricoEntrega();
-        historico.setEntrega(entrega); historico.setNovoStatus(StatusEntrega.AGENDADA);
-        historico.setUsuarioResponsavel(identidadeAtual.usuario());
-        historicoRepository.save(historico);
         var ocorrencia = new OcorrenciaRecorrencia();
         ocorrencia.setRecorrencia(r); ocorrencia.setDataOcorrencia(data); ocorrencia.setEntrega(entrega);
         ocorrenciaRepository.save(ocorrencia);

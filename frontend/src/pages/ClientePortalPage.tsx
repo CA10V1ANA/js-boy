@@ -396,7 +396,7 @@ export function ClientePortalPage() {
       <section className="roleHero clientRoleHero">
         <div>
           <span className="modalEyebrow">PORTAL DO CLIENTE</span>
-          <h2>Ola, {titleCase(data.cliente.nome).split(" ")[0]}</h2>
+          <h1>Ola, {titleCase(data.cliente.nome).split(" ")[0]}</h1>
           <p>
             Solicite, acompanhe e consulte os comprovantes das suas entregas.
           </p>

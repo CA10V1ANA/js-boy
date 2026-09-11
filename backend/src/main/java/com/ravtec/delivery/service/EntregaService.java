@@ -41,6 +41,7 @@ public class EntregaService {
     private final EntregaMapper entregaMapper;
     private final IdentidadeAtual identidadeAtual;
     private final EntregaStatusPolicy entregaStatusPolicy;
+    private final ParadaEntregaService paradaService;
     private final VersionamentoService versionamento = new VersionamentoService();
     private final NormalizacaoService normalizacao = new NormalizacaoService();
     @Autowired(required = false)
@@ -76,12 +77,19 @@ public class EntregaService {
 
     @Transactional
     public EntregaResponse criar(EntregaRequest request) {
+        return criar(request, null, request.entregadorId() == null
+            ? StatusEntrega.SOLICITADA : StatusEntrega.ENTREGADOR_DESIGNADO);
+    }
+
+    @Transactional
+    public EntregaResponse criar(EntregaRequest request,
+        List<com.ravtec.delivery.dto.ParadaRequest> paradas, StatusEntrega statusInicial) {
         var entrega = new Entrega();
         preencher(entrega, request);
         entrega.setCodigo(gerarCodigo());
-        entrega.setStatus(request.entregadorId() == null
-            ? StatusEntrega.SOLICITADA : StatusEntrega.ENTREGADOR_DESIGNADO);
+        entrega.setStatus(statusInicial);
         var salva = entregaRepository.save(entrega);
+        paradaService.substituir(salva, paradas);
         registrarHistorico(salva, null, salva.getStatus());
         auditar("ENTREGA_CRIADA", salva, null, resumo(salva), null);
         return entregaMapper.toResponse(salva);
@@ -104,6 +112,7 @@ public class EntregaService {
         var anterior = resumo(entrega);
         preencher(entrega, request);
         auditar("ENTREGA_ATUALIZADA", entrega, anterior, resumo(entrega), request.observacaoValorManual());
+        entregaRepository.flush();
         return entregaMapper.toResponse(entrega);
     }
 
@@ -117,6 +126,7 @@ public class EntregaService {
         var entrega = buscarEntidade(id);
         versionamento.validar(versao, entrega.getVersion());
         aplicarTransicao(entrega, request.status(), false);
+        entregaRepository.flush();
         return entregaMapper.toResponse(entrega);
     }
 
@@ -135,6 +145,7 @@ public class EntregaService {
         var entrega = buscarMinhaEntrega(id);
         versionamento.validar(versao, entrega.getVersion());
         aplicarTransicao(entrega, request.status(), true);
+        entregaRepository.flush();
         return entregaMapper.toOperacionalResponse(entrega);
     }
 
@@ -163,6 +174,7 @@ public class EntregaService {
         }
         auditar(anteriorId == null ? "ENTREGADOR_DESIGNADO" : "ENTREGADOR_TROCADO", entrega,
             Map.of("entregadorId", valor(anteriorId)), Map.of("entregadorId", entregador.getId().toString()), null);
+        entregaRepository.flush();
         return entregaMapper.toResponse(entrega);
     }
 

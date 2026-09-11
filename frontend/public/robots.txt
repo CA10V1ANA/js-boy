@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Disallow: /app
+Disallow: /dashboard
+Disallow: /clientes
+Disallow: /entregadores
+Disallow: /entregas
+Disallow: /pagamentos
+Disallow: /relatorios
+Disallow: /auditoria
+Disallow: /usuarios
+Disallow: /configuracoes/
+Disallow: /financeiro
+Disallow: /portal
+Disallow: /minhas-entregas
+Disallow: /meu-faturamento

@@ -36,13 +36,12 @@ public class SolicitacaoEntregaClienteService {
             request.destinatarioTelefone(), request.descricaoMercadoria(), request.observacoes(),
             request.distanciaKm(), null, null, com.ravtec.delivery.entity.TipoVeiculo.MOTO,
             0, false, valorNegociadoPendente
-        ));
+        ), request.paradas(), StatusEntrega.SOLICITADA);
         var entrega = entregaRepository.findById(criada.id()).orElseThrow();
         entrega.setAgendadaInicio(request.agendadaInicio());
         entrega.setAgendadaFim(request.agendadaFim());
         entrega.setFusoHorario(request.fusoHorario());
         entrega.setStatus(StatusEntrega.SOLICITADA);
-        paradaService.substituir(entrega, request.paradas());
         notificacaoService.enfileirar(entrega, "SOLICITACAO_RECEBIDA",
             "solicitacao:" + entrega.getId());
         return new EntregaClienteResponse(

@@ -103,6 +103,15 @@ class ClienteService {
       throw client.translate(error);
     }
   }
+
+  Future<void> criarAcesso(String id, String email, String senha) async {
+    try {
+      await client.dio
+          .post('/clientes/$id/acesso', data: {'email': email, 'senha': senha});
+    } catch (error) {
+      throw client.translate(error);
+    }
+  }
 }
 
 class EntregadorService {

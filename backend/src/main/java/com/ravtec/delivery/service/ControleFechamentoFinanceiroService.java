@@ -12,11 +12,13 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ControleFechamentoFinanceiroService {
     private final FechamentoFinanceiroRepository fechamentos;
+    private final CoordenacaoFinanceiraService coordenacao;
 
     @Value("${app.business-zone:America/Fortaleza}")
     private String zona;
 
     public void validarAberto(OffsetDateTime ocorridoEm) {
+        coordenacao.bloquear();
         var data = ocorridoEm.atZoneSameInstant(ZoneId.of(zona)).toLocalDate();
         if (fechamentos.existsByInicioLessThanEqualAndFimGreaterThanEqualAndReabertoEmIsNull(data, data)) {
             throw new ConflitoException("Periodo financeiro fechado");

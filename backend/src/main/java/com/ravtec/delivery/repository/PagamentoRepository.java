@@ -12,6 +12,21 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface PagamentoRepository extends JpaRepository<Pagamento, UUID> {
+    @Query("""
+        select new com.ravtec.delivery.dto.PendenciaFinanceiraResponse(
+            e.id, e.codigo, e.cliente.nome, e.valorFinal,
+            coalesce(sum(case when p.tipo = com.ravtec.delivery.entity.TipoLancamentoFinanceiro.RECEBIMENTO
+                then p.valor else -p.valor end), 0),
+            e.valorFinal - coalesce(sum(case when p.tipo = com.ravtec.delivery.entity.TipoLancamentoFinanceiro.RECEBIMENTO
+                then p.valor else -p.valor end), 0))
+        from Entrega e left join Pagamento p on p.entrega = e
+        where e.status <> com.ravtec.delivery.entity.StatusEntrega.CANCELADA
+        group by e.id, e.codigo, e.cliente.nome, e.valorFinal
+        having e.valorFinal > coalesce(sum(case when p.tipo = com.ravtec.delivery.entity.TipoLancamentoFinanceiro.RECEBIMENTO
+            then p.valor else -p.valor end), 0)
+        order by e.codigo, e.id
+        """)
+    List<com.ravtec.delivery.dto.PendenciaFinanceiraResponse> consultarPendencias();
     List<Pagamento> findByEntregaId(UUID entregaId);
 
     List<Pagamento> findByEntregaClienteUsuarioIdOrderByPagoEmDesc(UUID usuarioId);
@@ -41,6 +56,21 @@ public interface PagamentoRepository extends JpaRepository<Pagamento, UUID> {
         where p.entrega.id in :entregaIds
         """)
     BigDecimal somarSaldoPorEntregas(@Param("entregaIds") List<UUID> entregaIds);
+
+    @Query("""
+        select coalesce(sum(case when p.tipo = com.ravtec.delivery.entity.TipoLancamentoFinanceiro.RECEBIMENTO
+            then p.valor else -p.valor end), 0) from Pagamento p
+        where p.entrega.id in :entregaIds and p.pagoEm < :fim
+        """)
+    BigDecimal somarSaldoPorEntregasAte(@Param("entregaIds") List<UUID> entregaIds,
+        @Param("fim") OffsetDateTime fim);
+
+    @Query("""
+        select coalesce(sum(case when p.tipo = com.ravtec.delivery.entity.TipoLancamentoFinanceiro.RECEBIMENTO
+            then p.valor else -p.valor end), 0) from Pagamento p
+        where p.pagoEm >= :inicio and p.pagoEm < :fim
+        """)
+    BigDecimal somarSaldoNoPeriodo(@Param("inicio") OffsetDateTime inicio, @Param("fim") OffsetDateTime fim);
 
     @Query("""
         select coalesce(sum(p.valor), 0)

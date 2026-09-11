@@ -350,7 +350,7 @@ export function MinhasEntregasPage() {
       <section className="roleHero">
         <div>
           <span className="modalEyebrow">PAINEL DO ENTREGADOR</span>
-          <h2>Seu dia de trabalho, em um só lugar</h2>
+          <h1>Seu dia de trabalho, em um só lugar</h1>
           <p>
             Acompanhe rotas, registre comprovantes e mantenha os clientes da
             operação atualizados.

@@ -28,6 +28,7 @@ import { ConfiguracaoEmpresaPage } from './pages/ConfiguracaoEmpresaPage';
 import { RastreamentoPage } from './pages/RastreamentoPage';
 import { PrivacidadePage } from './pages/PrivacidadePage';
 import { RazaoFinanceiraPage } from './pages/RazaoFinanceiraPage';
+import { PoliticaPrivacidadePage } from './pages/PoliticaPrivacidadePage';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 import { RoleRoute } from './routes/RoleRoute';
 import { roleHomePath } from './routes/roleHome';
@@ -49,6 +50,7 @@ const router = createBrowserRouter([
       { index: true, element: <LandingPage /> }, { path: 'servicos', element: <ServicesPage /> },
       { path: 'como-funciona', element: <HowItWorksPage /> }, { path: 'para-empresas', element: <CompaniesPage /> },
       { path: 'contato', element: <ContactPage /> },
+      { path: 'politica-de-privacidade', element: <PoliticaPrivacidadePage /> },
     ],
   },
   { path: '/login', element: <LoginPage /> },

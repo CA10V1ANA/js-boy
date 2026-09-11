@@ -36,14 +36,21 @@ services:
       APP_NOTIFICATIONS_PROVIDER: ${APP_NOTIFICATIONS_PROVIDER:?required}
       APP_PASSWORD_RESET_PROVIDER: ${APP_PASSWORD_RESET_PROVIDER:?required}
       APP_PROOF_OTP_PROVIDER: ${APP_PROOF_OTP_PROVIDER:?required}
-      PROOF_OTP_WEBHOOK_URL: ${PROOF_OTP_WEBHOOK_URL:?required}
+      PUBLIC_FRONTEND_URL: ${PUBLIC_FRONTEND_URL:?required}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:?required}
+      TWILIO_FROM: ${TWILIO_FROM:?required}
+      TWILIO_WHATSAPP: ${TWILIO_WHATSAPP:-true}
+      TWILIO_CONTENT_SID: ${TWILIO_CONTENT_SID:-}
+      RESEND_FROM: ${RESEND_FROM:?required}
     secrets:
       - source: postgres_password
-        target: spring.datasource.password
+        target: SPRING_DATASOURCE_PASSWORD
       - source: jwt_secret
-        target: app.security.jwt-secret
-      - source: proof_otp_webhook_token
-        target: app.proof.otp.webhook-token
+        target: JWT_SECRET
+      - source: twilio_auth_token
+        target: TWILIO_AUTH_TOKEN
+      - source: resend_api_key
+        target: RESEND_API_KEY
     depends_on:
       postgres: { condition: service_healthy }
     read_only: true
@@ -63,9 +70,15 @@ services:
       context: ./frontend
       args:
         VITE_API_URL: ${PUBLIC_API_URL:?required}
+        VITE_BUSINESS_PHONE: ${VITE_BUSINESS_PHONE:-}
+        VITE_BUSINESS_WHATSAPP: ${VITE_BUSINESS_WHATSAPP:-}
+        VITE_BUSINESS_EMAIL: ${VITE_BUSINESS_EMAIL:-}
+        VITE_BUSINESS_CITY: ${VITE_BUSINESS_CITY:-}
+        VITE_BUSINESS_INSTAGRAM: ${VITE_BUSINESS_INSTAGRAM:-}
+        VITE_BUSINESS_HOURS: ${VITE_BUSINESS_HOURS:-}
     restart: always
     read_only: true
-    tmpfs: ["/var/cache/nginx:rw,noexec,nosuid,size=32m", "/var/run:rw,noexec,nosuid,size=8m"]
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=8m", "/var/cache/nginx:rw,noexec,nosuid,size=32m", "/var/run:rw,noexec,nosuid,size=8m"]
     security_opt: ["no-new-privileges:true"]
     cap_drop: ["ALL"]
     expose: ["8080"]
@@ -81,8 +94,10 @@ secrets:
     file: ${POSTGRES_PASSWORD_FILE:?required}
   jwt_secret:
     file: ${JWT_SECRET_FILE:?required}
-  proof_otp_webhook_token:
-    file: ${PROOF_OTP_WEBHOOK_TOKEN_FILE:?required}
+  twilio_auth_token:
+    file: ${TWILIO_AUTH_TOKEN_FILE:?required}
+  resend_api_key:
+    file: ${RESEND_API_KEY_FILE:?required}
 
 volumes:
   postgres_data:

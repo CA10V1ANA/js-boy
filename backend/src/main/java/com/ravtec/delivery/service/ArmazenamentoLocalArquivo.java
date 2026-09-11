@@ -63,6 +63,7 @@ public class ArmazenamentoLocalArquivo implements ArmazenamentoArquivo {
         if (!Files.exists(raiz)) return Set.of();
         try (var arquivos = Files.list(raiz)) {
             return arquivos.filter(Files::isRegularFile)
+                .filter(path -> !path.getFileName().toString().startsWith(".staging-"))
                 .map(path -> path.getFileName().toString())
                 .collect(Collectors.toUnmodifiableSet());
         } catch (IOException e) {

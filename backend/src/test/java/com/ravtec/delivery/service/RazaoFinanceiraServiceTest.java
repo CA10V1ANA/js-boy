@@ -19,7 +19,7 @@ class RazaoFinanceiraServiceTest {
         var service = new RazaoFinanceiraService(
             mock(LancamentoRazaoRepository.class), fechamentos, mock(ClienteRepository.class),
             mock(EntregadorRepository.class), mock(EntregaRepository.class), mock(PagamentoRepository.class),
-            mock(IdentidadeAtual.class), new TokenSeguroService(), mock(AuditoriaService.class));
+            mock(IdentidadeAtual.class), new TokenSeguroService(), mock(AuditoriaService.class), mock(CoordenacaoFinanceiraService.class));
         ReflectionTestUtils.setField(service, "zona", "America/Fortaleza");
         var data = LocalDate.now();
         when(fechamentos.existsByInicioLessThanEqualAndFimGreaterThanEqualAndReabertoEmIsNull(data, data))

@@ -201,7 +201,7 @@ export function DashboardPage() {
       deltaTone: 'up',
     },
     {
-      label: 'Em rota',
+      label: 'Em andamento',
       value: String(resumo.emAndamento).padStart(2, '0'),
       icon: Truck,
       tone: 'green',
@@ -217,7 +217,7 @@ export function DashboardPage() {
       deltaTone: resumo.solicitadas > 0 ? 'warn' : 'vs',
     },
     {
-      label: 'Recebido hoje',
+      label: 'Recebido acumulado',
       value: money(relatorio.valorRecebido),
       icon: DollarSign,
       tone: 'blue',
@@ -248,7 +248,7 @@ export function DashboardPage() {
         <div className="ribbonItem">
           <Truck size={17} />
           <div>
-            <small>EM ROTA</small>
+            <small>EM ANDAMENTO</small>
             <strong className="green">{String(resumo.emAndamento).padStart(2, '0')}</strong>
           </div>
         </div>
@@ -264,7 +264,7 @@ export function DashboardPage() {
             <div className="ribbonItem">
               <DollarSign size={17} />
               <div>
-                <small>RECEBIDO HOJE</small>
+                <small>RECEBIDO ACUMULADO</small>
                 <strong className="amber">{money(relatorio.valorRecebido)}</strong>
               </div>
             </div>
@@ -290,7 +290,6 @@ export function DashboardPage() {
                 <strong className={'smaller' in kpi && kpi.smaller ? 'smaller' : undefined}>{kpi.value}</strong>
                 <div className="metricDelta">
                   <span className={kpi.deltaTone}>{kpi.delta}</span>
-                  <span className="vs">hoje</span>
                 </div>
               </article>
             ))}

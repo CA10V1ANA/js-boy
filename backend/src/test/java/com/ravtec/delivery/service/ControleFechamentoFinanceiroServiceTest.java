@@ -15,7 +15,7 @@ class ControleFechamentoFinanceiroServiceTest {
     @Test
     void bloqueiaMovimentoDentroDePeriodoFechado() {
         var repository = mock(FechamentoFinanceiroRepository.class);
-        var service = new ControleFechamentoFinanceiroService(repository);
+        var service = new ControleFechamentoFinanceiroService(repository, org.mockito.Mockito.mock(CoordenacaoFinanceiraService.class));
         ReflectionTestUtils.setField(service, "zona", "America/Fortaleza");
         var data = LocalDate.parse("2026-08-10");
         when(repository.existsByInicioLessThanEqualAndFimGreaterThanEqualAndReabertoEmIsNull(data, data))

@@ -34,7 +34,7 @@ class RazaoFinanceiraRelatorioTest {
         var service = new RazaoFinanceiraService(
             razaoRepository, mock(FechamentoFinanceiroRepository.class), mock(ClienteRepository.class),
             mock(EntregadorRepository.class), entregaRepository, pagamentoRepository,
-            mock(IdentidadeAtual.class), new TokenSeguroService(), mock(AuditoriaService.class)
+            mock(IdentidadeAtual.class), new TokenSeguroService(), mock(AuditoriaService.class), mock(CoordenacaoFinanceiraService.class)
         );
         ReflectionTestUtils.setField(service, "zona", "America/Fortaleza");
 
@@ -55,7 +55,7 @@ class RazaoFinanceiraRelatorioTest {
             )).thenReturn(List.of(entrega));
         when(pagamentoRepository.findByPagoEmGreaterThanEqualAndPagoEmLessThanOrderByPagoEmAsc(any(), any()))
             .thenReturn(List.of());
-        when(pagamentoRepository.somarSaldoPorEntregas(List.of(entrega.getId())))
+        when(pagamentoRepository.somarSaldoPorEntregasAte(org.mockito.ArgumentMatchers.eq(List.of(entrega.getId())), any()))
             .thenReturn(new BigDecimal("40.00"));
         when(razaoRepository.findByCompetenciaBetweenOrderByOcorridoEm(any(), any())).thenReturn(List.of());
 
