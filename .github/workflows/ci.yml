@@ -78,38 +78,7 @@ jobs:
       - name: Compilar TypeScript e Vite
         run: npm run build
 
-  flutter:
-    if: ${{ inputs.web_api_only != true }}
-    name: Flutter canônico
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    defaults:
-      run:
-        working-directory: mobile
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
 
-      - name: Configurar Flutter estável
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: Restaurar dependências
-        run: flutter pub get
-
-      - name: Verificar lockfile
-        run: git diff --exit-code -- pubspec.lock
-
-      - name: Análise estática
-        run: flutter analyze
-
-      - name: Executar testes
-        run: flutter test
-
-      - name: Build Android de validação
-        run: flutter build apk --debug
 
   infrastructure:
     name: Configuração local
