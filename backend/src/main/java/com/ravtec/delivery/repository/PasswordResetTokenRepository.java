@@ -1,14 +1,17 @@
 package com.ravtec.delivery.repository;
 
 import com.ravtec.delivery.entity.PasswordResetToken;
+import jakarta.persistence.LockModeType;
 import java.time.OffsetDateTime;
 import java.util.*;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface PasswordResetTokenRepository extends JpaRepository<PasswordResetToken, UUID> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<PasswordResetToken> findByTokenHash(String hash);
     Optional<PasswordResetToken> findTopByUsuarioIdOrderByCriadoEmDesc(UUID usuarioId);
     long deleteByUsuarioId(UUID usuarioId);
