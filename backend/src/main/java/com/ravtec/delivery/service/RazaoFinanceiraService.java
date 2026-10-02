@@ -33,16 +33,15 @@ public class RazaoFinanceiraService {
     public LancamentoRazaoResponse registrar(String chave, LancamentoRazaoRequest request) {
         validarChave(chave);
         coordenacao.bloquear();
-        if (fechamentos.existsByInicioLessThanEqualAndFimGreaterThanEqualAndReabertoEmIsNull(
-            request.competencia(), request.competencia())) {
-            throw new ConflitoException("Periodo financeiro fechado");
-        }
         String payload = hash.hash(request.toString());
         var existente = razao.findByChaveIdempotencia(chave).orElse(null);
         if (existente != null) {
             if (!existente.getPayloadHash().equals(payload)) throw new ConflitoException("Chave reutilizada com dados diferentes");
             return toResponse(existente);
         }
+        var ocorridoEm = request.ocorridoEm() == null ? OffsetDateTime.now(ZoneId.of(zona)) : request.ocorridoEm();
+        validarDataAberta(request.competencia());
+        validarDataAberta(ocorridoEm.atZoneSameInstant(ZoneId.of(zona)).toLocalDate());
         if (request.tipo() == TipoLancamentoRazao.RECEITA || request.tipo() == TipoLancamentoRazao.ESTORNO) {
             throw new IllegalArgumentException("Receitas e estornos devem ser registrados pelo modulo de pagamentos");
         }
@@ -50,7 +49,7 @@ public class RazaoFinanceiraService {
         item.setTipo(request.tipo()); item.setDescricao(request.descricao().trim());
         item.setValor(request.valor().setScale(2, RoundingMode.HALF_UP));
         item.setCompetencia(request.competencia());
-        item.setOcorridoEm(request.ocorridoEm() == null ? OffsetDateTime.now(ZoneId.of(zona)) : request.ocorridoEm());
+        item.setOcorridoEm(ocorridoEm);
         item.setCliente(optional(clientes, request.clienteId()));
         item.setEntregador(optional(entregadores, request.entregadorId()));
         item.setEntrega(optional(entregas, request.entregaId()));
@@ -71,6 +70,9 @@ public class RazaoFinanceiraService {
         if (anterior.filter(FechamentoFinanceiro::fechado).isPresent()) {
             throw new ConflitoException("Periodo ja fechado");
         }
+        if (fechamentos.existsByInicioLessThanEqualAndFimGreaterThanEqualAndReabertoEmIsNull(fim, inicio)) {
+            throw new ConflitoException("Periodo sobreposto a outro fechamento ativo");
+        }
         var item = anterior.orElseGet(FechamentoFinanceiro::new);
         item.setReabertoEm(null);
         item.setMotivoReabertura(null);
@@ -80,6 +82,12 @@ public class RazaoFinanceiraService {
         auditoria.registrar("PERIODO_FINANCEIRO_FECHADO", "FECHAMENTO", item.getId(), null,
             Map.of("inicio", inicio, "fim", fim), null);
         return item.getId();
+    }
+
+    private void validarDataAberta(LocalDate data) {
+        if (fechamentos.existsByInicioLessThanEqualAndFimGreaterThanEqualAndReabertoEmIsNull(data, data)) {
+            throw new ConflitoException("Periodo financeiro fechado");
+        }
     }
 
     @Transactional

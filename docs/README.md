@@ -7,6 +7,8 @@
 
 ## Produção e continuidade
 
+- [Arquitetura alvo web + API](arquitetura-web-api.md)
+- [Backlog de estabilização web + API](backlog-estabilizacao-web-api.md)
 - [Deploy de homologação no Railway](deploy-railway-staging.md)
 - [Deploy de produção](deploy-producao.md)
 - [Backup e restauração](backup-restauracao.md)

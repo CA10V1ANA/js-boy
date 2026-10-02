@@ -1,0 +1,1 @@
+Quero consolidar a tarefa atual. Peça que eu explique em até quatro minutos o problema, o fluxo de arquivos, a regra de negócio, um erro possível e a validação que fizemos. Espere minha explicação antes de corrigir. Depois proponha uma pequena variação para eu implementar com menos ajuda, sem me entregar a solução inteira.

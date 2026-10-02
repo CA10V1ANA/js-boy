@@ -135,6 +135,7 @@ public class ClienteService {
         }
         auditar(request.ativo() ? "CLIENTE_ATIVADO" : "CLIENTE_DESATIVADO", id,
             Map.of("ativo", anterior), Map.of("ativo", cliente.isAtivo()), null);
+        clienteRepository.flush();
         return clienteMapper.toResponse(cliente);
     }
 

@@ -60,6 +60,10 @@ class EntregaServiceTest {
     private IdentidadeAtual identidadeAtual;
     @Mock
     private ComprovanteEntregaRepository comprovanteRepository;
+    @Mock
+    private ParadaEntregaService paradaService;
+    @Mock
+    private NotificacaoOutboxService notificacaoService;
 
     private EntregaService entregaService;
     private Usuario usuarioLogado;
@@ -69,9 +73,8 @@ class EntregaServiceTest {
         entregaService = new EntregaService(
             entregaRepository, clienteRepository, entregadorRepository,
             historicoEntregaRepository, configuracaoPrecoService, tabelaPrecoService, new EntregaMapper(),
-            identidadeAtual, new EntregaStatusPolicy(), org.mockito.Mockito.mock(ParadaEntregaService.class)
+            identidadeAtual, new EntregaStatusPolicy(), paradaService, notificacaoService, comprovanteRepository
         );
-        ReflectionTestUtils.setField(entregaService, "comprovanteRepository", comprovanteRepository);
 
         usuarioLogado = new Usuario();
         usuarioLogado.setId(UUID.randomUUID());
@@ -119,6 +122,7 @@ class EntregaServiceTest {
         assertThat(response.valorCalculado()).isEqualByComparingTo("20.00");
         assertThat(response.valorFinal()).isEqualByComparingTo("20.00");
         assertThat(response.status()).isEqualTo(StatusEntrega.SOLICITADA);
+        verify(paradaService).substituir(any(Entrega.class), org.mockito.ArgumentMatchers.isNull());
     }
 
     @Test
@@ -172,10 +176,18 @@ class EntregaServiceTest {
         when(entregaRepository.findByIdAndEntregadorUsuarioId(entrega.getId(), usuarioLogado.getId()))
             .thenReturn(Optional.of(entrega));
 
+        org.mockito.Mockito.doAnswer(invocation -> {
+            entrega.setVersion(3L);
+            return null;
+        }).when(entregaRepository).flush();
+
         var response = entregaService.alterarStatusMinhaEntrega(entrega.getId(), new EntregaStatusRequest(StatusEntrega.COLETADA));
 
         assertThat(response.status()).isEqualTo(StatusEntrega.COLETADA);
+        assertThat(response.versao()).isEqualTo(3L);
         verify(entregaRepository).flush();
+        verify(notificacaoService).enfileirar(org.mockito.ArgumentMatchers.eq(entrega),
+            org.mockito.ArgumentMatchers.eq("COLETADA"), org.mockito.ArgumentMatchers.startsWith("status:"));
     }
 
     @Test

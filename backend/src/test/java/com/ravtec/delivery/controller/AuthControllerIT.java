@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -35,6 +36,8 @@ class AuthControllerIT extends AbstractIntegrationTest {
 
     @BeforeEach
     void prepararProprietario() {
+        restTemplate.getRestTemplate().setRequestFactory(new JdkClientHttpRequestFactory());
+
         var usuario = usuarioRepository.findByEmail(OWNER_EMAIL).orElseGet(() -> {
             var novo = new Usuario();
             novo.setNome("Proprietario Integracao");

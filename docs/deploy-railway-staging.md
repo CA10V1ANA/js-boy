@@ -1,5 +1,11 @@
 # Deploy de homologação no Railway
 
+> **Topologia anterior.** Este runbook inclui frontend e PostgreSQL na Railway
+> e comprovantes em volume local. Para a decisão atual (web na Vercel, API na
+> Railway, PostgreSQL e arquivos no Supabase), consulte
+> [arquitetura web + API](arquitetura-web-api.md). Não aplique as etapas abaixo
+> ao novo ambiente sem revisão.
+
 Este runbook publica o painel React, a API Spring Boot, o PostgreSQL e o volume de comprovantes em um ambiente isolado de homologação. Ele não deve compartilhar banco, domínio ou segredos com produção.
 
 ## Pré-requisitos

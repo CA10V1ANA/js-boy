@@ -1,5 +1,10 @@
 # Implantação — homologação e produção
 
+> **Topologia anterior.** As variáveis e etapas abaixo presumem PostgreSQL e
+> comprovantes locais. A decisão atual usa Vercel, Railway e Supabase; veja
+> [arquitetura web + API](arquitetura-web-api.md). Este guia precisa ser
+> reconciliado antes de servir como procedimento de publicação.
+
 Este procedimento prepara a implantação; não executa deploy. Toda promoção para produção exige aprovação manual no ambiente protegido do GitHub.
 
 ## Ambientes

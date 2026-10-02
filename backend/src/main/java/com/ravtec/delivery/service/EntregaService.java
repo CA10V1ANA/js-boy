@@ -42,12 +42,12 @@ public class EntregaService {
     private final IdentidadeAtual identidadeAtual;
     private final EntregaStatusPolicy entregaStatusPolicy;
     private final ParadaEntregaService paradaService;
+    private final NotificacaoOutboxService notificacaoService;
+    private final com.ravtec.delivery.repository.ComprovanteEntregaRepository comprovanteRepository;
     private final VersionamentoService versionamento = new VersionamentoService();
     private final NormalizacaoService normalizacao = new NormalizacaoService();
     @Autowired(required = false)
     private AuditoriaService auditoriaService;
-    @Autowired(required = false)
-    private com.ravtec.delivery.repository.ComprovanteEntregaRepository comprovanteRepository;
 
     @Transactional(readOnly = true)
     public List<EntregaResponse> listar(String busca) {
@@ -171,6 +171,8 @@ public class EntregaService {
             entregaStatusPolicy.validarTransicao(statusAnterior, StatusEntrega.ENTREGADOR_DESIGNADO);
             entrega.setStatus(StatusEntrega.ENTREGADOR_DESIGNADO);
             registrarHistorico(entrega, statusAnterior, StatusEntrega.ENTREGADOR_DESIGNADO);
+            notificacaoService.enfileirar(entrega, StatusEntrega.ENTREGADOR_DESIGNADO.name(),
+                "status:" + entrega.getId() + ":" + UUID.randomUUID());
         }
         auditar(anteriorId == null ? "ENTREGADOR_DESIGNADO" : "ENTREGADOR_TROCADO", entrega,
             Map.of("entregadorId", valor(anteriorId)), Map.of("entregadorId", entregador.getId().toString()), null);
@@ -258,7 +260,7 @@ public class EntregaService {
         } else {
             entregaStatusPolicy.validarTransicao(anterior, destino);
         }
-        if (destino == StatusEntrega.ENTREGUE && comprovanteRepository != null
+        if (destino == StatusEntrega.ENTREGUE
             && !comprovanteRepository.existsEntregaFinalVerificada(entrega.getId())) {
             throw new IllegalStateException("Registre e valide o comprovante da parada final antes de concluir");
         }
@@ -273,6 +275,8 @@ public class EntregaService {
             entrega.setConcluidaEm(OffsetDateTime.now());
         }
         registrarHistorico(entrega, anterior, destino);
+        notificacaoService.enfileirar(entrega, destino.name(),
+            "status:" + entrega.getId() + ":" + UUID.randomUUID());
         auditar(destino == StatusEntrega.CANCELADA ? "ENTREGA_CANCELADA" : "STATUS_ALTERADO", entrega,
             Map.of("status", anterior.name()), Map.of("status", destino.name()), null);
         log.info("Status da entrega alterado: entregaId={} de={} para={}", entrega.getId(), anterior, destino);

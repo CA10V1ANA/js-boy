@@ -18,9 +18,11 @@
     <description>MVP do sistema de entregas da JS Boy</description>
 
     <properties>
+        <jsboy.build.directory>${project.basedir}/target</jsboy.build.directory>
         <java.version>21</java.version>
         <jjwt.version>0.12.6</jjwt.version>
         <lombok.version>1.18.42</lombok.version>
+        <aws.sdk.version>2.55.10</aws.sdk.version>
     </properties>
 
     <dependencies>
@@ -88,6 +90,16 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>${aws.sdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>url-connection-client</artifactId>
+            <version>${aws.sdk.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>runtime</scope>
@@ -138,6 +150,7 @@
     </dependencyManagement>
 
     <build>
+        <directory>${jsboy.build.directory}</directory>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

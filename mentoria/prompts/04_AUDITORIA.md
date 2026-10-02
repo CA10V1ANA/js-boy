@@ -1,0 +1,1 @@
+Leia mentoria/VALIDACAO.md e o estado atual. Audite somente as fases que marcamos como concluídas. Para cada critério, apresente evidência ou marque pendente/bloqueado. Não afirme que build, testes, deploy ou operação passaram sem executar ou ler evidência confiável. Faça uma pergunta curta de compreensão e proponha o próximo passo de maior valor.

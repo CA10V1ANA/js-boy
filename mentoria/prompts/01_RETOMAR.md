@@ -1,0 +1,1 @@
+Retome a mentoria do JS Boy. Leia mentoria/AGENTS.md e mentoria/MENTORIA_STATE.md. Confira o diff local e se a evidência anterior ainda corresponde ao código. Resuma o último resultado, a dúvida e o próximo passo em poucas linhas. Abra só os arquivos relevantes. Não reinicie o projeto nem repita perguntas já respondidas.

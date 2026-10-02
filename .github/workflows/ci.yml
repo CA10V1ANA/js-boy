@@ -2,6 +2,11 @@ name: CI
 
 on:
   workflow_call:
+    inputs:
+      web_api_only:
+        description: Validar somente web, API e infraestrutura no preparo desta entrega
+        type: boolean
+        default: false
   push:
     branches:
       - main
@@ -74,6 +79,7 @@ jobs:
         run: npm run build
 
   flutter:
+    if: ${{ inputs.web_api_only != true }}
     name: Flutter canônico
     runs-on: ubuntu-latest
     timeout-minutes: 25

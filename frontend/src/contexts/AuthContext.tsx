@@ -4,6 +4,7 @@ import {
   clearStoredAuth, getStoredRefreshToken, getStoredToken, getStoredUser,
   storeAuth, storeUser, UsuarioAutenticado,
 } from '../services/authStorage';
+import { clearFinancialIntents } from '../services/financialIntent';
 
 type LoginResponse = { token: string; refreshToken: string; usuario: UsuarioAutenticado };
 type AuthContextValue = {
@@ -37,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout() {
       const refreshToken = getStoredRefreshToken();
       if (refreshToken) void api.post('/auth/logout', { refreshToken }).catch(() => undefined);
+      clearFinancialIntents();
       clearStoredAuth(); setToken(null); setUsuario(null);
     },
   }), [token, usuario, carregando]);
