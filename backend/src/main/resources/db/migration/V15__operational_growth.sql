@@ -1,3 +1,4 @@
+-- V13 is already reserved for business contact data.
 alter table recorrencias_entrega add column gerada_ate date;
 create table trava_financeira (id integer primary key);
 insert into trava_financeira(id) values (1);
