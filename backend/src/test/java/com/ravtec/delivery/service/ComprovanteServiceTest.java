@@ -6,14 +6,17 @@ import static org.mockito.Mockito.*;
 import com.ravtec.delivery.entity.*;
 import com.ravtec.delivery.repository.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.access.AccessDeniedException;
 import javax.imageio.ImageIO;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.http.HttpHeaders;
 
 class ComprovanteServiceTest {
     private final ComprovanteEntregaRepository repository = mock(ComprovanteEntregaRepository.class);
@@ -60,14 +63,46 @@ class ComprovanteServiceTest {
     }
 
     @Test
-    void aceitaPdfPeloConteudoENaoPeloNome() {
+    void rejeitaNovoPdfMesmoComAssinaturaValida() {
         var arquivo = new MockMultipartFile("arquivo", "arquivo.bin", "application/octet-stream",
             "%PDF-1.4\nconteudo".getBytes());
-        var response = service.criar(entrega.getId(), null, TipoComprovante.COLETA,
-            "proof-pdf", arquivo, null, null, null, null, null, false, null);
-        assertThat(response.possuiArquivo()).isTrue();
-        assertThat(response.mimeType()).isEqualTo("application/pdf");
-        verify(storage).salvar(endsWith(".pdf"), any());
+        assertThatThrownBy(() -> service.criar(entrega.getId(), null, TipoComprovante.COLETA,
+            "proof-pdf", arquivo, null, null, null, null, null, false, null))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("JPEG ou PNG");
+        verify(storage, never()).salvar(any(), any());
+    }
+
+    @Test
+    void aceitaFotoJpegEPngReprocessadas() throws Exception {
+        for (var formato : new String[] {"jpeg", "png"}) {
+            var imagem = new BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB);
+            var bytes = new ByteArrayOutputStream();
+            ImageIO.write(imagem, formato, bytes);
+            var arquivo = new MockMultipartFile("arquivo", "foto.bin", "application/octet-stream", bytes.toByteArray());
+
+            var response = service.criar(entrega.getId(), null, TipoComprovante.COLETA,
+                "proof-" + formato, arquivo, null, null, null, null, null, false, null);
+
+            assertThat(response.possuiArquivo()).isTrue();
+            assertThat(response.mimeType()).isEqualTo("image/" + formato);
+        }
+        verify(storage, times(2)).salvar(any(), any());
+    }
+
+    @Test
+    void pdfJaExistenteEEntregueComoAnexo() {
+        var comprovante = new ComprovanteEntrega();
+        comprovante.setStorageKey("legacy.pdf");
+        comprovante.setMimeType("application/pdf");
+        var id = UUID.randomUUID();
+        when(repository.findByIdAndEntregaId(id, entrega.getId())).thenReturn(Optional.of(comprovante));
+        when(storage.abrir("legacy.pdf")).thenReturn(new ByteArrayInputStream("%PDF-1.4".getBytes()));
+
+        var response = service.baixar(entrega.getId(), id);
+
+        assertThat(response.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION))
+            .isEqualTo("attachment; filename=\"comprovante.pdf\"");
     }
 
     @Test
@@ -85,9 +120,8 @@ class ComprovanteServiceTest {
     }
 
     @Test
-    void removeArquivoQuandoPersistenciaFalhaForaDeTransacao() {
-        var arquivo = new MockMultipartFile("arquivo", "arquivo.pdf", "application/pdf",
-            "%PDF-1.4\nconteudo".getBytes());
+    void removeArquivoQuandoPersistenciaFalhaForaDeTransacao() throws Exception {
+        var arquivo = fotoPng();
         doThrow(new IllegalStateException("falha no banco")).when(repository).save(any());
 
         assertThatThrownBy(() -> service.criar(entrega.getId(), null, TipoComprovante.COLETA,
@@ -98,16 +132,26 @@ class ComprovanteServiceTest {
     }
 
     @Test
-    void rejeitaQuotaDeQuantidadeAntesDeGravarArquivo() {
+    void rejeitaQuotaDeQuantidadeAntesDeGravarArquivo() throws Exception {
         when(repository.countByEntregaIdAndSubstituidoPorIsNull(entrega.getId())).thenReturn(10L);
-        var arquivo = new MockMultipartFile("arquivo", "arquivo.pdf", "application/pdf",
-            "%PDF-1.4\nconteudo".getBytes());
+        var arquivo = fotoPng();
 
         assertThatThrownBy(() -> service.criar(entrega.getId(), null, TipoComprovante.COLETA,
             "proof-quota", arquivo, null, null, null, null, null, false, null))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("Limite de comprovantes");
         verify(storage, never()).salvar(any(), any());
+    }
+
+    @Test
+    void naoConsultaArquivoQuandoLeituraDaEntregaEProibida() {
+        var comprovanteId = UUID.randomUUID();
+        doThrow(new AccessDeniedException("sem acesso"))
+            .when(acesso).exigirLeitura(entrega.getId());
+
+        assertThatThrownBy(() -> service.baixar(entrega.getId(), comprovanteId))
+            .isInstanceOf(AccessDeniedException.class);
+        verifyNoInteractions(storage);
     }
 
     @Test
@@ -123,6 +167,12 @@ class ComprovanteServiceTest {
 
         verify(repository).save(argThat(item -> item.getDesafio() == desafioEntity
             && item.getVerificadoEm() != null && item.getParada() == parada));
+    }
+
+    private static MockMultipartFile fotoPng() throws Exception {
+        var bytes = new ByteArrayOutputStream();
+        ImageIO.write(new BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB), "png", bytes);
+        return new MockMultipartFile("arquivo", "foto.png", "image/png", bytes.toByteArray());
     }
 
 }

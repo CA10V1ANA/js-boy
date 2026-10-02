@@ -137,10 +137,13 @@ public class ComprovanteService {
         var c = repository.findByIdAndEntregaId(comprovanteId, entregaId)
             .orElseThrow(() -> new RecursoNaoEncontradoException("Comprovante não encontrado"));
         if (c.getStorageKey() == null) throw new RecursoNaoEncontradoException("Comprovante sem arquivo");
+        var disposicao = "application/pdf".equalsIgnoreCase(c.getMimeType())
+            ? "attachment; filename=\"comprovante.pdf\""
+            : "inline; filename=\"comprovante\"";
         return ResponseEntity.ok()
             .cacheControl(CacheControl.noStore())
             .contentType(MediaType.parseMediaType(c.getMimeType()))
-            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"comprovante\"")
+            .header(HttpHeaders.CONTENT_DISPOSITION, disposicao)
             .body(new InputStreamResource(armazenamento.abrir(c.getStorageKey())));
     }
 
@@ -152,7 +155,7 @@ public class ComprovanteService {
             byte[] bytes = arquivo.getBytes();
             if (bytes.length >= 5 && bytes[0] == '%' && bytes[1] == 'P' && bytes[2] == 'D'
                 && bytes[3] == 'F' && bytes[4] == '-') {
-                return new ArquivoValidado(bytes, "application/pdf", ".pdf");
+                throw new IllegalArgumentException("Envie uma foto JPEG ou PNG");
             }
             try (ImageInputStream input = ImageIO.createImageInputStream(new ByteArrayInputStream(bytes))) {
                 if (input == null) throw new IllegalArgumentException("Conteúdo do arquivo inválido");
