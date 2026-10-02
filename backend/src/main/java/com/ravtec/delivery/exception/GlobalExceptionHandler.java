@@ -39,16 +39,21 @@ public class GlobalExceptionHandler {
     ResponseEntity<ApiErrorResponse> handleIllegalState(IllegalStateException e, HttpServletRequest request) {
         return build(HttpStatus.CONFLICT, "Estado inválido", e.getMessage(), request);
     }
-    @ExceptionHandler({ConflitoException.class, ObjectOptimisticLockingFailureException.class})
-    ResponseEntity<ApiErrorResponse> handleConflict(Exception e, HttpServletRequest request) {
-        var mensagem = e instanceof ObjectOptimisticLockingFailureException
-            ? "Os dados foram alterados por outra pessoa. Recarregue e tente novamente" : e.getMessage();
-        return build(HttpStatus.CONFLICT, "Conflito", mensagem, request);
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    ResponseEntity<ApiErrorResponse> handleOptimisticLock(ObjectOptimisticLockingFailureException e, HttpServletRequest request) {
+        return buildWithCode(HttpStatus.CONFLICT, "Conflito",
+            "Os dados foram alterados por outra pessoa. Recarregue e tente novamente",
+            request, "OPTIMISTIC_LOCK");
+    }
+    @ExceptionHandler(ConflitoException.class)
+    ResponseEntity<ApiErrorResponse> handleConflict(ConflitoException e, HttpServletRequest request) {
+        return buildWithCode(HttpStatus.CONFLICT, "Conflito", e.getMessage(), request, e.getCodigo());
     }
     @ExceptionHandler(DataIntegrityViolationException.class)
     ResponseEntity<ApiErrorResponse> handleDataConflict(DataIntegrityViolationException e, HttpServletRequest request) {
-        return build(HttpStatus.CONFLICT, "Conflito",
-            "A operação conflita com dados existentes ou foi processada simultaneamente", request);
+        return buildWithCode(HttpStatus.CONFLICT, "Conflito",
+            "A operação conflita com dados existentes ou foi processada simultaneamente",
+            request, "INTEGRITY_VIOLATION");
     }
     @ExceptionHandler(LimiteRequisicoesException.class)
     ResponseEntity<ApiErrorResponse> handleRateLimit(LimiteRequisicoesException e, HttpServletRequest request) {
@@ -82,5 +87,11 @@ public class GlobalExceptionHandler {
     ) {
         return ResponseEntity.status(status)
             .body(new ApiErrorResponse(OffsetDateTime.now(), status.value(), error, message, request.getRequestURI()));
+    }
+    private ResponseEntity<ApiErrorResponse> buildWithCode(
+        HttpStatus status, String error, String message, HttpServletRequest request, String code
+    ) {
+        return ResponseEntity.status(status)
+            .body(new ApiErrorResponse(OffsetDateTime.now(), status.value(), error, message, request.getRequestURI(), code));
     }
 }

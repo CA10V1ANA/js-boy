@@ -77,14 +77,14 @@ public class PagamentoService {
             return pagamentoMapper.toResponse(existente);
         }
         if (entrega.getStatus() == com.ravtec.delivery.entity.StatusEntrega.CANCELADA) {
-            throw new ConflitoException("Entrega cancelada não pode receber novos pagamentos");
+            throw new ConflitoException("Entrega cancelada não pode receber novos pagamentos", "ENTREGA_CANCELADA");
         }
         var pagoEm = request.pagoEm() == null ? OffsetDateTime.now() : request.pagoEm();
         validarPeriodoAberto(pagoEm);
         var recebido = pagamentoRepository.somarSaldoPorEntrega(entrega.getId());
         var saldo = monetario(entrega.getValorFinal().subtract(recebido));
         if (valor.compareTo(saldo) > 0) {
-            throw new ConflitoException("Pagamento excede o saldo disponivel da entrega");
+            throw new ConflitoException("Pagamento excede o saldo disponivel da entrega", "SALDO_INSUFICIENTE");
         }
         var pagamento = new Pagamento();
         pagamento.setEntrega(entrega);
@@ -129,7 +129,7 @@ public class PagamentoService {
         var jaEstornado = pagamentoRepository.somarEstornosDoLancamento(original.getId());
         var disponivel = monetario(original.getValor().subtract(jaEstornado));
         if (valor.compareTo(disponivel) > 0) {
-            throw new ConflitoException("Estorno excede o valor liquido disponivel do pagamento");
+            throw new ConflitoException("Estorno excede o valor liquido disponivel do pagamento", "ESTORNO_EXCEDE_DISPONIVEL");
         }
         var estorno = new Pagamento();
         estorno.setEntrega(original.getEntrega());
