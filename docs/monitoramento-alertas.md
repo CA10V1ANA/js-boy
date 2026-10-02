@@ -9,7 +9,7 @@ Métricas iniciais:
 - Hikari/PostgreSQL: conexões, espera, timeout e indisponibilidade.
 - `jsboy.auth.login{result}`.
 - `jsboy.notifications.pending` e `jsboy.notifications.failed`.
-- erros de upload e sincronização mobile, a instrumentar por evento quando novos providers forem adicionados.
+- erros de upload, a instrumentar por evento quando novos providers forem adicionados.
 - idade do último backup bem-sucedido, publicada pelo executor de backup.
 
 Alertas:
@@ -21,4 +21,4 @@ Alertas:
 | SEV-3 | disco > 80%, backup > 26 h, pool > 80%, falhas login anormais | horário comercial |
 | SEV-4 | tendência/capacidade sem impacto | planejamento |
 
-Logs são JSON com timestamp, ambiente, serviço, nível, `correlation_id` e `user_id` quando autenticado. Frontend e mobile enviam `X-Correlation-ID`. Não registrar senha, JWT/refresh token, reset token, documentos completos, fotos, localização, payload integral ou PII desnecessária.
+Logs são JSON com timestamp, ambiente, serviço, nível, `correlation_id` e `user_id` quando autenticado. O frontend envia `X-Correlation-ID`. Não registrar senha, JWT/refresh token, reset token, documentos completos, fotos, localização, payload integral ou PII desnecessária.

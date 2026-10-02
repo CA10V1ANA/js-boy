@@ -20,7 +20,7 @@ Nunca reutilizar banco, bucket, chaves JWT, credenciais ou domínios entre ambie
 
 ## Segredos e variáveis
 
-Segredos obrigatórios: senha PostgreSQL, `JWT_SECRET` aleatório (mínimo 32 bytes), credenciais do storage privado, notificações e recuperação de senha, chave de criptografia de backup e assinatura mobile. Devem vir do secret manager/config tree, nunca de Git, imagem ou log.
+Segredos obrigatórios: senha PostgreSQL, `JWT_SECRET` aleatório (mínimo 32 bytes), credenciais do storage privado, notificações e recuperação de senha e chave de criptografia de backup. Devem vir do secret manager/config tree, nunca de Git, imagem ou log.
 
 Configuração não secreta:
 
@@ -76,4 +76,4 @@ Rollback de aplicação usa a imagem anterior somente quando a migration é retr
 - [ ] Artefatos, SBOM/auditorias e hashes arquivados.
 - [ ] Homologação aprovada; zero bloqueadores e críticos.
 
-Custos externos possíveis: hospedagem/containers, PostgreSQL gerenciado, object storage, CDN/WAF, monitoramento, e-mail/SMS/WhatsApp, domínio/certificado, backup separado e contas Apple/Google. Nenhum foi contratado.
+Custos externos possíveis: hospedagem/containers, PostgreSQL gerenciado, object storage, CDN/WAF, monitoramento, e-mail/SMS/WhatsApp, domínio/certificado e backup separado. Nenhum foi contratado.

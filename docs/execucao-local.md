@@ -2,11 +2,7 @@
 
 ## Aplicações do repositório
 
-O repositório contém backend Spring Boot, painel React e uma aplicação Flutter.
-A pasta Flutter canônica é `mobile/`, pois contém `lib/`, testes e projetos de
-plataforma. A duplicidade de `lib/`, `test/` e `pubspec.yaml` na raiz foi
-preservada para não apagar trabalho sem comprovação; CI e novos comandos Flutter
-devem usar somente `mobile/` até essa duplicidade ser resolvida.
+O repositório contém backend Spring Boot e painel React.
 
 ## Subir com Docker Compose
 
@@ -83,19 +79,7 @@ npm run dev
 `VITE_API_URL` pode apontar para a API local. Dados comerciais
 `VITE_BUSINESS_*` vazios não devem gerar telefone, endereço ou links fictícios.
 
-## Flutter canônico
 
-```powershell
-Set-Location mobile
-flutter pub get
-flutter analyze
-flutter test
-flutter run --dart-define=API_URL=http://10.0.2.2:8080
-```
-
-HTTP é permitido somente em builds/debug de desenvolvimento. Builds de release
-devem receber uma `API_URL` HTTPS e não devem habilitar tráfego em claro no
-manifest principal.
 
 ## Testes do backend
 

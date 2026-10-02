@@ -14,8 +14,6 @@ contido nele. O backend consulta o usuário e seus vínculos com `Cliente` ou
 
 ## Armazenamento atual
 
-- Mobile: o token deve permanecer no armazenamento seguro do sistema
-  (Keystore/Keychain).
 - Web: o token permanece temporariamente no `localStorage`. Isso o torna
   acessível a JavaScript executado na mesma origem e, portanto, vulnerável a
   roubo em caso de XSS.

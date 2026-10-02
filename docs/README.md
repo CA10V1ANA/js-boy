@@ -3,7 +3,6 @@
 ## Produto e operação
 
 - [Proposta ao cliente (P2)](p2-proposta-cliente.md)
-- [Homologação e release mobile](homologacao-release-mobile.md)
 
 ## Produção e continuidade
 
