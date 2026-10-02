@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import com.ravtec.delivery.entity.*;
+import com.ravtec.delivery.exception.ConflitoException;
 import com.ravtec.delivery.repository.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -17,6 +18,7 @@ import org.springframework.security.access.AccessDeniedException;
 import javax.imageio.ImageIO;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.http.HttpHeaders;
+import org.springframework.dao.DataIntegrityViolationException;
 
 class ComprovanteServiceTest {
     private final ComprovanteEntregaRepository repository = mock(ComprovanteEntregaRepository.class);
@@ -132,6 +134,19 @@ class ComprovanteServiceTest {
     }
 
     @Test
+    void lancaConflitoQuandoConstraintsDeBancoViolada() throws Exception {
+        var arquivo = fotoPng();
+        doThrow(new DataIntegrityViolationException("Constraint violation")).when(repository).save(any());
+
+        assertThatThrownBy(() -> service.criar(entrega.getId(), null, TipoComprovante.COLETA,
+            "proof-concorrente", arquivo, null, null, null, null, null, false, null))
+            .isInstanceOf(ConflitoException.class)
+            .hasMessageContaining("concorrencia");
+
+        verify(storage).excluir(any());
+    }
+
+    @Test
     void rejeitaQuotaDeQuantidadeAntesDeGravarArquivo() throws Exception {
         when(repository.countByEntregaIdAndSubstituidoPorIsNull(entrega.getId())).thenReturn(10L);
         var arquivo = fotoPng();
@@ -141,6 +156,29 @@ class ComprovanteServiceTest {
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("Limite de comprovantes");
         verify(storage, never()).salvar(any(), any());
+    }
+
+    @Test
+    void rejeitaCriacaoSeChaveIdempotenciaReutilizadaComDadosDiferentes() {
+        var comprovanteExistente = new ComprovanteEntrega();
+        comprovanteExistente.setId(UUID.randomUUID());
+        comprovanteExistente.setEntrega(entrega);
+        comprovanteExistente.setTipo(TipoComprovante.COLETA);
+
+        when(repository.findByEntregadorUsuarioIdAndChaveIdempotencia(
+            entrega.getEntregador().getUsuario().getId(), "chave-reutilizada"))
+            .thenReturn(Optional.of(comprovanteExistente));
+
+        // Mesma chave, dados iguais -> sucesso (retorna o existente)
+        var response = service.criar(entrega.getId(), null, TipoComprovante.COLETA,
+            "chave-reutilizada", null, null, null, null, null, null, false, null);
+        assertThat(response.id()).isEqualTo(comprovanteExistente.getId());
+
+        // Mesma chave, tipo diferente -> conflito
+        assertThatThrownBy(() -> service.criar(entrega.getId(), null, TipoComprovante.ENTREGA,
+            "chave-reutilizada", null, "João", null, "123", null, null, false, null))
+            .isInstanceOf(ConflitoException.class)
+            .hasMessageContaining("dados diferentes");
     }
 
     @Test

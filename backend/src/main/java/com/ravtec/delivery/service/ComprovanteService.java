@@ -3,6 +3,7 @@ package com.ravtec.delivery.service;
 import com.ravtec.delivery.dto.ComprovanteResponse;
 import com.ravtec.delivery.entity.*;
 import com.ravtec.delivery.exception.RecursoNaoEncontradoException;
+import com.ravtec.delivery.exception.ConflitoException;
 import com.ravtec.delivery.repository.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @Service
 @Slf4j
@@ -72,7 +74,15 @@ public class ComprovanteService {
         }
         var existente = repository.findByEntregadorUsuarioIdAndChaveIdempotencia(
             entrega.getEntregador().getUsuario().getId(), chaveIdempotencia);
-        if (existente.isPresent()) return toResponse(existente.get());
+        if (existente.isPresent()) {
+            var comp = existente.get();
+            if (!comp.getEntrega().getId().equals(entregaId)
+                || comp.getTipo() != tipo
+                || !Objects.equals(comp.getParada() == null ? null : comp.getParada().getId(), paradaId)) {
+                throw new ConflitoException("Idempotency-Key ja utilizada com dados diferentes", "IDEMPOTENCIA_CONFLITO_PAYLOAD");
+            }
+            return toResponse(comp);
+        }
         var entregador = entrega.getEntregador();
         DesafioComprovanteService.Confirmacao confirmacao = null;
         var parada = paradaId == null ? null : paradaRepository.findByIdAndEntregaId(paradaId, entregaId)
@@ -116,6 +126,11 @@ public class ComprovanteService {
             auditoriaService.registrar("COMPROVANTE_CRIADO", "ENTREGA", entregaId, null,
                 Map.of("comprovanteId", comprovante.getId(), "tipo", tipo.name()), null);
             return toResponse(comprovante);
+        } catch (DataIntegrityViolationException exception) {
+            if (chaveNova != null && !TransactionSynchronizationManager.isSynchronizationActive()) {
+                excluirSeguro(chaveNova);
+            }
+            throw new ConflitoException("Idempotency-Key em uso (concorrencia)", "IDEMPOTENCIA_CONFLITO");
         } catch (RuntimeException exception) {
             if (chaveNova != null && !TransactionSynchronizationManager.isSynchronizationActive()) {
                 excluirSeguro(chaveNova);
