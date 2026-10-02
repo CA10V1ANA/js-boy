@@ -3,6 +3,7 @@ package com.ravtec.delivery.service;
 import com.ravtec.delivery.dto.EntregaOperacionalResponse;
 import com.ravtec.delivery.dto.EntregaStatusRequest;
 import com.ravtec.delivery.entity.AcaoOffline;
+import com.ravtec.delivery.exception.ConflitoException;
 import com.ravtec.delivery.repository.AcaoOfflineRepository;
 import com.ravtec.delivery.security.IdentidadeAtual;
 import java.util.UUID;
@@ -28,6 +29,12 @@ public class SincronizacaoOfflineService {
         var usuario = identidadeAtual.usuario();
         var existente = repository.findByUsuarioIdAndChaveIdempotencia(usuario.getId(), chave);
         if (existente.isPresent()) {
+            var acao = existente.get();
+            if (!acao.getEntrega().getId().equals(entregaId)
+                || !"ALTERAR_STATUS".equals(acao.getAcao())
+                || !acao.getResultadoStatus().equals(request.status().name())) {
+                throw new ConflitoException("Idempotency-Key ja utilizada com dados diferentes");
+            }
             return entregaService.consultarMinhaEntrega(existente.get().getEntrega().getId());
         }
         var resposta = entregaService.alterarStatusMinhaEntrega(entregaId, request);
