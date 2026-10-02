@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { LoginFormData, loginSchema } from '../schemas/loginSchema';
 import { formatEmailInput } from '../utils/inputMasks';
@@ -83,6 +83,11 @@ export function LoginPage() {
                 {isSubmitting ? 'Entrando...' : 'Entrar'}
               </button>
             </form>
+            <p style={{ textAlign: 'center', marginTop: '0.75rem' }}>
+              <Link to="/esqueci-senha" style={{ color: 'var(--primary, #0066cc)', fontSize: '0.875rem' }}>
+                Esqueci minha senha
+              </Link>
+            </p>
           </section>
         </div>
       </section>

@@ -29,6 +29,8 @@ import { RastreamentoPage } from './pages/RastreamentoPage';
 import { PrivacidadePage } from './pages/PrivacidadePage';
 import { RazaoFinanceiraPage } from './pages/RazaoFinanceiraPage';
 import { PoliticaPrivacidadePage } from './pages/PoliticaPrivacidadePage';
+import { EsqueciSenhaPage } from './pages/EsqueciSenhaPage';
+import { RedefinirSenhaPage } from './pages/RedefinirSenhaPage';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 import { RoleRoute } from './routes/RoleRoute';
 import { roleHomePath } from './routes/roleHome';
@@ -54,6 +56,8 @@ const router = createBrowserRouter([
     ],
   },
   { path: '/login', element: <LoginPage /> },
+  { path: '/esqueci-senha', element: <EsqueciSenhaPage /> },
+  { path: '/redefinir-senha', element: <RedefinirSenhaPage /> },
   { path: '/rastrear/:token', element: <RastreamentoPage /> },
   {
     element: <ProtectedRoute />,
