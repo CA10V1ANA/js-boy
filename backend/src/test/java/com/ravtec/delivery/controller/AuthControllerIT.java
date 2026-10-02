@@ -61,7 +61,12 @@ class AuthControllerIT extends AbstractIntegrationTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().token()).isNotBlank();
+        assertThat(response.getBody().refreshToken()).isNull();
         assertThat(response.getBody().usuario().email()).isEqualTo(OWNER_EMAIL);
+
+        var cookies = response.getHeaders().get(HttpHeaders.SET_COOKIE);
+        assertThat(cookies).isNotNull().anyMatch(c -> c.contains("refresh_token="));
+        assertThat(cookies).anyMatch(c -> c.contains("HttpOnly"));
     }
 
     @Test
@@ -133,5 +138,42 @@ class AuthControllerIT extends AbstractIntegrationTest {
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    void deveRotacionarTokenUsandoCookie() {
+        var login = restTemplate.postForEntity(
+            "/auth/login", new LoginRequest(OWNER_EMAIL, OWNER_PASSWORD), LoginResponse.class
+        );
+        var setCookie = login.getHeaders().get(HttpHeaders.SET_COOKIE).get(0);
+        var refreshToken = setCookie.split(";")[0].split("=")[1];
+
+        var headers = new HttpHeaders();
+        headers.add(HttpHeaders.COOKIE, "refresh_token=" + refreshToken);
+
+        var response = restTemplate.exchange(
+            "/auth/refresh", HttpMethod.POST, new HttpEntity<>(null, headers), LoginResponse.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody().token()).isNotBlank();
+        assertThat(response.getBody().refreshToken()).isNull();
+
+        var newCookies = response.getHeaders().get(HttpHeaders.SET_COOKIE);
+        assertThat(newCookies).isNotNull().anyMatch(c -> c.contains("refresh_token="));
+    }
+
+    @Test
+    void deveFazerLogoutRemovendoCookie() {
+        var headers = new HttpHeaders();
+        headers.add(HttpHeaders.COOKIE, "refresh_token=fake-token");
+
+        var response = restTemplate.exchange(
+            "/auth/logout", HttpMethod.POST, new HttpEntity<>(null, headers), Void.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        var newCookies = response.getHeaders().get(HttpHeaders.SET_COOKIE);
+        assertThat(newCookies).isNotNull().anyMatch(c -> c.contains("refresh_token=") && c.contains("Max-Age=0"));
     }
 }

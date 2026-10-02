@@ -14,6 +14,9 @@ import org.springframework.security.authentication.*;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.HttpHeaders;
+import org.springframework.beans.factory.annotation.Value;
 
 @Slf4j
 @RestController
@@ -26,8 +29,21 @@ public class AuthController {
     private final RecuperacaoSenhaService recuperacaoSenhaService;
     private final MeterRegistry meterRegistry;
 
+    @Value("${app.security.refresh-days:30}")
+    private long refreshDays;
+
+    private ResponseCookie createRefreshCookie(String refreshToken, long maxAge) {
+        return ResponseCookie.from("refresh_token", refreshToken)
+            .httpOnly(true)
+            .secure(true)
+            .sameSite("Strict")
+            .path("/auth")
+            .maxAge(maxAge)
+            .build();
+    }
+
     @PostMapping("/login")
-    public LoginResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
         String email = request.email().trim().toLowerCase();
         tentativaLoginService.verificarOrigem(httpRequest.getRemoteAddr());
         try {
@@ -38,7 +54,11 @@ public class AuthController {
             meterRegistry.counter("jsboy.auth.login", "result", "success").increment();
             log.info("security_event=login result=success user_id={} profile={}",
                 principal.getId(), principal.getUsuario().getPerfilEfetivo());
-            return refreshTokenService.emitir(principal.getUsuario());
+            var fullResponse = refreshTokenService.emitir(principal.getUsuario());
+            var cookie = createRefreshCookie(fullResponse.refreshToken(), refreshDays * 24 * 60 * 60);
+            return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(new LoginResponse(fullResponse.token(), null, fullResponse.usuario()));
         } catch (AuthenticationException exception) {
             tentativaLoginService.falha(email);
             meterRegistry.counter("jsboy.auth.login", "result", "failure").increment();
@@ -48,14 +68,26 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public LoginResponse refresh(@Valid @RequestBody RefreshTokenRequest request) {
-        return refreshTokenService.rotacionar(request.refreshToken());
+    public ResponseEntity<LoginResponse> refresh(@CookieValue(name = "refresh_token", required = false) String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new BadCredentialsException("Sessão expirada ou não encontrada");
+        }
+        var fullResponse = refreshTokenService.rotacionar(refreshToken);
+        var cookie = createRefreshCookie(fullResponse.refreshToken(), refreshDays * 24 * 60 * 60);
+        return ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE, cookie.toString())
+            .body(new LoginResponse(fullResponse.token(), null, fullResponse.usuario()));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@Valid @RequestBody RefreshTokenRequest request) {
-        refreshTokenService.revogar(request.refreshToken());
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Void> logout(@CookieValue(name = "refresh_token", required = false) String refreshToken) {
+        if (refreshToken != null && !refreshToken.isBlank()) {
+            refreshTokenService.revogar(refreshToken);
+        }
+        var cookie = createRefreshCookie("", 0);
+        return ResponseEntity.noContent()
+            .header(HttpHeaders.SET_COOKIE, cookie.toString())
+            .build();
     }
 
     @PostMapping("/password/request")
