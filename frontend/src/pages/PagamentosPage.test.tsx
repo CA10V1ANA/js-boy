@@ -21,7 +21,7 @@ let payments: unknown[];
 describe('PagamentosPage: resposta perdida e reenvio', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    sessionStorage.clear();
+    localStorage.clear();
     payments = [];
     mockedUseAuth.mockReturnValue({
       token: 'token', usuario, autenticado: true, carregando: false,

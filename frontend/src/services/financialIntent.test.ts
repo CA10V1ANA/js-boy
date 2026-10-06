@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   clearFinancialIntents, createPaymentIntent, createRefundIntent,
   pendingPayment, pendingRefund,
@@ -13,10 +13,11 @@ const payload = {
 };
 
 describe('tentativas financeiras pendentes', () => {
-  beforeEach(() => sessionStorage.clear());
+  beforeEach(() => localStorage.clear());
 
   it('mantém chave e payload do pagamento após recarregar e impede nova intenção', () => {
     const intent = createPaymentIntent(userId, payload);
+    sessionStorage.clear(); // Fechar a aba não deve apagar a intenção persistida.
     expect(pendingPayment(userId)).toEqual(intent);
     expect(() => createPaymentIntent(userId, { ...payload, valor: 30 }))
       .toThrow('Existe um pagamento pendente');
@@ -38,5 +39,16 @@ describe('tentativas financeiras pendentes', () => {
     createPaymentIntent(userId, payload);
     expect(pendingPayment('69d826d9-865e-49a7-bcef-a868e77e7ff2')).toBeNull();
     expect(pendingPayment(userId)).toBeNull();
+  });
+
+  it('não prepara escrita quando o navegador não consegue persistir a chave', () => {
+    const storage = vi.spyOn(Storage.prototype, 'setItem')
+      .mockImplementation(() => { throw new DOMException('Quota excedida', 'QuotaExceededError'); });
+    try {
+      expect(() => createPaymentIntent(userId, payload)).toThrow('Quota excedida');
+      expect(pendingPayment(userId)).toBeNull();
+    } finally {
+      storage.mockRestore();
+    }
   });
 });

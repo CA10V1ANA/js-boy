@@ -635,11 +635,11 @@ export function MinhasEntregasPage() {
               </>
             ) : null}
             <label>
-              Foto ou PDF
+              Foto JPEG ou PNG
               <input
                 required
                 type="file"
-                accept="image/jpeg,image/png,application/pdf"
+                accept="image/jpeg,image/png"
                 onChange={(event) =>
                   setProof({ ...proof, file: event.target.files?.[0] || null })
                 }

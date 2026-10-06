@@ -1,10 +1,75 @@
 # Estabilização web + API — evidências e próximos passos
 
-Atualizado em 02/10/2026. Este registro acompanha o plano
+Atualizado em 06/10/2026. Este registro acompanha o plano
 `JS_BOY_ARQUITETURA_E_PLANO_DE_ENTREGA_2026.md`. A base examinada é `main`
-em `1e121184055a4c41e275b4ff5919bf56ce2870ff`, com alterações locais
-preexistentes ainda não validadas. Nenhuma conclusão abaixo atesta o ambiente
+em `71994dd28cf3154d7b84ef8e42cf3aa826af909e`, inicialmente limpa. A revisão
+original foi feita em `1e121184055a4c41e275b4ff5919bf56ce2870ff`;
+os registros de 01/10 abaixo são históricos. Nenhuma conclusão atesta o ambiente
 publicado.
+
+## Continuação local em 06/10
+
+O texto anexado foi lido até a seção 20.8. A branch já contém mudanças posteriores
+à análise original: fluxo de recuperação web, lock de reset, cookie de refresh,
+idempotência de comprovantes e intenção financeira em `localStorage`. A presença
+dessas mudanças não encerra seus critérios de aceite.
+
+- **A10:** corrigida a limpeza dos testes para `localStorage`. Os testes da página
+  verificam pagamento parcial e estorno com resposta perdida, remount e reenvio
+  com o mesmo payload, recurso e chave. A utilidade impede trocar o payload de
+  uma intenção pendente, separa usuários e rejeita preparação quando a persistência
+  falha. Ainda falta ensaio integrado de gravação real com perda de resposta,
+  concorrência entre abas e política de recuperação após logout/troca de usuário
+  (o código atual elimina a intenção nesses casos).
+- **T11/A06:** a API já recusa novos PDFs, reprocessa JPEG/PNG e entrega PDF antigo
+  como anexo. O seletor e o texto da web agora oferecem somente JPEG/PNG.
+  Persistência no bucket Supabase real e autorização em homologação continuam pendentes.
+- **T03:** restaurado `@testing-library/jest-dom/vitest` no setup. A combinação
+  instalada funciona nos testes executados; não é necessário pular testes ou
+  esperar uma atualização major do jest-dom. A execução com dois workers teve
+  timeout no cadastro de cliente; com um worker a suíte passou.
+- **T04:** a auditoria atual encontrou um novo alto em `source-map-js` 1.2.1.
+  Atualização isolada do lockfile para 1.2.2, sem mudança dos manifests ou outras
+  dependências. Fonte: [GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q).
+- **T15:** implementação presente, aceite pendente. `AuthController` emite refresh
+  com `SameSite=Strict`; a topologia Vercel/Railway em domínios distintos precisa
+  ser compatibilizada antes da homologação. A configuração ainda desabilita CSRF;
+  revisar conjuntamente transporte, origens, proteção das rotas com cookie,
+  renovação, logout e múltiplas abas. Não marcar sessão como homologada.
+- **T08:** o comprovante já bloqueia a entrega para atualização e compara
+  entrega/tipo/parada na repetição. Ainda falta comparar foto, recebedor,
+  assinatura, localização e observação; o nome do commit não comprova comparação
+  completa de payload. Concorrência em PostgreSQL continua como critério de saída.
+- **D01:** o HEAD atual já removeu o job Flutter do CI. A descrição histórica
+  abaixo sobre sua retenção não representa mais a branch. Nenhum trabalho mobile
+  foi realizado nesta continuação.
+- **W01:** Caio confirmou nesta continuação o uso de todo o ciclo no navegador:
+  consultar entregas, confirmar coleta/rota, pedir OTP, enviar foto, concluir
+  entrega e consultar extrato mensal. Essa confirmação define o escopo;
+  execução em celular real e perda de rede permanecem como aceite operacional.
+
+Validações locais nesta continuação:
+
+- Java 21.0.12.1, Maven 3.9.9, Docker 29.6.1: `mvn clean verify` com
+  `-Djsboy.build.directory=C:\Users\viana\AppData\Local\Temp\jsboy-verify-20261006`
+  passou: **107 testes da fase unitária (incluindo migrations em PostgreSQL 16)
+  e 13 de integração**, zero falhas, erros ou ignorados. Log local:
+  `C:\Users\viana\AppData\Local\Temp\jsboy-verify-20261006.log`.
+- Node 24.18.0: `npm ci` e `npm test -- --maxWorkers=1` passaram após a mudança
+  do lockfile: **29 testes em 10 arquivos**, nenhum ignorado.
+- `npm run build`, `npm audit --audit-level=high` e `git diff --check` passaram.
+  A auditoria ficou com **0 críticos/altos, 4 moderados e 1 baixo**; estes últimos
+  não foram resolvidos nesta mudança. O build mantém aviso de chunk maior que
+  500 kB (532.35 kB) e de tempo gasto no plugin CSS. Nenhum CI remoto ou scanner
+  Java/Trivy foi executado nesta continuação.
+
+Homologação, Supabase real, restore e publicação permanecem para a etapa posterior
+definida pelo responsável. Não houve alteração em migrations nesta continuação.
+
+## Registro histórico de 01–02/10
+
+Os estados nesta tabela descrevem aquela revisão; a continuação acima registra
+as mudanças e pendências verificadas em 06/10.
 
 | ID | Estado | Evidência nesta revisão | Próxima condição de saída |
 |---|---|---|---|

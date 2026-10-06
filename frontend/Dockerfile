@@ -3,11 +3,9 @@
 FROM node:22.12.0-alpine3.20 AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
-# npm can omit platform-specific optional packages when the lockfile was created
-# on another operating system. Install the required Alpine binding explicitly.
+# The lockfile includes the Alpine binding; keep installation reproducible.
 RUN npm ci --include=optional --no-audit --no-fund \
-    && npm install --no-save --package-lock=false --no-audit --no-fund \
-        @rolldown/binding-linux-x64-musl@1.1.5
+    && node -e "require.resolve('@rolldown/binding-linux-x64-musl')"
 COPY . .
 ARG VITE_API_URL=http://localhost:8080
 ARG VITE_BUSINESS_PHONE
