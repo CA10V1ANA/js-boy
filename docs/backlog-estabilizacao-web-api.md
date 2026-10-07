@@ -9,6 +9,57 @@ publicado.
 
 ## Continuação local em 06/10
 
+### T08 — comparação e concorrência de comprovantes
+
+Nova revisão iniciada no HEAD `8bf936e`, com alterações locais preexistentes de
+PIX/Mercado Pago. Não houve edição de migrations nem escrita em banco remoto.
+
+- `ComprovanteService` compara entrega, tipo, parada, recebedor, assinatura,
+  observação, consentimento, coordenadas e foto reprocessada (MIME, tamanho e
+  SHA-256) antes de aceitar uma repetição. Texto segue a limpeza existente;
+  coordenadas são comparadas na precisão de sete casas do banco.
+- Repetição idêntica devolve o mesmo comprovante, sem nova gravação de arquivo,
+  auditoria ou consumo de OTP. A parada final escolhida automaticamente na
+  primeira confirmação também é aceita no retry sem parada explícita.
+- Comprovantes novos verificados preservam o hash do OTP na coluna `otp_hash`
+  já existente. A repetição verifica esse snapshot; não depende do desafio
+  mutável/expirado. Registros antigos sem esse hash continuam sem recomparação
+  do OTP, preservando o comportamento anterior; campos e foto são comparados.
+- Acrescentados testes negativos para cada campo, foto divergente, foto idêntica,
+  normalização e retry após consumo do OTP. Testes de integração exercitam duas
+  transações simultâneas idênticas, payload divergente e acesso de outro
+  entregador com a mesma chave, usando autorização e locks reais em PostgreSQL;
+  somente o armazenamento externo é simulado.
+- Os 21 testes direcionados de comprovantes passaram. A primeira suíte completa
+  foi interrompida por erros nas alterações de PIX: mapeamento da coluna
+  `qr_code_copia_e_cola` e mock aninhado no teste. Os arquivos receberam correções
+  durante esta sessão; a validação completa está sendo repetida. Não se modificou
+  V17 para corrigir o mapeamento Java.
+- A repetição de `mvn clean verify` passou: **127 testes na fase unitária e 16
+  de integração**, nenhum falhou ou foi ignorado. Inclui os três casos novos de
+  `ComprovanteIdempotenciaIT` em PostgreSQL 16. Saída Maven isolada em
+  `C:\Users\viana\AppData\Local\Temp\jsboy-proof-20261006`; log completo em
+  `C:\Users\viana\AppData\Local\Temp\jsboy-proof-full-20261006.log`.
+- A web passou com **32 testes em 11 arquivos**, `npm run build` e
+  `npm audit --audit-level=high`: zero críticos/altos; permanecem quatro moderados
+  e um baixo, além do aviso de chunk acima de 500 kB. Essa rodada inclui as
+  mudanças locais preexistentes de PIX, sem chamada real ao provedor.
+- A reconstrução Docker do frontend concluiu (`Image js-boy-frontend Built`)
+  e o container local está saudável. Isso não valida uma publicação remota.
+- Há alterações paralelas na árvore: após a compilação dessa rodada surgiu
+  `MercadoPagoWebhookControllerTest`. Os totais acima descrevem a execução
+  registrada, não certificam arquivos acrescentados/modificados depois dela.
+  Antes de preparar release, fixar um commit e repetir seus gates completos.
+- Consulta Supabase somente de leitura nesta sessão retornou apenas
+  `CA10V1ANA's Project`, inativo. O projeto novo do JS Boy ainda não foi identificado;
+  conexão e Storage reais não foram testados.
+
+O fechamento desta correção local não encerra T08 inteiro: a concorrência dos
+endpoints de status offline permanece a validar. Homologação em celular, backup,
+restore, sessão/CORS/CSRF e gates do commit entregue continuam pendentes.
+
+### Evidências da primeira rodada de 06/10
+
 O texto anexado foi lido até a seção 20.8. A branch já contém mudanças posteriores
 à análise original: fluxo de recuperação web, lock de reset, cookie de refresh,
 idempotência de comprovantes e intenção financeira em `localStorage`. A presença
