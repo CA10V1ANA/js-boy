@@ -22,6 +22,7 @@ import {
   LoadingState,
 } from "../components/AsyncState";
 import { Modal } from "../components/Modal";
+import { PixPagamento } from "../components/PixPagamento";
 import { useToast } from "../contexts/ToastContext";
 import { ClienteFormData, clienteSchema } from "../schemas/clienteSchema";
 import { api } from "../services/api";
@@ -494,6 +495,7 @@ export function MinhasEntregasPage() {
                     </span>
                   </div>
                   <div className="roleDeliveryActions">
+                    {delivery.status !== 'CANCELADA' ? <PixPagamento entregaId={delivery.id} /> : null}
                     {!finished.includes(delivery.status) ? (
                       <button
                         className="secondaryButton"

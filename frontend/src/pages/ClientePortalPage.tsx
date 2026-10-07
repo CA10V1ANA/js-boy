@@ -24,6 +24,7 @@ import {
   LoadingState,
 } from "../components/AsyncState";
 import { Modal } from "../components/Modal";
+import { PixPagamento } from "../components/PixPagamento";
 import { api } from "../services/api";
 import { apiErrorMessage } from "../services/apiError";
 import {
@@ -327,6 +328,7 @@ export function ClientePortalPage() {
               </span>
             </div>
             <div className="roleDeliveryActions">
+              {delivery.status !== 'CANCELADA' ? <PixPagamento entregaId={delivery.id} /> : null}
               <button
                 className="secondaryButton"
                 type="button"

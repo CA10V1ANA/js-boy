@@ -2,6 +2,7 @@ import { Plus } from 'lucide-react';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { ConfirmDialog, EmptyState, ErrorState, FeedbackMessage, LoadingState } from '../components/AsyncState';
 import { Modal } from '../components/Modal';
+import { PixPagamento } from '../components/PixPagamento';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../services/api';
 import { apiErrorMessage } from '../services/apiError';
@@ -137,6 +138,11 @@ export function PagamentosPage() {
         <article className="metricCard"><span>Recebido líquido</span><strong>{money(report.valorRecebido)}</strong></article>
         <article className="metricCard"><span>Pendente</span><strong>{money(report.valorPendente)}</strong></article>
         <article className="metricCard"><span>Recebimentos</span><strong>{report.pagamentosRegistrados}</strong></article>
+      </section>
+      <section className="responsiveList" aria-label="Cobranças Pix">
+        {report.pendencias.map(p => <article className="userCard" key={p.entregaId}>
+          <strong>Pix · {p.entregaCodigo}</strong><PixPagamento entregaId={p.entregaId} />
+        </article>)}
       </section>
       {items.length === 0 ? <EmptyState title="Nenhum lançamento financeiro" /> : (
         <section className="responsiveList">
