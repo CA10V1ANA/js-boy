@@ -79,7 +79,7 @@ class PagamentoServiceTest {
         entrega.setCliente(cliente);
         entrega.setValorFinal(new BigDecimal("100.00"));
 
-        when(entregaFinanceiraRepository.buscarParaAtualizacao(entrega.getId()))
+        lenient().when(entregaFinanceiraRepository.buscarParaAtualizacao(entrega.getId()))
             .thenReturn(Optional.of(entrega));
         lenient().when(pagamentoRepository.saveAndFlush(any(Pagamento.class))).thenAnswer(invocation -> {
             var pagamento = invocation.getArgument(0, Pagamento.class);
@@ -185,6 +185,29 @@ class PagamentoServiceTest {
             null,
             "Teste"
         );
+    }
+
+    @Test
+    void bloqueiaRecebimentoManualComPixPendente() {
+        var cobrancas = org.mockito.Mockito.mock(com.ravtec.delivery.repository.CobrancaPixRepository.class);
+        org.springframework.test.util.ReflectionTestUtils.setField(service, "cobrancasPix", cobrancas);
+        var c = new com.ravtec.delivery.entity.CobrancaPix();
+        when(cobrancas.findByEntregaId(entrega.getId())).thenReturn(Optional.of(c));
+        assertThatThrownBy(() -> service.registrar("manual-pix-0001", request("50.00")))
+            .isInstanceOf(ConflitoException.class).hasMessageContaining("Pix pendente");
+        verify(pagamentoRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void bloqueiaEstornoManualDeRecebimentoMercadoPago() {
+        var cobrancas = org.mockito.Mockito.mock(com.ravtec.delivery.repository.CobrancaPixRepository.class);
+        org.springframework.test.util.ReflectionTestUtils.setField(service, "cobrancasPix", cobrancas);
+        var id = UUID.randomUUID();
+        when(cobrancas.existsByPagamentoId(id)).thenReturn(true);
+        assertThatThrownBy(() -> service.estornar(id, "refund-pix-0001",
+            new EstornoRequest(BigDecimal.ONE, "Teste"))).isInstanceOf(ConflitoException.class)
+            .hasMessageContaining("reembolso no provedor");
+        verify(pagamentoRepository, never()).saveAndFlush(any());
     }
 
     private Pagamento recebimento(String valor) {

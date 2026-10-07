@@ -59,6 +59,7 @@ public class SecurityConfig {
                     response.setStatus(403)))
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> {
+                auth.requestMatchers(org.springframework.http.HttpMethod.POST, "/api/webhooks/mercadopago").permitAll();
                 auth.requestMatchers("/auth/login", "/auth/refresh", "/auth/logout", "/auth/password/**", "/api/health", "/public/**").permitAll();
                 if (swaggerEnabled) {
                     auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll();

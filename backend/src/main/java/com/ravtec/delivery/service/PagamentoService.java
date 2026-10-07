@@ -47,6 +47,8 @@ public class PagamentoService {
     private AuditoriaService auditoriaService;
     @Autowired(required = false)
     private ControleFechamentoFinanceiroService controleFechamento;
+    @Autowired(required = false)
+    private com.ravtec.delivery.repository.CobrancaPixRepository cobrancasPix;
 
     @Transactional(readOnly = true)
     public List<PagamentoResponse> listar() {
@@ -75,6 +77,10 @@ public class PagamentoService {
         var existente = buscarIdempotente(chave, hash);
         if (existente != null) {
             return pagamentoMapper.toResponse(existente);
+        }
+        if (cobrancasPix != null && cobrancasPix.findByEntregaId(entrega.getId())
+            .filter(c -> "PENDENTE".equals(c.getStatus())).isPresent()) {
+            throw new ConflitoException("Entrega com cobrança Pix pendente. Concilie a cobrança antes do recebimento manual");
         }
         if (entrega.getStatus() == com.ravtec.delivery.entity.StatusEntrega.CANCELADA) {
             throw new ConflitoException("Entrega cancelada não pode receber novos pagamentos", "ENTREGA_CANCELADA");
@@ -108,6 +114,9 @@ public class PagamentoService {
 
     @Transactional
     public PagamentoResponse estornar(UUID pagamentoId, String idempotencyKey, EstornoRequest request) {
+        if (cobrancasPix != null && cobrancasPix.existsByPagamentoId(pagamentoId)) {
+            throw new ConflitoException("Pagamento Mercado Pago exige reembolso no provedor e conciliação financeira");
+        }
         var chave = validarChave(idempotencyKey);
         var originalSemLock = pagamentoRepository.findById(pagamentoId)
             .filter(item -> item.getTipo() == TipoLancamentoFinanceiro.RECEBIMENTO)
