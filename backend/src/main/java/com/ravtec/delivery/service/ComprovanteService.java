@@ -76,9 +76,22 @@ public class ComprovanteService {
             entrega.getEntregador().getUsuario().getId(), chaveIdempotencia);
         if (existente.isPresent()) {
             var comp = existente.get();
+            var arquivoRepetido = arquivo == null || arquivo.isEmpty() ? null : validarEReprocessar(arquivo);
+            // ENTREGA sem parada explícita usa a parada final resolvida na primeira tentativa.
+            boolean paradaIgual = Objects.equals(comp.getParada() == null ? null : comp.getParada().getId(), paradaId)
+                || (tipo == TipoComprovante.ENTREGA && paradaId == null && comp.getVerificadoEm() != null);
             if (!comp.getEntrega().getId().equals(entregaId)
                 || comp.getTipo() != tipo
-                || !Objects.equals(comp.getParada() == null ? null : comp.getParada().getId(), paradaId)) {
+                || !paradaIgual
+                || !Objects.equals(comp.getRecebedorNome(), limpar(recebedorNome))
+                || !Objects.equals(comp.getAssinatura(), limpar(assinatura))
+                || !Objects.equals(comp.getObservacao(), limpar(observacao))
+                || comp.isLocalizacaoConsentida() != consentimentoLocalizacao
+                || !coordenadaIgual(comp.getLatitude(), latitude)
+                || !coordenadaIgual(comp.getLongitude(), longitude)
+                || !arquivoIgual(comp, arquivoRepetido)
+                || (comp.getOtpHash() != null
+                    && (otp == null || !comp.getOtpHash().equals(hash(entregaId + ":" + otp.trim()))))) {
                 throw new ConflitoException("Idempotency-Key ja utilizada com dados diferentes", "IDEMPOTENCIA_CONFLITO_PAYLOAD");
             }
             return toResponse(comp);
@@ -106,6 +119,8 @@ public class ComprovanteService {
         comprovante.setAssinatura(limpar(assinatura));
         if (confirmacao != null) {
             comprovante.setDesafio(confirmacao.desafio());
+            // Snapshot: o desafio pode ser renovado depois; não consumir OTP no retry.
+            comprovante.setOtpHash(confirmacao.desafio().getCodigoHash());
             comprovante.setVerificadoEm(OffsetDateTime.now());
         }
         comprovante.setLatitude(latitude); comprovante.setLongitude(longitude);
@@ -264,5 +279,17 @@ public class ComprovanteService {
         catch (NoSuchAlgorithmException e) { throw new IllegalStateException(e); }
     }
     private String limpar(String value) { return value == null || value.isBlank() ? null : value.trim(); }
+    private boolean coordenadaIgual(BigDecimal armazenada, BigDecimal recebida) {
+        if (armazenada == null || recebida == null) return armazenada == recebida;
+        return armazenada.setScale(7, java.math.RoundingMode.HALF_UP)
+            .compareTo(recebida.setScale(7, java.math.RoundingMode.HALF_UP)) == 0;
+    }
+    private boolean arquivoIgual(ComprovanteEntrega comp, ArquivoValidado arquivo) {
+        if (arquivo == null) return comp.getStorageKey() == null;
+        return comp.getStorageKey() != null
+            && Objects.equals(comp.getMimeType(), arquivo.mime)
+            && Objects.equals(comp.getTamanhoBytes(), (long) arquivo.bytes.length)
+            && Objects.equals(comp.getSha256(), hash(arquivo.bytes));
+    }
     private record ArquivoValidado(byte[] bytes, String mime, String extensao) {}
 }

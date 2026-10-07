@@ -13,6 +13,10 @@ import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.access.AccessDeniedException;
 import javax.imageio.ImageIO;
@@ -211,6 +215,90 @@ class ComprovanteServiceTest {
         var bytes = new ByteArrayOutputStream();
         ImageIO.write(new BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB), "png", bytes);
         return new MockMultipartFile("arquivo", "foto.png", "image/png", bytes.toByteArray());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"recebedor", "assinatura", "observacao", "latitude", "longitude", "consentimento", "foto"})
+    void rejeitaPayloadDivergenteSemGravarOuConsumirOtp(String campo) {
+        var comp = existente();
+        switch (campo) {
+            case "recebedor" -> comp.setRecebedorNome("Outra pessoa");
+            case "assinatura" -> comp.setAssinatura("outra assinatura");
+            case "observacao" -> comp.setObservacao("outra observacao");
+            case "latitude" -> comp.setLatitude(new BigDecimal("-3.9"));
+            case "longitude" -> comp.setLongitude(null);
+            case "consentimento" -> comp.setLocalizacaoConsentida(false);
+            case "foto" -> comp.setStorageKey("foto-existente.png");
+        }
+        assertThatThrownBy(() -> repetirCompleto(null))
+            .isInstanceOf(ConflitoException.class).hasMessageContaining("dados diferentes");
+        verify(repository, never()).save(any());
+        verifyNoInteractions(storage, desafio, auditoria);
+    }
+
+    @Test
+    void retryComFotoIdenticaConservaRegistroERejeitaFotoDiferente() throws Exception {
+        var foto = fotoPng();
+        var primeiro = service.criar(entrega.getId(), null, TipoComprovante.COLETA,
+            "retry", foto, "Maria", "assinatura", null, new BigDecimal("-3.7"),
+            new BigDecimal("-38.5"), true, "observacao");
+        var captura = org.mockito.ArgumentCaptor.forClass(ComprovanteEntrega.class);
+        verify(repository).save(captura.capture());
+        when(repository.findByEntregadorUsuarioIdAndChaveIdempotencia(any(), any()))
+            .thenReturn(Optional.of(captura.getValue()));
+        assertThat(repetirCompleto(foto).id()).isEqualTo(primeiro.id());
+        var imagem = new BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB);
+        imagem.setRGB(0, 0, 0xFF0000);
+        var bytes = new ByteArrayOutputStream();
+        ImageIO.write(imagem, "png", bytes);
+        var outra = new MockMultipartFile("arquivo", "foto.png", "image/png", bytes.toByteArray());
+        assertThatThrownBy(() -> repetirCompleto(outra)).isInstanceOf(ConflitoException.class);
+        verify(repository, times(1)).save(any());
+        verify(storage, times(1)).salvar(any(), any());
+    }
+
+    @Test
+    void normalizaTextoEPrecisaoDoBancoNoRetrySemArquivo() {
+        var comp = existente();
+        var resposta = service.criar(entrega.getId(), null, TipoComprovante.COLETA, "retry", null,
+            " Maria ", " assinatura ", null, new BigDecimal("-3.700000001"),
+            new BigDecimal("-38.5000000"), true, " observacao ");
+        assertThat(resposta.id()).isEqualTo(comp.getId());
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void retryDeEntregaComParadaAutomaticaNaoConsomeCodigoNovamente() {
+        var comp = existente();
+        comp.setTipo(TipoComprovante.ENTREGA);
+        var parada = new ParadaEntrega(); parada.setId(UUID.randomUUID());
+        comp.setParada(parada);
+        comp.setVerificadoEm(OffsetDateTime.now().minusDays(1));
+        comp.setOtpHash(new TokenSeguroService().hash(entrega.getId() + ":123456"));
+        var response = service.criar(entrega.getId(), null, TipoComprovante.ENTREGA, "retry", null,
+            "Maria", "assinatura", "123456", new BigDecimal("-3.7"), new BigDecimal("-38.5"), true, "observacao");
+        assertThat(response.id()).isEqualTo(comp.getId());
+        assertThatThrownBy(() -> service.criar(entrega.getId(), null, TipoComprovante.ENTREGA, "retry", null,
+            "Maria", "assinatura", "654321", new BigDecimal("-3.7"), new BigDecimal("-38.5"), true, "observacao"))
+            .isInstanceOf(ConflitoException.class);
+        verifyNoInteractions(desafio, storage);
+        verify(repository, never()).save(any());
+    }
+
+    private ComprovanteEntrega existente() {
+        var comp = new ComprovanteEntrega(); comp.setId(UUID.randomUUID());
+        comp.setEntrega(entrega); comp.setTipo(TipoComprovante.COLETA);
+        comp.setRecebedorNome("Maria"); comp.setAssinatura("assinatura"); comp.setObservacao("observacao");
+        comp.setLatitude(new BigDecimal("-3.7")); comp.setLongitude(new BigDecimal("-38.5"));
+        comp.setLocalizacaoConsentida(true);
+        when(repository.findByEntregadorUsuarioIdAndChaveIdempotencia(any(), any()))
+            .thenReturn(Optional.of(comp));
+        return comp;
+    }
+
+    private com.ravtec.delivery.dto.ComprovanteResponse repetirCompleto(MockMultipartFile foto) {
+        return service.criar(entrega.getId(), null, TipoComprovante.COLETA, "retry", foto,
+            "Maria", "assinatura", null, new BigDecimal("-3.7"), new BigDecimal("-38.5"), true, "observacao");
     }
 
 }
