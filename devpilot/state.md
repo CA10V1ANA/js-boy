@@ -1,5 +1,16 @@
 # Estado do JS Boy
 
+## Acompanhamento do PR #2
+
+- Os cinco commits da implementação/revisão foram enviados para `origin/work` a pedido do usuário; PR #2 aberto para `main`.
+- CI remoto do primeiro candidato: Backend, Frontend, configuração local e migrations aprovados.
+- Logs confirmaram Gitleaks sem `GITHUB_TOKEN` para PR e Trivy bloqueado por HTTP 429 no Maven Central.
+- Corrigidos token automático/permissão de leitura do PR e preparação/cache Maven antes do Trivy, em commits separados em português. Sem comentários automáticos do Gitleaks.
+- `dependency:resolve` executado com sucesso localmente; YAML, permissões do workflow reutilizável e diff validados. Resultados remotos do novo candidato ainda devem ser conferidos.
+- Cloudflare Workers é uma integração externa à topologia Vercel/Railway/Supabase. O check fornece somente link para o painel; não houve acesso nem alteração dessa integração.
+
+## Registro da implementação e revisão local
+
 - Projeto: JS Boy (`CA10V1ANA/js-boy`), checkout `/workspace/js-boy`, branch `work`, base `e0d05d1`; sem alterações preexistentes.
 - DevPilot importado com proveniência em INTEGRACAO.md; skills locais aplicadas à implementação e revisão completa solicitadas.
 - Pix direto/dinheiro, confirmação autorizada/idempotente, saldo/estorno e finalização condicionada às paradas implementados; histórico preservado, emissão nova MP e exigências foto/OTP retiradas.
