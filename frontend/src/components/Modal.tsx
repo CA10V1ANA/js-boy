@@ -1,5 +1,6 @@
 import { MouseEvent, ReactNode, useEffect, useId, useRef } from 'react';
 import { X } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 type ModalProps = {
   open: boolean;
@@ -21,7 +22,8 @@ export function Modal({ open, onClose, eyebrow, title, children, footer, maxWidt
     if (!open) return undefined;
     closeRef.current?.focus();
     function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === 'Escape') onCloseRef.current();
+      const dialogs = document.querySelectorAll('.modalPanel');
+      if (event.key === 'Escape' && closeRef.current?.closest('.modalPanel') === dialogs[dialogs.length - 1]) onCloseRef.current();
     }
     document.addEventListener('keydown', closeOnEscape);
     return () => document.removeEventListener('keydown', closeOnEscape);
@@ -33,7 +35,7 @@ export function Modal({ open, onClose, eyebrow, title, children, footer, maxWidt
     event.stopPropagation();
   }
 
-  return (
+  return createPortal(
     <div className="modalOverlay" role="presentation" onClick={onClose}>
       <div className="modalPanel" role="dialog" aria-modal="true" aria-labelledby={titleId} style={{ maxWidth }} onClick={stop}>
         <div className="modalHeader">
@@ -48,6 +50,6 @@ export function Modal({ open, onClose, eyebrow, title, children, footer, maxWidt
         <div className="modalBody">{children}</div>
         {footer ? <div className="modalFooter">{footer}</div> : null}
       </div>
-    </div>
+    </div>, document.body
   );
 }

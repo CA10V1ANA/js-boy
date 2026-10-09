@@ -5,6 +5,7 @@ import { getStoredUser } from '../services/authStorage';
 import { clearReceiptIntent, createReceiptIntent, pendingReceipt, PendingReceipt } from '../services/financialIntent';
 import { Parada, Recebimento } from '../types';
 import { ConfirmDialog } from './AsyncState';
+import { Modal } from './Modal';
 
 const money = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
@@ -23,6 +24,8 @@ export function OperacaoEntrega({ entregaId, versao, perfil = 'CLIENTE', onChang
   const [occurrenceOpen, setOccurrenceOpen] = useState(false);
   const [discardOpen, setDiscardOpen] = useState(false);
   const [conclusao, setConclusao] = useState({ recebedorNome: '', observacao: '' });
+  const [paradaConclusao, setParadaConclusao] = useState<Parada | null>(null);
+  const [conclusaoError, setConclusaoError] = useState('');
   const intent = useRef<PendingReceipt | null>(null);
   const sending = useRef(false);
 
@@ -116,16 +119,17 @@ export function OperacaoEntrega({ entregaId, versao, perfil = 'CLIENTE', onChang
   async function concluir(parada: Parada) {
     if (sending.current) return;
     const recebedorNome = conclusao.recebedorNome.trim();
-    if (parada.tipo === 'ENTREGA' && !recebedorNome) { setError('Informe quem recebeu a entrega.'); return; }
-    sending.current = true; setBusy(true); setError('');
+    if (parada.tipo === 'ENTREGA' && !recebedorNome) { setConclusaoError('Informe quem recebeu a entrega.'); return; }
+    sending.current = true; setBusy(true); setConclusaoError('');
     try {
       await api.post(`/rotas/entregas/${entregaId}/paradas/${parada.id}/concluir`, {
         recebedorNome: parada.tipo === 'ENTREGA' ? recebedorNome : null,
         observacao: conclusao.observacao.trim() || null,
       }, { headers: { 'If-Match': String(parada.versao) } });
       setConclusao({ recebedorNome: '', observacao: '' });
+      setParadaConclusao(null);
       await load(); onChange?.();
-    } catch (reason) { setError(apiErrorMessage(reason, 'Não foi possível concluir a parada.')); }
+    } catch (reason) { setConclusaoError(apiErrorMessage(reason, 'Não foi possível concluir a parada.')); }
     finally { sending.current = false; setBusy(false); }
   }
 
@@ -209,21 +213,14 @@ export function OperacaoEntrega({ entregaId, versao, perfil = 'CLIENTE', onChang
           {parada.recebedorNome ? <p>Recebido por {parada.recebedorNome}</p> : null}
           {parada.observacaoConclusao ? <p>Observação: {parada.observacaoConclusao}</p> : null}
           {perfil !== 'CLIENTE' && proxima?.id === parada.id && !financeiro.pendencia?.startsWith('Entrega encerrada') ?
-            <div className="settingsForm stopConclusion">
-              {parada.tipo === 'ENTREGA' ? <label>Quem recebeu
-                <input id={`recebedor-${parada.id}`} maxLength={140} required value={conclusao.recebedorNome}
-                  placeholder={parada.contatoNome || 'Nome de quem recebeu'}
-                  onChange={e => setConclusao({ ...conclusao, recebedorNome: e.target.value })} />
-              </label> : null}
-              <label>Observação <small>(opcional)</small>
-                <textarea id={`observacao-${parada.id}`} rows={2} maxLength={500} value={conclusao.observacao}
-                  onChange={e => setConclusao({ ...conclusao, observacao: e.target.value })} />
-              </label>
-              <button className="secondaryButton" type="button" disabled={busy || (parada.tipo === 'ENTREGA' && !conclusao.recebedorNome.trim())}
-                onClick={() => void concluir(parada)}>
-                {parada.tipo === 'COLETA' ? 'Confirmar coleta' : 'Concluir parada'}
-              </button>
-            </div> : null}
+            <button className="secondaryButton" type="button" disabled={busy}
+              onClick={() => {
+                setConclusao({ recebedorNome: '', observacao: '' });
+                setConclusaoError('');
+                setParadaConclusao(parada);
+              }}>
+              {parada.tipo === 'COLETA' ? 'Confirmar coleta' : 'Comprovante de entrega'}
+            </button> : null}
         </li>)}
       </ol>
       {paradas.length === 0 ? <p>Rota ainda não cadastrada. Procure o proprietário.</p> : null}
@@ -239,5 +236,32 @@ export function OperacaoEntrega({ entregaId, versao, perfil = 'CLIENTE', onChang
         </div> : null}
       </> : null}
     </> : null}
+    <Modal open={paradaConclusao !== null} onClose={() => { if (!busy) setParadaConclusao(null); }}
+      eyebrow="Documentação da entrega" title="Comprovante de entrega">
+      {paradaConclusao ? <form className="settingsForm" onSubmit={event => {
+        event.preventDefault(); void concluir(paradaConclusao);
+      }}>
+        <div className="paymentSummary">
+          <small>Parada selecionada</small>
+          {paradaConclusao.contatoNome ? <p><strong>{paradaConclusao.contatoNome}</strong></p> : null}
+          <p>{paradaConclusao.endereco}</p>
+          <p>Tipo: {paradaConclusao.tipo === 'COLETA' ? 'Coleta' : 'Entrega'}</p>
+        </div>
+        {conclusaoError ? <p role="alert" className="errorMessage">{conclusaoError}</p> : null}
+        {paradaConclusao.tipo === 'ENTREGA' ? <label>Quem recebeu
+          <input maxLength={140} required disabled={busy} value={conclusao.recebedorNome}
+            placeholder="Nome da pessoa que recebeu"
+            onChange={event => setConclusao({ ...conclusao, recebedorNome: event.target.value })} />
+        </label> : null}
+        <label>Observação <small>(opcional)</small>
+          <textarea rows={3} maxLength={500} disabled={busy} value={conclusao.observacao}
+            onChange={event => setConclusao({ ...conclusao, observacao: event.target.value })} />
+        </label>
+        <button className="primaryButton" type="submit"
+          disabled={busy || (paradaConclusao.tipo === 'ENTREGA' && !conclusao.recebedorNome.trim())}>
+          {busy ? 'Registrando...' : paradaConclusao.tipo === 'COLETA' ? 'Registrar coleta' : 'Registrar comprovante'}
+        </button>
+      </form> : null}
+    </Modal>
   </section>;
 }
