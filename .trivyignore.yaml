@@ -1,0 +1,21 @@
+# Apenas dois recursos ausentes; pacote e versão exatos. Reavaliar até 08/11/2026.
+# Evidências e limites: docs/diagnostico-checks-pr-2.md; gate SuperficieRestTest obrigatório.
+vulnerabilities:
+  - id: CVE-2026-47884
+    purls:
+      - pkg:maven/org.springframework/spring-webmvc@6.2.19
+    expired_at: 2026-11-08
+    statement: >-
+      Não aplicável à API REST revisada: ausência de XsltView e renderização implícita
+      de views. SuperficieRestTest verifica os handlers e fontes de todos os perfis.
+      Fonte do fabricante https://spring.io/security/cve-2026-47884;
+      evidência docs/diagnostico-checks-pr-2.md. Não é correção da biblioteca.
+  - id: CVE-2026-47890
+    purls:
+      - pkg:maven/org.springframework/spring-webmvc@6.2.19
+    expired_at: 2026-11-08
+    statement: >-
+      Não aplicável à API REST revisada: ausência de SSE com fragmentos de views.
+      SuperficieRestTest verifica fontes de todos os perfis e handlers REST.
+      Fonte do fabricante https://spring.io/security/cve-2026-47890;
+      evidência docs/diagnostico-checks-pr-2.md. Não é correção da biblioteca.
