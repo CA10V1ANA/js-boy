@@ -1,11 +1,14 @@
 import { ArrowRight, Ban, Check, History, MapPinned, Pencil, Plus, Search, UserRoundCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { OperacaoEntrega } from '../components/OperacaoEntrega';
+import { EditorRota, novoLocal, enderecoLocal, payloadLocal } from '../components/EditorRota';
+import { apiErrorMessage } from '../services/apiError';
 import { Modal } from '../components/Modal';
 import { TableActions } from '../components/TableActions';
 import { useToast } from '../contexts/ToastContext';
 import { api } from '../services/api';
-import { Cliente, ConfiguracaoPreco, Entrega, EntregaForm, Entregador, StatusEntrega, TabelaPreco } from '../types';
-import { publicDeliveryCode, titleCase } from '../utils/display';
+import { Cliente, ConfiguracaoPreco, Entrega, EntregaForm, Entregador, StatusEntrega, LocalRota, Parada, TabelaPreco } from '../types';
+import { titleCase } from '../utils/display';
 import { formatPhone, onlyDigits } from '../utils/inputMasks';
 
 const emptyForm: EntregaForm = {
@@ -25,7 +28,7 @@ const emptyForm: EntregaForm = {
   tipoVeiculo: 'MOTO',
   tempoEsperaMinutos: '0',
   possuiRetorno: false,
-  valorNegociado: '',
+  valorNegociado: '', formaPagamento: 'PIX',
 };
 
 const statusOptions: StatusEntrega[] = [
@@ -35,7 +38,6 @@ const statusOptions: StatusEntrega[] = [
   'ENTREGADOR_DESIGNADO',
   'COLETADA',
   'EM_ROTA',
-  'ENTREGUE',
   'CANCELADA',
 ];
 
@@ -90,6 +92,11 @@ export function EntregasPage() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [wizardStep, setWizardStep] = useState(1);
   const [form, setForm] = useState<EntregaForm>(emptyForm);
+  const [locais, setLocais] = useState<LocalRota[]>([]);
+  const [operacao, setOperacao] = useState<Entrega | null>(null);
+  const [rotaEdit, setRotaEdit] = useState<LocalRota[] | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [routeError, setRouteError] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const [statusModalEntrega, setStatusModalEntrega] = useState<Entrega | null>(null);
@@ -113,6 +120,7 @@ export function EntregasPage() {
         params: search ? { busca: search } : undefined,
       });
       setEntregas(response.data);
+      setOperacao(current => current ? response.data.find(item => item.id === current.id) || null : null);
     } catch {
       showToast('Não foi possível carregar as entregas.', 'error');
     }
@@ -148,6 +156,7 @@ export function EntregasPage() {
 
   function abrirWizardNovo() {
     setForm(emptyForm);
+    setLocais([]);
     setEditingId(null);
     setWizardStep(1);
     setWizardOpen(true);
@@ -155,6 +164,7 @@ export function EntregasPage() {
 
   function abrirWizardEdicao(entrega: Entrega) {
     setEditingId(entrega.id);
+    setLocais([]);
     setForm({
       clienteId: entrega.clienteId,
       entregadorId: entrega.entregadorId || '',
@@ -172,7 +182,8 @@ export function EntregasPage() {
       tipoVeiculo: entrega.tipoVeiculo === 'CARRO' ? 'CARRO' : 'MOTO',
       tempoEsperaMinutos: String(entrega.tempoEsperaMinutos || 0),
       possuiRetorno: Boolean(entrega.possuiRetorno),
-      valorNegociado: entrega.valorNegociado ? String(entrega.valorNegociado) : '',
+      valorNegociado: entrega.valorNegociado != null ? String(entrega.valorNegociado) : '',
+      formaPagamento: entrega.formaPagamento === 'DINHEIRO' ? 'DINHEIRO' : 'PIX',
     });
     setWizardStep(1);
     setWizardOpen(true);
@@ -197,8 +208,18 @@ export function EntregasPage() {
   }
 
   async function finalizarWizard() {
+    if (saving) return;
+    if (locais.length && (!locais.every(p => p.logradouro.trim() && p.bairro.trim() && (p.semNumero || p.numero.trim()))
+      || locais[0].tipo !== 'COLETA' || locais[locais.length - 1].tipo !== 'ENTREGA')) {
+      showToast('Preencha endereço, bairro e número ou S/N; comece por coleta e termine com entrega.', 'error'); return;
+    }
+    if (locais.length > 2 && !form.valorNegociado) {
+      showToast('Informe o valor negociado para os vários locais.', 'error'); return;
+    }
+    setSaving(true);
     const payload = {
       ...form,
+      paradas: !editingId && locais.length ? locais.map(payloadLocal) : undefined,
       entregadorId: form.entregadorId || null,
       destinatarioTelefone: onlyDigits(form.destinatarioTelefone),
       distanciaKm: Number(form.distanciaKm),
@@ -218,9 +239,9 @@ export function EntregasPage() {
 
       fecharWizard();
       await carregarEntregas();
-    } catch {
-      showToast('Revise os dados da entrega e tente novamente.', 'error');
-    }
+    } catch (reason) {
+      showToast(apiErrorMessage(reason, 'Revise os dados da entrega e tente novamente.'), 'error');
+    } finally { setSaving(false); }
   }
 
   async function alterarStatus(entrega: Entrega, status: StatusEntrega) {
@@ -228,8 +249,8 @@ export function EntregasPage() {
       await api.patch(`/entregas/${entrega.id}/status`, { status }, { headers: { 'If-Match': String(entrega.versao) } });
       showToast('Status atualizado.', 'success');
       await carregarEntregas();
-    } catch {
-      showToast('Não foi possível atualizar o status.', 'error');
+    } catch (reason) {
+      showToast(apiErrorMessage(reason, 'Não foi possível atualizar o status.'), 'error');
     }
   }
 
@@ -238,9 +259,48 @@ export function EntregasPage() {
       await api.patch(`/entregas/${entrega.id}/entregador`, { entregadorId }, { headers: { 'If-Match': String(entrega.versao) } });
       showToast('Entregador designado.', 'success');
       await carregarEntregas();
-    } catch {
-      showToast('Não foi possível designar o entregador.', 'error');
+    } catch (reason) {
+      showToast(apiErrorMessage(reason, 'Não foi possível designar o entregador.'), 'error');
     }
+  }
+
+  function definirLocais(value: LocalRota[]) {
+    setLocais(value);
+    const primeira = value[0], ultima = value[value.length - 1];
+    if (primeira && ultima) setForm(current => ({ ...current,
+      enderecoOrigem: enderecoLocal(primeira), bairroOrigem: primeira.bairro,
+      enderecoDestino: enderecoLocal(ultima), bairroDestino: ultima.bairro,
+      destinatarioNome: ultima.contatoNome || current.destinatarioNome,
+      destinatarioTelefone: ultima.contatoTelefone || current.destinatarioTelefone,
+    }));
+  }
+
+  async function abrirEditorRota() {
+    if (!operacao) return;
+    setRouteError(''); setSaving(true);
+    try {
+      const result = await api.get<Parada[]>(`/rotas/entregas/${operacao.id}`);
+      setRotaEdit(result.data.map(p => ({ ...p, numero: p.numero || '', complemento: p.complemento || '',
+        cidade: p.cidade || '', estado: p.estado || '', cep: p.cep || '', contatoNome: p.contatoNome || '',
+        contatoTelefone: p.contatoTelefone || '', observacao: p.observacao || '',
+      })));
+    } catch (reason) { setRouteError(apiErrorMessage(reason, 'Não foi possível carregar a rota.')); }
+    finally { setSaving(false); }
+  }
+
+  async function salvarRota() {
+    if (!operacao || !rotaEdit || saving) return;
+    if (!rotaEdit.every(p => p.logradouro.trim() && p.bairro.trim() && (p.semNumero || p.numero.trim()))) {
+      setRouteError('Informe endereço, bairro e número ou S/N em cada local.'); return;
+    }
+    setSaving(true); setRouteError('');
+    try {
+      await api.put(`/rotas/entregas/${operacao.id}`, {
+        paradas: rotaEdit.map((local, index) => ({ id: local.id || null, versao: local.versao ?? null, local: payloadLocal(local, index) })),
+      }, { headers: { 'If-Match': String(operacao.versao) } });
+      setRotaEdit(null); await carregarEntregas();
+    } catch (reason) { setRouteError(apiErrorMessage(reason, 'Não foi possível salvar a rota.')); }
+    finally { setSaving(false); }
   }
 
   function abrirStatusModal(entrega: Entrega) {
@@ -263,7 +323,7 @@ export function EntregasPage() {
 
   const areaPreco = tabelaPreco?.areas.find((area) =>
     area.bairros.some((bairro) => normalize(bairro) === normalize(form.bairroDestino)));
-  const tarifaBase = areaPreco?.valorNegociado
+  const tarifaBase = areaPreco?.valorNegociado || locais.length > 2
     ? Number(form.valorNegociado) || 0
     : areaPreco
       ? (form.tipoVeiculo === 'CARRO' ? areaPreco.valorCarro : areaPreco.valorMoto)
@@ -273,12 +333,12 @@ export function EntregasPage() {
   const blocosEspera = Math.floor(Math.max(0, Number(form.tempoEsperaMinutos) || 0) / 30);
   const taxaEspera = blocosEspera * (tabelaPreco?.taxaEsperaTrintaMinutos || 0);
   const taxaRetorno = form.possuiRetorno ? (tabelaPreco?.taxaRetorno || 0) : 0;
-  const valorNegociadoPendente = Boolean(areaPreco?.valorNegociado && tarifaBase <= 0);
+  const valorNegociadoPendente = Boolean((areaPreco?.valorNegociado || locais.length > 2) && !form.valorNegociado);
   const previewValor = tabelaPreco && !valorNegociadoPendente ? tarifaBase + taxaEspera + taxaRetorno : null;
   const bairrosTabela = tabelaPreco?.areas.flatMap((area) => area.bairros) || [];
 
   return (
-    <main className="page">
+    <main className="page deliveryManagementPage">
       <div className="filterBar">
         <div className="filterSearch">
           <Search size={17} color="#ABA89B" />
@@ -321,9 +381,9 @@ export function EntregasPage() {
               </tr>
             </thead>
             <tbody>
-              {entregasFiltradas.map((entrega, index) => (
+              {entregasFiltradas.map((entrega) => (
                 <tr key={entrega.id}>
-                  <td data-label="Entrega"><strong className="publicRecordCode">{publicDeliveryCode(index)}</strong><span className="cellSub">Registro operacional</span></td>
+                  <td data-label="Entrega"><strong className="publicRecordCode">{entrega.codigo}</strong><span className="cellSub">Registro operacional</span></td>
                   <td data-label="Destinatário">
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontWeight: 700, color: 'var(--ink)', fontSize: 13 }}>{titleCase(entrega.destinatarioNome)}</div>
@@ -345,6 +405,7 @@ export function EntregasPage() {
                   <td data-label="Ações">
                     <TableActions actions={[
                       { label: 'Editar entrega', icon: <Pencil size={16} />, onClick: () => abrirWizardEdicao(entrega) },
+                      { label: 'Rota e recebimento', icon: <MapPinned size={16} />, onClick: () => { setOperacao(entrega); setRotaEdit(null); setRouteError(''); } },
                       { label: 'Alterar status', icon: <Check size={16} />, onClick: () => abrirStatusModal(entrega) },
                       { label: 'Designar entregador', icon: <UserRoundCheck size={16} />, onClick: () => abrirDesignarModal(entrega) },
                       { label: 'Ver histórico', icon: <History size={16} />, onClick: () => setHistoricoEntrega(entrega) },
@@ -361,7 +422,7 @@ export function EntregasPage() {
 
       <Modal
         open={wizardOpen}
-        onClose={fecharWizard}
+        onClose={() => !saving && fecharWizard()}
         eyebrow={`${editingId ? 'EDITAR ENTREGA' : 'NOVA ENTREGA'} · ETAPA ${wizardStep}/4`}
         title={stepTitles[wizardStep - 1]}
         maxWidth={568}
@@ -378,7 +439,7 @@ export function EntregasPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <span style={{ color: '#9a9ea3', fontSize: 12, fontWeight: 600 }}>Etapa {wizardStep} de 4</span>
               {wizardStep === 4 ? (
-                <button className="primaryButton" type="button" onClick={finalizarWizard}>
+                <button className="primaryButton" type="button" disabled={saving} onClick={finalizarWizard}>
                   <Check size={16} /> {editingId ? 'Salvar entrega' : 'Cadastrar entrega'}
                 </button>
               ) : (
@@ -473,6 +534,11 @@ export function EntregasPage() {
 
         {wizardStep === 3 ? (
           <>
+            {!editingId ? locais.length ? <EditorRota value={locais} onChange={definirLocais} disabled={saving} /> :
+              <button className="secondaryButton" type="button" onClick={() => definirLocais([
+                { ...novoLocal('COLETA'), logradouro: form.enderecoOrigem, bairro: form.bairroOrigem },
+                { ...novoLocal('ENTREGA'), logradouro: form.enderecoDestino, bairro: form.bairroDestino, contatoNome: form.destinatarioNome, contatoTelefone: form.destinatarioTelefone },
+              ])}>Configurar rota e adicionar paradas</button> : <p>Edite a sequência pela ação “Rota e recebimento”.</p>}
             <label style={{ marginBottom: 14, display: 'grid', gap: 7 }}>
               Mercadoria
               <input placeholder="O que será transportado" value={form.descricaoMercadoria} onChange={(event) => setForm({ ...form, descricaoMercadoria: event.target.value })} required />
@@ -486,8 +552,9 @@ export function EntregasPage() {
 
         {wizardStep === 4 ? (
           <>
+            <label>Forma de pagamento<select value={form.formaPagamento} onChange={e => setForm({ ...form, formaPagamento: e.target.value as 'PIX' | 'DINHEIRO' })}><option value="PIX">Pix direto do entregador</option><option value="DINHEIRO">Dinheiro</option></select></label>
             <div className="modalFormGrid deliveryPricingFields">
-              {areaPreco?.valorNegociado ? (
+              {areaPreco?.valorNegociado || locais.length > 2 || editingId ? (
                 <label>
                   Valor negociado
                   <input className="highlight" type="number" min="0" step="0.01" placeholder="0,00" value={form.valorNegociado} onChange={(event) => setForm({ ...form, valorNegociado: event.target.value })} required />
@@ -534,6 +601,21 @@ export function EntregasPage() {
             </label>
           </>
         ) : null}
+      </Modal>
+
+      <Modal open={operacao !== null} onClose={() => !saving && setOperacao(null)} title="Rota e recebimento" maxWidth={760}>
+        {operacao ? <>
+          {routeError ? <p className="errorMessage" role="alert">{routeError}</p> : null}
+          {rotaEdit ? <>
+            <EditorRota value={rotaEdit} onChange={setRotaEdit} disabled={saving} />
+            <p>Antes de adicionar locais, registre um valor negociado no cadastro da entrega. A edição fica bloqueada após início da operação ou recebimento.</p>
+            <button className="primaryButton" type="button" disabled={saving} onClick={() => void salvarRota()}>Salvar sequência</button>
+            <button className="secondaryButton" type="button" disabled={saving} onClick={() => setRotaEdit(null)}>Voltar à operação</button>
+          </> : <>
+            <button className="secondaryButton" type="button" disabled={saving || !['SOLICITADA', 'CONFIRMADA', 'AGENDADA', 'AGUARDANDO_ENTREGADOR', 'ENTREGADOR_DESIGNADO'].includes(operacao.status)} onClick={() => void abrirEditorRota()}>Editar sequência de locais</button>
+            <OperacaoEntrega entregaId={operacao.id} versao={operacao.versao} perfil="PROPRIETARIO" onChange={() => void carregarEntregas()} />
+          </>}
+        </> : null}
       </Modal>
 
       <Modal

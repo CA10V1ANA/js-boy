@@ -22,7 +22,8 @@ public class PagamentoMapper {
             pagamento.getTipo(),
             pagamento.getLancamentoOriginal() == null ? null : pagamento.getLancamentoOriginal().getId(),
             pagamento.getMotivo(),
-            pagamento.getUsuarioResponsavel().getNome()
+            pagamento.getUsuarioResponsavel().getNome(),
+            pagamento.getRecebedor() == null ? null : pagamento.getRecebedor().getId(), pagamento.getRecebedorNome()
         );
     }
 }

@@ -54,8 +54,6 @@ class PainelEntregadorServiceTest {
             OffsetDateTime.now(ZoneOffset.ofHours(-3)).minusDays(1));
         when(entregaRepository.findByEntregadorUsuarioIdOrderByCriadoEmDesc(usuarioId))
             .thenReturn(List.of(emRota, concluidaHoje, antiga));
-        when(comprovanteRepository.existsByEntregaIdAndTipoAndSubstituidoPorIsNull(
-            emRota.getId(), TipoComprovante.ENTREGA)).thenReturn(false);
 
         var resumo = service.resumoHoje();
 
@@ -63,7 +61,7 @@ class PainelEntregadorServiceTest {
         assertThat(resumo.emRota()).isEqualTo(1);
         assertThat(resumo.concluidasHoje()).isEqualTo(1);
         assertThat(resumo.valorMovimentadoHoje()).isEqualByComparingTo("58.00");
-        assertThat(resumo.documentacaoPendente()).isEqualTo(1);
+        assertThat(resumo.documentacaoPendente()).isZero();
     }
 
     private Entrega entrega(StatusEntrega status, String valor, OffsetDateTime concluidaEm) {

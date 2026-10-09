@@ -48,17 +48,7 @@ public class PainelEntregadorService {
         var valorHoje = concluidasHoje.stream()
             .map(entrega -> entrega.getValorFinal() == null ? BigDecimal.ZERO : entrega.getValorFinal())
             .reduce(BigDecimal.ZERO, BigDecimal::add);
-        long documentacaoPendente = entregas.stream().filter(entrega -> {
-            if (entrega.getStatus() == StatusEntrega.COLETADA) {
-                return !comprovanteRepository.existsByEntregaIdAndTipoAndSubstituidoPorIsNull(
-                    entrega.getId(), TipoComprovante.COLETA);
-            }
-            if (entrega.getStatus() == StatusEntrega.EM_ROTA) {
-                return !comprovanteRepository.existsByEntregaIdAndTipoAndSubstituidoPorIsNull(
-                    entrega.getId(), TipoComprovante.ENTREGA);
-            }
-            return false;
-        }).count();
+        long documentacaoPendente = 0; // Campo legado, sem exigência de comprovação.
 
         return new ResumoEntregadorResponse(
             ativas, emRota, concluidasHoje.size(), valorHoje, documentacaoPendente

@@ -72,7 +72,11 @@ public class Entrega extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 40)
     private StatusEntrega status = StatusEntrega.SOLICITADA;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private FormaPagamento formaPagamento = FormaPagamento.PIX;
     private OffsetDateTime concluidaEm;
+    private OffsetDateTime rotaAlteradaEm;
     private OffsetDateTime agendadaInicio;
     private OffsetDateTime agendadaFim;
     @Column(length = 60)

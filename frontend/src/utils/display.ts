@@ -6,7 +6,3 @@ export function sentenceCase(value?: string | null) {
 export function titleCase(value?: string | null) {
   return (value || '').trim().toLocaleLowerCase('pt-BR').replace(/(^|\s)\p{L}/gu, (letter) => letter.toLocaleUpperCase('pt-BR'));
 }
-
-export function publicDeliveryCode(position: number) {
-  return `Entrega #${String(position + 1).padStart(3, '0')}`;
-}

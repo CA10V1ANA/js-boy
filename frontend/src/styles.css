@@ -3245,3 +3245,22 @@ tbody tr:hover {
 .skipLink{position:fixed;top:-80px;left:16px;z-index:100;background:#fff;color:#111;padding:12px 16px;border-radius:8px}.skipLink:focus{top:16px}.floatingAction{position:fixed;right:22px;z-index:30;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;border:0;box-shadow:0 6px 22px #0003;cursor:pointer}.floatingAction:focus-visible{outline:3px solid #111;outline-offset:3px}.floatingWhatsapp{bottom:82px;background:#25d366;color:#fff}.floatingTop{bottom:22px;background:var(--ink);color:#fff;font-size:24px}.privacyPolicy{max-width:850px;padding-top:64px;padding-bottom:72px}.privacyPolicy h1,.publicStandalone .siteSectionTitle h1{font-size:clamp(2rem,5vw,3.4rem);margin:0}.privacyPolicy h2{margin-top:30px;font-size:1.25rem}.privacyPolicy p{line-height:1.75;color:var(--muted)}.reportToolbar{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:20px}.reportToolbar h1{margin:0}.reportToolbar p{margin:5px 0 0;color:var(--muted)}.revenueChart{padding:20px;margin-bottom:20px}.revenueChart h2{margin:0 0 20px;font-size:15px}.revenueBars{display:grid;gap:14px}.revenueBarItem{display:grid;grid-template-columns:120px 1fr 70px;align-items:center;gap:12px;font-size:12px}.revenueBarTrack{height:12px;background:var(--surface-3,#eee);border-radius:999px;overflow:hidden}.revenueBarTrack span{display:block;height:100%;background:#e9a81c;border-radius:inherit}.emptyChart{color:var(--muted)}
 @media (max-width:640px){.reportToolbar{align-items:stretch;flex-direction:column}.revenueBarItem{grid-template-columns:95px 1fr 56px}.floatingAction{right:14px}.privacyPolicy{padding-inline:20px}}
 @media print{.sidebar,.topbar,.reportToolbar button,.toastViewport{display:none!important}.appShell,.appContent{display:block!important}.page{padding:0!important}.panelCard,.metricCard{break-inside:avoid;box-shadow:none!important}.reportToolbar{display:block} @page{size:A4;margin:12mm}}
+/* Operação manual e rota: cartões com os componentes e cores atuais. */
+.deliveryOperation, .routeEditor { display: grid; gap: 12px; min-width: 0; }
+.deliveryOperation { width: 100%; padding: 16px; border-top: 1px solid var(--border, #e5e5e5); }
+.paymentSummary, .routeEditCard, .routeCards li { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--border, #e5e5e5); border-radius: 12px; }
+.paymentSummary p, .routeCards p { margin: 0; }
+.pixKey { overflow-wrap: anywhere; user-select: all; }
+.routeCards { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.routeCards .nextStop { border-color: var(--primary, #d4ad36); }
+.manualReceipt, .routeEditor label { display: grid; gap: 8px; }
+.routeEditActions { display: flex; flex-wrap: wrap; gap: 8px; }
+.routeEditor { border: 0; padding: 0; }
+.routeEditor legend { font-weight: 700; margin-bottom: 12px; }
+.deliveryOperation input, .routeEditor input, .routeEditor select, .routeEditor textarea { max-width: 100%; min-width: 0; }
+@media (max-width: 640px) {
+  .routeEditor .formGrid { grid-template-columns: 1fr; }
+  .deliveryOperation { padding: 10px; }
+  .routeEditActions button { flex: 1 1 130px; }
+  .deliveryManagementPage .tableActions { display: flex; flex-wrap: wrap; min-width: 0; max-width: 100%; gap: 4px; }
+}

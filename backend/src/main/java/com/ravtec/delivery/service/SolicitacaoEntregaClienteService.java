@@ -35,9 +35,11 @@ public class SolicitacaoEntregaClienteService {
             request.enderecoDestino(), request.bairroDestino(), request.destinatarioNome(),
             request.destinatarioTelefone(), request.descricaoMercadoria(), request.observacoes(),
             request.distanciaKm(), null, null, com.ravtec.delivery.entity.TipoVeiculo.MOTO,
-            0, false, valorNegociadoPendente
+            0, false, valorNegociadoPendente, request.formaPagamento(), request.paradas()
         ), request.paradas(), StatusEntrega.SOLICITADA);
         var entrega = entregaRepository.findById(criada.id()).orElseThrow();
+        // Zero is only the initial quote placeholder, never the owner's agreement to a free service.
+        if (calculo.valorNegociadoObrigatorio()) entrega.setValorNegociado(null);
         entrega.setAgendadaInicio(request.agendadaInicio());
         entrega.setAgendadaFim(request.agendadaFim());
         entrega.setFusoHorario(request.fusoHorario());

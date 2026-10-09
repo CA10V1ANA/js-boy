@@ -19,6 +19,9 @@ public interface EntregadorRepository extends JpaRepository<Entregador, UUID> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select e from Entregador e where e.usuario.id = :usuarioId and e.ativo = true")
     Optional<Entregador> findAtivoPorUsuarioParaAtualizacao(@Param("usuarioId") UUID usuarioId);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select e from Entregador e where e.id = :id")
+    Optional<Entregador> buscarParaAtualizacao(@Param("id") UUID id);
     boolean existsByCpf(String cpf);
     boolean existsByCpfAndIdNot(String cpf, UUID id);
 }

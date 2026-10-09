@@ -25,8 +25,19 @@ public record EntregaRequest(
     TipoVeiculo tipoVeiculo,
     @Min(0) Integer tempoEsperaMinutos,
     Boolean possuiRetorno,
-    @DecimalMin("0.00") BigDecimal valorNegociado
+    @DecimalMin("0.00") BigDecimal valorNegociado,
+    com.ravtec.delivery.entity.FormaPagamento formaPagamento,
+    @jakarta.validation.Valid @jakarta.validation.constraints.Size(max = 50) java.util.List<ParadaRequest> paradas
 ) {
+    public EntregaRequest(UUID clienteId, UUID entregadorId, String enderecoOrigem, String bairroOrigem,
+        String enderecoDestino, String bairroDestino, String destinatarioNome, String destinatarioTelefone,
+        String descricaoMercadoria, String observacoes, BigDecimal distanciaKm, BigDecimal valorFinal,
+        String observacaoValorManual, TipoVeiculo tipoVeiculo, Integer tempoEsperaMinutos,
+        Boolean possuiRetorno, BigDecimal valorNegociado) {
+        this(clienteId, entregadorId, enderecoOrigem, bairroOrigem, enderecoDestino, bairroDestino,
+            destinatarioNome, destinatarioTelefone, descricaoMercadoria, observacoes, distanciaKm, valorFinal,
+            observacaoValorManual, tipoVeiculo, tempoEsperaMinutos, possuiRetorno, valorNegociado, null, null);
+    }
     public EntregaRequest(
         UUID clienteId, UUID entregadorId, String enderecoOrigem, String bairroOrigem,
         String enderecoDestino, String bairroDestino, String destinatarioNome,

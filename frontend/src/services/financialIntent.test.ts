@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   clearFinancialIntents, createPaymentIntent, createRefundIntent,
-  pendingPayment, pendingRefund,
+  pendingPayment, pendingRefund, createReceiptIntent, pendingReceipt,
 } from './financialIntent';
 
 const userId = '0d441e7d-62f1-48ce-9035-2b104dc52fb9';
@@ -50,5 +50,12 @@ describe('tentativas financeiras pendentes', () => {
     } finally {
       storage.mockRestore();
     }
+  });
+  it('preserva recebimento por entrega e apaga tentativas ao sair da conta', () => {
+    const receipt = createReceiptIntent(userId, deliveryId, { valor: 30, formaPagamento: 'PIX', referenciaRecebedor: 'conferencia' });
+    expect(createReceiptIntent(userId, deliveryId, { valor: 70, formaPagamento: 'PIX', referenciaRecebedor: 'nova' })).toEqual(receipt);
+    expect(pendingReceipt(userId, deliveryId)).toEqual(receipt);
+    clearFinancialIntents();
+    expect(pendingReceipt(userId, deliveryId)).toBeNull();
   });
 });

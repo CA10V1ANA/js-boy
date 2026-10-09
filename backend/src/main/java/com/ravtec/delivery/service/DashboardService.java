@@ -25,7 +25,9 @@ public class DashboardService {
         var emAndamento = entregaRepository.count()
             - solicitadas
             - entregues
-            - canceladas;
+            - canceladas
+            - entregaRepository.countByStatus(StatusEntrega.DEVOLVIDA)
+            - entregaRepository.countByStatus(StatusEntrega.FALHA_OPERACIONAL);
 
         return new DashboardResumoResponse(
             entregaRepository.count(),

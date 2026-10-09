@@ -36,4 +36,11 @@ public class Entregador extends BaseEntity {
     private Usuario usuario;
     @Version
     private Long version;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private TipoChavePix tipoChavePix;
+    @Column(length = 180)
+    private String chavePix;
+    @Column(length = 140)
+    private String titularPix;
 }

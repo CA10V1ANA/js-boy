@@ -24,7 +24,7 @@ import {
   LoadingState,
 } from "../components/AsyncState";
 import { Modal } from "../components/Modal";
-import { PixPagamento } from "../components/PixPagamento";
+import { OperacaoEntrega } from "../components/OperacaoEntrega";
 import { api } from "../services/api";
 import { apiErrorMessage } from "../services/apiError";
 import {
@@ -35,7 +35,7 @@ import {
   StatusEntrega,
 } from "../types";
 import type { Comprovante, Parada, SolicitacaoEntrega } from "../types/p2";
-import { publicDeliveryCode, titleCase } from "../utils/display";
+import { titleCase } from "../utils/display";
 import { formatCpfOrCnpj, formatPhone } from "../utils/inputMasks";
 
 type PortalData = {
@@ -55,7 +55,7 @@ const emptyRequest: SolicitacaoEntrega = {
   destinatarioTelefone: "",
   descricaoMercadoria: "",
   observacoes: "",
-  distanciaKm: 0,
+  distanciaKm: 0, formaPagamento: "PIX",
 };
 const finalStatuses: StatusEntrega[] = [
   "ENTREGUE",
@@ -296,11 +296,11 @@ export function ClientePortalPage() {
       />
     ) : (
       <div className="roleDeliveryList clientDeliveryList">
-        {deliveries.map((delivery, index) => (
+        {deliveries.map((delivery) => (
           <article className="roleDeliveryCard" key={delivery.id}>
             <div className="roleDeliveryMain">
               <span className="publicRecordCode">
-                {publicDeliveryCode(index)}
+                {delivery.codigo}
               </span>
               <div>
                 <strong>{titleCase(delivery.destinatarioNome)}</strong>
@@ -321,14 +321,15 @@ export function ClientePortalPage() {
               </div>
               <div>
                 <span>Valor</span>
-                <strong>{money(delivery.valorFinal)}</strong>
+                <strong>{delivery.status === 'SOLICITADA' && delivery.valorFinal === 0 ? 'A confirmar pela JS Boy' : money(delivery.valorFinal)}</strong>
               </div>
               <span className={statusClass(delivery.status)}>
                 {statusLabel(delivery.status)}
               </span>
             </div>
+            <OperacaoEntrega entregaId={delivery.id} />
             <div className="roleDeliveryActions">
-              {delivery.status !== 'CANCELADA' ? <PixPagamento entregaId={delivery.id} /> : null}
+
               <button
                 className="secondaryButton"
                 type="button"
@@ -376,7 +377,7 @@ export function ClientePortalPage() {
                       </button>
                     ))
                   ) : (
-                    <span>Nenhum comprovante disponível.</span>
+                    <span></span>
                   )}
                 </div>
               </div>
@@ -400,7 +401,7 @@ export function ClientePortalPage() {
           <span className="modalEyebrow">PORTAL DO CLIENTE</span>
           <h1>Ola, {titleCase(data.cliente.nome).split(" ")[0]}</h1>
           <p>
-            Solicite, acompanhe e consulte os comprovantes das suas entregas.
+            Solicite e acompanhe a rota e o pagamento das suas entregas.
           </p>
         </div>
         <button className="primaryButton" type="button" onClick={openRequest}>
@@ -493,7 +494,7 @@ export function ClientePortalPage() {
           <div className="panelCardHeader roleListHeader">
             <div>
               <h2>Minhas entregas</h2>
-              <p>Histórico, andamento e documentos da operação.</p>
+              <p>Histórico, rota e recebimentos da operação.</p>
             </div>
             <button
               className="primaryButton"
@@ -795,6 +796,7 @@ export function ClientePortalPage() {
           ) : null}
           {requestStep === 3 ? (
             <div className="formGrid">
+              <label>Forma de pagamento<select value={request.formaPagamento || 'PIX'} onChange={e => setRequest({ ...request, formaPagamento: e.target.value as 'PIX' | 'DINHEIRO' })}><option value="PIX">Pix direto do entregador</option><option value="DINHEIRO">Dinheiro</option></select></label>
               <label>
                 <CalendarClock size={15} /> Início agendado (opcional)
                 <input

@@ -19,5 +19,14 @@ public record SolicitacaoEntregaClienteRequest(
     OffsetDateTime agendadaInicio,
     OffsetDateTime agendadaFim,
     String fusoHorario,
-    @Valid List<ParadaRequest> paradas
-) {}
+    @Valid List<ParadaRequest> paradas,
+    com.ravtec.delivery.entity.FormaPagamento formaPagamento
+) {
+    public SolicitacaoEntregaClienteRequest(String enderecoOrigem, String bairroOrigem, String enderecoDestino,
+        String bairroDestino, String destinatarioNome, String destinatarioTelefone, String descricaoMercadoria,
+        String observacoes, BigDecimal distanciaKm, OffsetDateTime agendadaInicio, OffsetDateTime agendadaFim,
+        String fusoHorario, List<ParadaRequest> paradas) {
+        this(enderecoOrigem, bairroOrigem, enderecoDestino, bairroDestino, destinatarioNome, destinatarioTelefone,
+            descricaoMercadoria, observacoes, distanciaKm, agendadaInicio, agendadaFim, fusoHorario, paradas, null);
+    }
+}

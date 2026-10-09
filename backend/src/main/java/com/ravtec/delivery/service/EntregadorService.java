@@ -67,7 +67,8 @@ public class EntregadorService {
 
     @Transactional
     public EntregadorResponse atualizar(UUID id, EntregadorRequest request, Long versao) {
-        var entregador = buscarEntidade(id);
+        var entregador = entregadorRepository.buscarParaAtualizacao(id)
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Entregador não encontrado"));
         versionamento.validar(versao, entregador.getVersion());
         var anterior = resumo(entregador);
         var cpf = validar(request);
@@ -87,7 +88,8 @@ public class EntregadorService {
 
     @Transactional
     public EntregadorResponse alterarStatus(UUID id, StatusRequest request, Long versao) {
-        var entregador = buscarEntidade(id);
+        var entregador = entregadorRepository.buscarParaAtualizacao(id)
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Entregador não encontrado"));
         versionamento.validar(versao, entregador.getVersion());
         var anterior = entregador.isAtivo();
         entregador.setAtivo(request.ativo());
@@ -103,6 +105,7 @@ public class EntregadorService {
 
     @Transactional
     public EntregadorResponse criarAcesso(UUID id, CriarAcessoEntregadorRequest request) {
+        com.ravtec.delivery.security.PoliticaSenha.validarTamanho(request.senha(), 12);
         var entregador = buscarEntidade(id);
         if (!entregador.isAtivo()) {
             throw new IllegalStateException("Entregador inativo não pode receber acesso");

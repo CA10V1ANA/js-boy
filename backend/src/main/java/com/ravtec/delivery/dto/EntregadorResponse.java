@@ -16,6 +16,8 @@ public record EntregadorResponse(
     boolean disponivel,
     boolean possuiAcesso,
     OffsetDateTime criadoEm,
-    Long versao
+    Long versao,
+    com.ravtec.delivery.entity.TipoChavePix tipoChavePix,
+    String chavePix, String titularPix
 ) {
 }

@@ -11,8 +11,13 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class PixController {
     private final PixService pix;
-    @PostMapping("/entregas/{entregaId}")
-    public PixResponse gerar(@PathVariable UUID entregaId) { return pix.gerar(entregaId); }
     @GetMapping("/{id}")
     public PixResponse consultar(@PathVariable UUID id) { return pix.consultar(id); }
+    public record ConciliacaoRequest(@jakarta.validation.constraints.NotNull @jakarta.validation.constraints.Positive Long transacaoId) {}
+
+    @PostMapping("/{id}/conciliar")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('PROPRIETARIO')")
+    public PixResponse conciliar(@PathVariable UUID id, @jakarta.validation.Valid @RequestBody ConciliacaoRequest request) {
+        return pix.conciliar(id, request.transacaoId());
+    }
 }

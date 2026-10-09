@@ -52,5 +52,6 @@ class SolicitacaoEntregaClienteServiceTest {
         assertThat(captor.getValue().entregadorId()).isNull();
         assertThat(captor.getValue().valorFinal()).isNull();
         assertThat(captor.getValue().valorNegociado()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(entrega.getValorNegociado()).isNull();
     }
 }
