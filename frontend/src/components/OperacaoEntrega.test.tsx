@@ -58,6 +58,21 @@ describe('Operação e confirmação financeira', () => {
     expect(await screen.findByRole('button', { name: 'Confirmar coleta' })).toBeEnabled();
     expect(screen.queryByRole('button', { name: 'Concluir parada' })).not.toBeInTheDocument();
   });
+  it('conclui a entrega com quem recebeu, observação opcional e sem foto ou código', async () => {
+    const user = userEvent.setup();
+    const pendente = [{ ...stops[0], status: 'CONCLUIDA', realizadaEm: '2026-10-08T12:00:00Z' }, stops[1]];
+    vi.mocked(api.get).mockImplementation(async url => ({ data: String(url).includes('/recebimentos/') ? { ...state } : pendente }));
+    vi.mocked(api.post).mockResolvedValue({ data: {} });
+    render(<OperacaoEntrega entregaId="entrega-1" versao={2} perfil="ENTREGADOR" />);
+    const concluir = await screen.findByRole('button', { name: 'Concluir parada' });
+    expect(concluir).toBeDisabled();
+    expect(screen.queryByText(/foto/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/código/i)).not.toBeInTheDocument();
+    await user.type(screen.getByLabelText('Quem recebeu'), 'Alysson');
+    await user.click(concluir);
+    expect(api.post).toHaveBeenCalledWith('/rotas/entregas/entrega-1/paradas/stop-2/concluir',
+      { recebedorNome: 'Alysson', observacao: null }, { headers: { 'If-Match': '0' } });
+  });
   it('recupera a mesma confirmação após fechar a tela com resposta perdida', async () => {
     const user = userEvent.setup();
     vi.mocked(api.post).mockRejectedValueOnce(new Error('resposta perdida')).mockResolvedValueOnce({ data: {} });

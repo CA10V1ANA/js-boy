@@ -22,6 +22,7 @@ export function OperacaoEntrega({ entregaId, versao, perfil = 'CLIENTE', onChang
   const [ocorrencia, setOcorrencia] = useState({ paradaId: '', motivo: '', proximaAcao: '' });
   const [occurrenceOpen, setOccurrenceOpen] = useState(false);
   const [discardOpen, setDiscardOpen] = useState(false);
+  const [conclusao, setConclusao] = useState({ recebedorNome: '', observacao: '' });
   const intent = useRef<PendingReceipt | null>(null);
   const sending = useRef(false);
 
@@ -114,10 +115,15 @@ export function OperacaoEntrega({ entregaId, versao, perfil = 'CLIENTE', onChang
 
   async function concluir(parada: Parada) {
     if (sending.current) return;
+    const recebedorNome = conclusao.recebedorNome.trim();
+    if (parada.tipo === 'ENTREGA' && !recebedorNome) { setError('Informe quem recebeu a entrega.'); return; }
     sending.current = true; setBusy(true); setError('');
     try {
-      await api.post(`/rotas/entregas/${entregaId}/paradas/${parada.id}/concluir`, {},
-        { headers: { 'If-Match': String(parada.versao) } });
+      await api.post(`/rotas/entregas/${entregaId}/paradas/${parada.id}/concluir`, {
+        recebedorNome: parada.tipo === 'ENTREGA' ? recebedorNome : null,
+        observacao: conclusao.observacao.trim() || null,
+      }, { headers: { 'If-Match': String(parada.versao) } });
+      setConclusao({ recebedorNome: '', observacao: '' });
       await load(); onChange?.();
     } catch (reason) { setError(apiErrorMessage(reason, 'Não foi possível concluir a parada.')); }
     finally { sending.current = false; setBusy(false); }
@@ -200,10 +206,24 @@ export function OperacaoEntrega({ entregaId, versao, perfil = 'CLIENTE', onChang
           {parada.contatoNome ? <p>{parada.contatoNome} · {parada.contatoTelefone}</p> : null}
           {parada.observacao ? <p>{parada.observacao}</p> : null}
           <small>{parada.status === 'CONCLUIDA' ? `Concluída em ${new Date(parada.realizadaEm!).toLocaleString('pt-BR')}${parada.usuarioConclusaoNome ? ` por ${parada.usuarioConclusaoNome}` : ''}` : parada.status === 'FALHOU' ? 'Tentativa falhou; parada pendente de resolução' : 'Pendente'}</small>
+          {parada.recebedorNome ? <p>Recebido por {parada.recebedorNome}</p> : null}
+          {parada.observacaoConclusao ? <p>Observação: {parada.observacaoConclusao}</p> : null}
           {perfil !== 'CLIENTE' && proxima?.id === parada.id && !financeiro.pendencia?.startsWith('Entrega encerrada') ?
-            <button className="secondaryButton" type="button" disabled={busy} onClick={() => void concluir(parada)}>
-              {parada.tipo === 'COLETA' ? 'Confirmar coleta' : 'Concluir parada'}
-            </button> : null}
+            <div className="settingsForm stopConclusion">
+              {parada.tipo === 'ENTREGA' ? <label>Quem recebeu
+                <input id={`recebedor-${parada.id}`} maxLength={140} required value={conclusao.recebedorNome}
+                  placeholder={parada.contatoNome || 'Nome de quem recebeu'}
+                  onChange={e => setConclusao({ ...conclusao, recebedorNome: e.target.value })} />
+              </label> : null}
+              <label>Observação <small>(opcional)</small>
+                <textarea id={`observacao-${parada.id}`} rows={2} maxLength={500} value={conclusao.observacao}
+                  onChange={e => setConclusao({ ...conclusao, observacao: e.target.value })} />
+              </label>
+              <button className="secondaryButton" type="button" disabled={busy || (parada.tipo === 'ENTREGA' && !conclusao.recebedorNome.trim())}
+                onClick={() => void concluir(parada)}>
+                {parada.tipo === 'COLETA' ? 'Confirmar coleta' : 'Concluir parada'}
+              </button>
+            </div> : null}
         </li>)}
       </ol>
       {paradas.length === 0 ? <p>Rota ainda não cadastrada. Procure o proprietário.</p> : null}

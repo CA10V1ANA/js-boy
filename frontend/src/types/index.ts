@@ -134,7 +134,7 @@ export type LocalRota = {
 };
 export type Parada = LocalRota & {
   id: string; ordem: number; endereco: string; status: 'PENDENTE' | 'CONCLUIDA' | 'FALHOU';
-  realizadaEm?: string; usuarioConclusaoNome?: string;
+  realizadaEm?: string; usuarioConclusaoNome?: string; recebedorNome?: string; observacaoConclusao?: string;
 };
 export type Recebimento = {
   formaPagamento: FormaPagamento | null; valorRecebido: number; saldo: number; recebedorId?: string;
