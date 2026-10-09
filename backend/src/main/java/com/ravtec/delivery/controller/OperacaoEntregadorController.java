@@ -24,9 +24,10 @@ public class OperacaoEntregadorController {
     @PostMapping("/{entregaId}/paradas/{paradaId}/concluir")
     public ParadaResponse concluir(
         @PathVariable UUID entregaId, @PathVariable UUID paradaId,
-        @RequestHeader(name = "If-Match", required = false) Long versao
+        @RequestHeader(name = "If-Match", required = false) Long versao,
+        @Valid @RequestBody(required = false) ConcluirParadaRequest dados
     ) {
-        return paradaService.concluirMinhaParada(entregaId, paradaId, versao);
+        return paradaService.concluirMinhaParada(entregaId, paradaId, versao, dados);
     }
 
     @PostMapping("/{entregaId}/ocorrencias")

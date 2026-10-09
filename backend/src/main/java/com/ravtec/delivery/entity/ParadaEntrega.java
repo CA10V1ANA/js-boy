@@ -49,4 +49,8 @@ public class ParadaEntrega extends BaseEntity {
     private Long version;
     @ManyToOne(fetch = FetchType.LAZY)
     private Usuario usuarioConclusao;
+    @Column(length = 140)
+    private String recebedorNome;
+    @Column(length = 500)
+    private String observacaoConclusao;
 }

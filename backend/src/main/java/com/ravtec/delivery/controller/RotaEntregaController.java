@@ -26,5 +26,7 @@ public class RotaEntregaController {
     @PostMapping("/{id}/paradas/{paradaId}/concluir")
     @PreAuthorize("hasAnyRole('PROPRIETARIO', 'ENTREGADOR')")
     public ParadaResponse concluir(@PathVariable UUID id, @PathVariable UUID paradaId,
-        @RequestHeader("If-Match") Long versao) { return service.concluirMinhaParada(id, paradaId, versao); }
+        @RequestHeader("If-Match") Long versao, @Valid @RequestBody(required = false) ConcluirParadaRequest dados) {
+        return service.concluirMinhaParada(id, paradaId, versao, dados);
+    }
 }

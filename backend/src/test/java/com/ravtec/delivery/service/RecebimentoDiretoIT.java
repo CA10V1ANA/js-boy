@@ -182,6 +182,19 @@ class RecebimentoDiretoIT extends AbstractIntegrationTest {
         assertThat(repetida.usuarioConclusaoNome()).isEqualTo(dono.getNome());
     }
 
+    @Test void conclusaoRegistraRecebedorEObservacaoOpcionalSemFotoNemCodigo() {
+        autenticar(courier);
+        var locais = rota.listar(entrega.getId());
+        var coleta = rota.concluirMinhaParada(entrega.getId(), locais.get(0).id(), locais.get(0).versao(),
+            new ConcluirParadaRequest("Não se aplica à coleta", null));
+        assertThat(coleta.recebedorNome()).isNull();
+        var entregue = rota.concluirMinhaParada(entrega.getId(), locais.get(1).id(), locais.get(1).versao(),
+            new ConcluirParadaRequest("  Alysson ", "   "));
+        assertThat(entregue.recebedorNome()).isEqualTo("Alysson");
+        assertThat(entregue.observacaoConclusao()).isNull();
+        assertThat(comprovantes.countByEntregaIdAndSubstituidoPorIsNull(entrega.getId())).isZero();
+    }
+
     @Test void rotaEditadaPreservaIdsEProjecaoEBloqueiaVersaoAntiga() {
         entrega.setStatus(StatusEntrega.ENTREGADOR_DESIGNADO); entrega.setValorNegociado(new BigDecimal("100.00"));
         entrega = entregas.saveAndFlush(entrega);

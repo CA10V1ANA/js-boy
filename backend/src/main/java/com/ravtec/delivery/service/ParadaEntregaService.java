@@ -51,6 +51,11 @@ public class ParadaEntregaService {
 
     @Transactional
     public ParadaResponse concluirMinhaParada(UUID entregaId, UUID paradaId, Long versao) {
+        return concluirMinhaParada(entregaId, paradaId, versao, null);
+    }
+
+    @Transactional
+    public ParadaResponse concluirMinhaParada(UUID entregaId, UUID paradaId, Long versao, ConcluirParadaRequest dados) {
         var entrega = entregas.buscarParaAtualizacao(entregaId)
             .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega não encontrada"));
         var perfil = identidade.usuario().getPerfilEfetivo();
@@ -76,8 +81,14 @@ public class ParadaEntregaService {
         parada.setStatus(StatusParada.CONCLUIDA);
         parada.setRealizadaEm(OffsetDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS));
         parada.setUsuarioConclusao(identidade.usuario());
+        if (dados != null) {
+            if (parada.getTipo() == TipoParada.ENTREGA) parada.setRecebedorNome(limpar(dados.recebedorNome()));
+            parada.setObservacaoConclusao(limpar(dados.observacao()));
+        }
         auditoriaService.registrar("PARADA_CONCLUIDA", "PARADA", parada.getId(), null,
-            Map.of("entregaId", entrega.getId(), "ordem", parada.getOrdem()), null);
+            Map.of("entregaId", entrega.getId(), "ordem", parada.getOrdem(),
+                "recebedorInformado", parada.getRecebedorNome() != null,
+                "observacaoInformada", parada.getObservacaoConclusao() != null), null);
         repository.flush();
         return toResponse(parada);
     }
@@ -210,7 +221,8 @@ public class ParadaEntregaService {
             p.getContatoTelefone(), p.getObservacao(), p.getStatus(), p.getPrevistaEm(),
             p.getRealizadaEm(), p.getVersion(), p.getLogradouro(), p.getNumero(), p.isSemNumero(),
             p.getComplemento(), p.getBairro(), p.getCidade(), p.getEstado(), p.getCep(),
-            p.getUsuarioConclusao() == null ? null : p.getUsuarioConclusao().getNome());
+            p.getUsuarioConclusao() == null ? null : p.getUsuarioConclusao().getNome(),
+            p.getRecebedorNome(), p.getObservacaoConclusao());
     }
 
     private String limpar(String value) {
