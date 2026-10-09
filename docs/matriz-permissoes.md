@@ -50,7 +50,7 @@ usuário; `Operacional` = somente campos e transições necessários à entrega;
 | Entregador — criar, editar ou vincular acesso | Tudo | — | — |
 | Entrega — listar | Tudo | Próprio | Próprio |
 | Entrega — consultar | Tudo | Próprio, visão operacional | Próprio, visão permitida |
-| Entrega — criar | Tudo | — | — no P0 |
+| Entrega — criar | Tudo | — | Solicitar para o próprio vínculo, sem definir valor/status/designação |
 | Entrega — editar | Tudo, quando o estado permitir | — | — |
 | Entrega — designar ou trocar entregador | Tudo, somente antes da coleta | — | — |
 | Entrega — alterar status | Tudo, conforme máquina de estados | Próprio, somente avanço operacional permitido | — |
@@ -58,6 +58,10 @@ usuário; `Operacional` = somente campos e transições necessários à entrega;
 | Histórico — consultar | Tudo | Próprio, histórico operacional | Próprio, eventos permitidos |
 | Pagamento — listar ou consultar | Tudo | — | Próprio |
 | Pagamento — registrar | Tudo | — | — |
+| Recebimento direto — consultar | Tudo | Próprio | Próprio |
+| Recebimento direto — confirmar Pix/dinheiro | Tudo, conferência administrativa | Próprio, com recebedor/referência válidos | — |
+| Rota — editar | Tudo, antes da execução/crédito e com versões válidas | — | — |
+| Parada — concluir | Tudo, conforme ordem/versão | Próprio, conforme ordem/versão | — |
 | Pagamento — estornar | Tudo, conforme saldo e idempotência | — | — |
 | Relatório operacional ou financeiro | Tudo | — | — |
 | Configuração de preço | Gerenciar | — | — |
@@ -74,8 +78,7 @@ estados, como:
 - `COLETADA → EM_ROTA`;
 - `EM_ROTA → ENTREGUE`.
 
-Não pode regressar status, cancelar após coleta, editar valor, editar dados
-financeiros ou agir sobre entrega de outro entregador.
+ENTREGUE também exige saldo regular e todas as paradas concluídas. O entregador pode confirmar recebimentos próprios pelo endpoint específico, sem editar preço, estornar, trocar recebedor ou acessar o razão administrativo. Não pode regressar status, cancelar após coleta ou agir sobre entrega alheia.
 
 ## Cadastro e vínculos
 

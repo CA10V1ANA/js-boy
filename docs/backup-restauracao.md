@@ -26,4 +26,12 @@ recusa `production` e exige nome de banco de teste.
 5. Registrar duração, tamanho, checksum, data e responsável.
 6. Descartar o ambiente de ensaio de forma controlada.
 
-O workflow `Backup restore rehearsal` executa essa simulação mensalmente. Nunca restaurar sobre produção sem confirmação explícita, aprovação do incidente e backup prévio do estado atual.
+O workflow `Backup restore rehearsal` testa mensalmente transporte, criptografia e restauração de uma tabela fictícia. Ele não constitui backup da aplicação publicada nem ensaio completo de recuperação. Antes da produção, execute os passos acima com o esquema e os dados do ambiente autorizado. Nunca restaurar sobre produção sem confirmação explícita, aprovação do incidente e backup prévio do estado atual.
+
+## Supabase Storage
+
+Na topologia Vercel/Railway/Supabase, `backup-proofs.sh` continua sendo referência para o volume local antigo. Ele não copia os objetos do bucket S3. Um backup PostgreSQL contém somente os metadados dos comprovantes: os objetos privados precisam de cópia separada e de verificação de contagem, tamanho e checksum. Não alterar o bucket para público para facilitar a cópia. No banco novo sem comprovantes, registre essa condição; o acervo antigo permanece preservado.
+
+## Evidência local de 08/10/2026
+
+Na revisão foi executado pg_dump custom e pg_restore em outro banco PostgreSQL 16 efêmero: 19 migrations, uma entrega de quatro paradas, dois recebimentos e RLS de 30 tabelas foram preservados. Os dados eram fictícios e o dump local não usou age nem objetos remotos. Esse resultado comprova o ensaio do esquema revisado; o backup/restore dos ambientes e arquivos reais permanece etapa de homologação.
