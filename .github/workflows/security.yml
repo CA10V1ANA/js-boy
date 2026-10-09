@@ -39,10 +39,18 @@ jobs:
 
       - name: Auditar dependências Java
         working-directory: backend
-        run: >
-          mvn -B -ntp org.owasp:dependency-check-maven:12.2.2:check
-          -DfailBuildOnCVSS=7
-          -DdataDirectory="${{ runner.temp }}/dependency-check-data"
+        run: |
+          mvn -B -ntp org.owasp:dependency-check-maven:12.2.2:check \
+            -DfailBuildOnCVSS=7 \
+            -DdataDirectory="${{ runner.temp }}/dependency-check-data" \
+          || {
+            echo "Dependency-Check database appears corrupted. Purging and retrying once..."
+            mvn -B -ntp org.owasp:dependency-check-maven:12.2.2:purge \
+              -DdataDirectory="${{ runner.temp }}/dependency-check-data"
+            mvn -B -ntp org.owasp:dependency-check-maven:12.2.2:check \
+              -DfailBuildOnCVSS=7 \
+              -DdataDirectory="${{ runner.temp }}/dependency-check-data"
+          }
       - uses: actions/setup-node@v4
         with: { node-version: "22", cache: npm, cache-dependency-path: frontend/package-lock.json }
       - name: Auditar dependências web
