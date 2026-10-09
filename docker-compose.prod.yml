@@ -35,20 +35,14 @@ services:
       APP_STORAGE_LOCAL_ROOT: /var/lib/jsboy/proofs
       APP_NOTIFICATIONS_PROVIDER: ${APP_NOTIFICATIONS_PROVIDER:?required}
       APP_PASSWORD_RESET_PROVIDER: ${APP_PASSWORD_RESET_PROVIDER:?required}
-      APP_PROOF_OTP_PROVIDER: ${APP_PROOF_OTP_PROVIDER:?required}
+      APP_PROOF_OTP_PROVIDER: disabled
       PUBLIC_FRONTEND_URL: ${PUBLIC_FRONTEND_URL:?required}
-      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:?required}
-      TWILIO_FROM: ${TWILIO_FROM:?required}
-      TWILIO_WHATSAPP: ${TWILIO_WHATSAPP:-true}
-      TWILIO_CONTENT_SID: ${TWILIO_CONTENT_SID:-}
       RESEND_FROM: ${RESEND_FROM:?required}
     secrets:
       - source: postgres_password
         target: SPRING_DATASOURCE_PASSWORD
       - source: jwt_secret
         target: JWT_SECRET
-      - source: twilio_auth_token
-        target: TWILIO_AUTH_TOKEN
       - source: resend_api_key
         target: RESEND_API_KEY
     depends_on:
@@ -94,8 +88,6 @@ secrets:
     file: ${POSTGRES_PASSWORD_FILE:?required}
   jwt_secret:
     file: ${JWT_SECRET_FILE:?required}
-  twilio_auth_token:
-    file: ${TWILIO_AUTH_TOKEN_FILE:?required}
   resend_api_key:
     file: ${RESEND_API_KEY_FILE:?required}
 

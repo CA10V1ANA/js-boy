@@ -1,6 +1,7 @@
 name: Security gates
 
 on:
+  workflow_call:
   pull_request:
   push:
     branches: [main, develop, "codex/**", "feat/**", "fix/**"]
@@ -39,7 +40,7 @@ jobs:
           -DfailBuildOnCVSS=7
           -DdataDirectory="${{ runner.temp }}/dependency-check-data"
       - uses: actions/setup-node@v4
-        with: { node-version: "20", cache: npm, cache-dependency-path: frontend/package-lock.json }
+        with: { node-version: "22", cache: npm, cache-dependency-path: frontend/package-lock.json }
       - name: Auditar dependências web
         working-directory: frontend
         run: npm ci && npm audit --audit-level=high
