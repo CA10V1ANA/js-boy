@@ -8,6 +8,7 @@
 - Corrigidos token automático/permissão de leitura do PR e preparação/cache Maven antes do Trivy, em commits separados em português. Sem comentários automáticos do Gitleaks.
 - `dependency:resolve` executado com sucesso localmente; YAML, permissões do workflow reutilizável e diff validados. Resultados remotos do novo candidato ainda devem ser conferidos.
 - Cloudflare Workers é uma integração externa à topologia Vercel/Railway/Supabase. O check fornece somente link para o painel; não houve acesso nem alteração dessa integração.
+- Nova execução confirmou `secrets` e migrations aprovados; Trivy completou análise e revelou 20 alertas Java. Atualizações de Jackson/Netty/HttpCore5/Tomcat/PostgreSQL/BeanUtils cobrem as versões corrigidas de 18 ocorrências; `mvn verify` local passou com 169 testes. Dois CVEs condicionais de Spring (XSLT/SSE ausentes na API) permanecem visíveis, sem supressão. Diagnóstico e limites em `docs/diagnostico-checks-pr-2.md`.
 
 ## Registro da implementação e revisão local
 
