@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@Profile({"local", "staging"})
+@Profile({"local", "staging", "prod"})
 @ConditionalOnProperty(name = "app.bootstrap.owner.enabled", havingValue = "true")
 public class DataInitializer implements CommandLineRunner {
 
@@ -42,6 +42,7 @@ public class DataInitializer implements CommandLineRunner {
                 "SEED_OWNER_EMAIL e SEED_OWNER_PASSWORD (minimo 12 caracteres) sao obrigatorios quando o bootstrap esta habilitado"
             );
         }
+        com.ravtec.delivery.security.PoliticaSenha.validarTamanho(ownerPassword, 12);
         var existente = usuarioRepository.findByEmail(ownerEmail);
         if (existente.isPresent()) {
             if (existente.get().getPerfilEfetivo() != PerfilAcesso.PROPRIETARIO) {

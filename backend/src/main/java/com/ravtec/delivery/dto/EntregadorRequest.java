@@ -13,7 +13,14 @@ public record EntregadorRequest(
     @Email @Size(max = 180) String email,
     @NotNull TipoVeiculo tipoVeiculo,
     @Size(max = 12) String placaVeiculo,
-    boolean disponivel
+    boolean disponivel,
+    com.ravtec.delivery.entity.TipoChavePix tipoChavePix,
+    @Size(max = 180) String chavePix,
+    @Size(max = 140) String titularPix
 ) {
+    public EntregadorRequest(String nome, String cpf, String telefone, String email, TipoVeiculo tipoVeiculo,
+        String placaVeiculo, boolean disponivel) {
+        this(nome, cpf, telefone, email, tipoVeiculo, placaVeiculo, disponivel, null, null, null);
+    }
 }
 

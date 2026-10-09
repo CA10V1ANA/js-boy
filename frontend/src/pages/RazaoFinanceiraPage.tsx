@@ -4,6 +4,7 @@ import { FeedbackMessage } from '../components/AsyncState';
 import { api } from '../services/api';
 import { apiErrorMessage, idempotencyKey } from '../services/apiError';
 import type { RelatorioRazao, ResumoFaturamentoAgrupado, TipoRazao } from '../types/p3';
+import { businessDate } from '../utils/businessDate';
 
 const money = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -56,7 +57,7 @@ function BreakdownTable({ title, items }: { title: string; items: ResumoFaturame
 }
 
 export function RazaoFinanceiraPage() {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = businessDate();
   const [inicio, setInicio] = useState(today.slice(0, 8) + '01');
   const [fim, setFim] = useState(today);
   const [report, setReport] = useState<RelatorioRazao | null>(null);

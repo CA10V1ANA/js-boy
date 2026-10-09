@@ -17,7 +17,7 @@ O projeto reúne duas aplicações integradas:
 - cadastro e gerenciamento de clientes e entregadores;
 - criação de acessos vinculados a clientes e entregadores;
 - criação, edição, designação e acompanhamento de entregas;
-- histórico operacional, rastreamento e comprovantes;
+- histórico operacional, rotas, rastreamento e acesso a comprovantes antigos;
 - registro de pagamentos e estornos;
 - relatórios e razão financeira;
 - configuração de preços e dados da empresa;
@@ -27,14 +27,14 @@ O projeto reúne duas aplicações integradas:
 
 - consulta somente das entregas vinculadas ao próprio usuário;
 - avanço controlado dos status operacionais;
-- registro de paradas, ocorrências e comprovantes;
-- suporte a operações offline e posterior sincronização no aplicativo.
+- conclusão manual de paradas, ocorrências e confirmação autorizada de recebimentos;
+- API para sincronização idempotente de status; a web precisa de conexão para confirmar operações.
 
 ### Cliente
 
 - consulta dos próprios dados, entregas e pagamentos;
 - solicitação de entregas para análise da JS Boy;
-- acompanhamento de paradas e comprovantes;
+- acompanhamento de paradas, Pix direto do entregador e situação financeira;
 - rastreamento público por link seguro.
 
 O perfil `FUNCIONARIO` existe somente como alias legado de `ENTREGADOR` e não deve ser usado para criar novos acessos.
@@ -44,7 +44,7 @@ O perfil `FUNCIONARIO` existe somente como alias legado de `ENTREGADOR` e não d
 | Camada | Tecnologias |
 |---|---|
 | Frontend web | React 18, TypeScript, Vite, React Router, React Hook Form, Zod, Axios e Vitest |
-| Backend | Java 21, Spring Boot 3.3, Spring Security, Spring Data JPA, Flyway e JWT |
+| Backend | Java 21, Spring Boot 3.5, Spring Security, Spring Data JPA, Flyway e JWT |
 | Banco de dados | PostgreSQL 16 |
 | Infraestrutura | Docker Compose, Nginx e GitHub Actions |
 | Observabilidade | Spring Boot Actuator, Prometheus e logs estruturados |
@@ -197,7 +197,7 @@ Sem variáveis de PostgreSQL, o perfil local pode usar H2 em arquivo para desenv
 
 ### Frontend
 
-Requisitos: Node.js 18 ou superior.
+Requisitos: Node.js 22.12+ (recomendado), ou 20.19+ compatível com Vite 8.
 
 ```bash
 cd frontend
@@ -240,12 +240,23 @@ O workflow de integração contínua executa essas validações em pushes e pull
 - Swagger e console H2 desabilitados no perfil de produção;
 - segredos de produção devem ficar em um gerenciador de segredos.
 
+## DevPilot
+
+As orientações do agente pessoal estão em [devpilot](devpilot/INTEGRACAO.md), conectadas pelo [AGENTS.md](AGENTS.md). A memória local registra decisões e evidências do JS Boy.
+
 ## Documentação adicional
+
+- [Explicação completa do projeto](docs/explicacao-completa-do-projeto.md)
+- [Revisão de 08/10/2026 e pendências de publicação](docs/revisao-completa-2026-10-08.md)
+- [Publicação Vercel + Railway + Supabase](docs/publicacao-vercel-railway-supabase.md)
+
+- [Pix direto, dinheiro e múltiplas paradas](docs/recebimento-direto-e-paradas.md)
+- [Conciliação de cobranças antigas](docs/PIX_MERCADO_PAGO.md)
 
 - [Execução local](docs/execucao-local.md)
 - [Matriz de permissões](docs/matriz-permissoes.md)
-- [Deploy de homologação no Railway](docs/deploy-railway-staging.md)
-- [Deploy de produção](docs/deploy-producao.md)
+- [Histórico: deploy completo no Railway](docs/deploy-railway-staging.md)
+- [Histórico: deploy Compose](docs/deploy-producao.md)
 - [Backup e restauração](docs/backup-restauracao.md)
 - [Monitoramento e alertas](docs/monitoramento-alertas.md)
 - [Segurança de sessão](docs/seguranca-sessao.md)

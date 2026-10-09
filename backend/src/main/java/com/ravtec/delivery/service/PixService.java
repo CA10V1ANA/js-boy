@@ -1,6 +1,6 @@
 package com.ravtec.delivery.service;
 
-import com.mercadopago.client.payment.*;
+import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.core.MPRequestOptions;
 import com.mercadopago.resources.payment.Payment;
 import com.ravtec.delivery.dto.PixResponse;
@@ -29,57 +29,14 @@ public class PixService {
     private final TransactionTemplate tx;
     private final ControleFechamentoFinanceiroService fechamento;
     private final String token;
-    private final String notificationUrl;
-    private final String secret;
 
     public PixService(PaymentClient client, CobrancaPixRepository cobrancas,
         EntregaFinanceiraRepository entregas, PagamentoRepository pagamentos,
         TransactionTemplate tx, ControleFechamentoFinanceiroService fechamento,
-        @Value("${app.mercadopago.access-token:}") String token,
-        @Value("${app.mercadopago.notification-url:}") String notificationUrl,
-        @Value("${app.mercadopago.webhook-secret:}") String secret) {
+        @Value("${app.mercadopago.access-token:}") String token) {
         this.client = client; this.cobrancas = cobrancas; this.entregas = entregas;
         this.pagamentos = pagamentos; this.tx = tx; this.fechamento = fechamento;
-        this.token = token; this.notificationUrl = notificationUrl; this.secret = secret;
-    }
-
-    public PixResponse gerar(UUID entregaId) {
-        if (token.isBlank() || secret.isBlank() || !notificationUrl.startsWith("https://"))
-            throw new IllegalStateException("Configure token, segredo e URL HTTPS do Mercado Pago no backend");
-        // Persist the intent before the external call. A lost response retries the same remote key.
-        var c = tx.execute(s -> {
-            var entrega = entregas.buscarParaAtualizacao(entregaId).orElseThrow(
-                () -> new IllegalArgumentException("Entrega não encontrada"));
-            autorizar(entrega);
-            var existente = cobrancas.findByEntregaId(entregaId).orElse(null);
-            if (existente != null) return existente;
-            if (entrega.getStatus() == StatusEntrega.CANCELADA)
-                throw new IllegalStateException("Entrega cancelada");
-            var saldo = entrega.getValorFinal().subtract(pagamentos.somarSaldoPorEntrega(entregaId));
-            if (saldo.signum() <= 0) throw new IllegalStateException("Entrega sem saldo a pagar");
-            var email = entrega.getCliente().getEmail();
-            if (email == null || email.isBlank()) throw new IllegalStateException("Cadastre o e-mail do cliente");
-            var nova = new CobrancaPix();
-            nova.setEntrega(entrega); nova.setSolicitante(principal().getUsuario());
-            nova.setValor(saldo); nova.setEmailPagador(email.trim());
-            nova.setExpiraEm(OffsetDateTime.now().plusMinutes(30));
-            return cobrancas.saveAndFlush(nova);
-        });
-        if (c.getMercadoPagoId() != null) return PixResponse.of(c);
-        var request = PaymentCreateRequest.builder().transactionAmount(c.getValor())
-            .paymentMethodId("pix").description("Entrega JS Boy")
-            .externalReference(c.getId().toString()).notificationUrl(notificationUrl)
-            .dateOfExpiration(c.getExpiraEm())
-            .payer(PaymentPayerRequest.builder().email(c.getEmailPagador()).build()).build();
-        Payment payment;
-        try {
-            payment = client.create(request, MPRequestOptions.builder()
-                .accessToken(token).customHeaders(Map.of("X-Idempotency-Key", c.getId().toString())).build());
-        } catch (Exception e) {
-            // Do not log provider payloads, credentials or payer data.
-            throw new IllegalStateException("Não foi possível gerar o Pix. Tente novamente para recuperar a mesma cobrança");
-        }
-        return atualizar(c.getId(), payment);
+        this.token = token;
     }
 
     public PixResponse consultar(UUID id) {
@@ -88,6 +45,21 @@ public class PixService {
             autorizar(c.getEntrega());
             return PixResponse.of(c);
         });
+    }
+
+    /** Read an existing provider transaction; never issues a new charge. */
+    public PixResponse conciliar(UUID id, Long transacaoId) {
+        if (principal().getUsuario().getPerfilEfetivo() != PerfilAcesso.PROPRIETARIO)
+            throw new AccessDeniedException("Somente o proprietário concilia cobranças legadas");
+        if (token.isBlank()) throw new IllegalStateException("Configure a credencial de conciliação legada do Mercado Pago");
+        var c = cobrancas.findById(id).orElseThrow(() -> new IllegalArgumentException("Cobrança não encontrada"));
+        if (c.getMercadoPagoId() != null && !c.getMercadoPagoId().equals(transacaoId))
+            throw new IllegalArgumentException("Transação divergente da cobrança legada");
+        Payment payment;
+        try { payment = client.get(transacaoId, MPRequestOptions.builder().accessToken(token).build()); }
+        catch (Exception ex) { throw new IllegalStateException("Não foi possível consultar a transação legada no provedor", ex); }
+        if (!transacaoId.equals(payment.getId())) throw new IllegalArgumentException("Transação divergente");
+        return atualizar(id, payment);
     }
 
     public void notificar(Long mpId) {

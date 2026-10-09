@@ -19,11 +19,12 @@ export type ClienteForm = {
 
 export type Entregador = {
   id: string; nome: string; cpf: string; telefone: string; email?: string; tipoVeiculo: TipoVeiculo;
+  tipoChavePix?: TipoChavePix; chavePix?: string; titularPix?: string;
   placaVeiculo?: string; ativo: boolean; disponivel: boolean; possuiAcesso: boolean; criadoEm: string; versao: number;
 };
 export type EntregadorForm = {
   nome: string; cpf: string; telefone: string; email: string; tipoVeiculo: TipoVeiculo;
-  placaVeiculo: string; disponivel: boolean;
+  placaVeiculo: string; disponivel: boolean; tipoChavePix: TipoChavePix | ''; chavePix: string; titularPix: string;
 };
 export type HistoricoEntrega = {
   statusAnterior?: StatusEntrega; novoStatus: StatusEntrega; usuarioResponsavelNome: string; alteradoEm: string;
@@ -37,7 +38,7 @@ export type Entrega = {
   tipoVeiculo: 'MOTO' | 'CARRO'; origemPreco: 'AREA' | 'NEGOCIADO' | 'DISTANCIA';
   areaPrecoCodigo?: string; areaPrecoNome?: string; tarifaBairro: number; possuiRetorno: boolean;
   taxaRetornoAplicada: number; tempoEsperaMinutos: number; taxaEsperaAplicada: number; valorNegociado?: number;
-  historico: HistoricoEntrega[]; versao: number;
+  historico: HistoricoEntrega[]; versao: number; formaPagamento?: FormaPagamento;
 };
 export type EntregaOperacional = {
   id: string; codigo: string; clienteNome: string; enderecoOrigem: string; bairroOrigem: string;
@@ -61,7 +62,7 @@ export type EntregaForm = {
   clienteId: string; entregadorId: string; enderecoOrigem: string; bairroOrigem: string;
   enderecoDestino: string; bairroDestino: string; destinatarioNome: string; destinatarioTelefone: string;
   descricaoMercadoria: string; observacoes: string; distanciaKm: string; valorFinal: string; observacaoValorManual: string;
-  tipoVeiculo: 'MOTO' | 'CARRO'; tempoEsperaMinutos: string; possuiRetorno: boolean; valorNegociado: string;
+  tipoVeiculo: 'MOTO' | 'CARRO'; tempoEsperaMinutos: string; possuiRetorno: boolean; valorNegociado: string; formaPagamento: 'PIX' | 'DINHEIRO';
 };
 export type ConfiguracaoPreco = {
   id: string; taxaInicial: number; valorPorKm: number; valorMinimo: number; versao: number;
@@ -124,3 +125,20 @@ export type ConfiguracaoEmpresa = {
 
 export type Funcionario = { id: string; nome: string; email: string; ativo: boolean; criadoEm: string };
 export type FuncionarioForm = { nome: string; email: string; senha: string };
+
+export type TipoChavePix = 'CPF' | 'TELEFONE' | 'EMAIL' | 'ALEATORIA';
+export type LocalRota = {
+  id?: string; versao?: number; tipo: 'COLETA' | 'ENTREGA' | 'INTERMEDIARIA'; logradouro: string; numero: string;
+  semNumero: boolean; complemento: string; bairro: string; cidade: string; estado: string; cep: string;
+  contatoNome: string; contatoTelefone: string; observacao: string;
+};
+export type Parada = LocalRota & {
+  id: string; ordem: number; endereco: string; status: 'PENDENTE' | 'CONCLUIDA' | 'FALHOU';
+  realizadaEm?: string; usuarioConclusaoNome?: string;
+};
+export type Recebimento = {
+  formaPagamento: FormaPagamento | null; valorRecebido: number; saldo: number; recebedorId?: string;
+  recebedorNome?: string; chavePix?: string; titularPix?: string; referenciaRecebedor: string;
+  recebidoConfirmado: boolean; podeConfirmar: boolean; podeFinalizar: boolean; pendencia?: string;
+  confirmadoPor?: string; confirmadoEm?: string; cobrancaLegadaId?: string; transacaoLegadaId?: number;
+};

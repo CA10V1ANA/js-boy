@@ -3,8 +3,9 @@ import { FormEvent, useEffect, useState } from 'react';
 import { Modal } from '../components/Modal';
 import { TableAction, TableActions } from '../components/TableActions';
 import { useToast } from '../contexts/ToastContext';
+import { apiErrorMessage } from '../services/apiError';
 import { api } from '../services/api';
-import { Entregador, EntregadorForm, TipoVeiculo } from '../types';
+import { Entregador, EntregadorForm, TipoVeiculo, TipoChavePix } from '../types';
 import { sentenceCase, titleCase } from '../utils/display';
 import { formatCpf, formatEmailInput, formatPhone, formatVehiclePlate, normalizeVehiclePlate, onlyDigits } from '../utils/inputMasks';
 
@@ -15,7 +16,7 @@ const emptyForm: EntregadorForm = {
   email: '',
   tipoVeiculo: 'MOTO',
   placaVeiculo: '',
-  disponivel: true,
+  disponivel: true, tipoChavePix: '', chavePix: '', titularPix: '',
 };
 
 const vehicleOptions: TipoVeiculo[] = ['MOTO', 'CARRO'];
@@ -67,16 +68,18 @@ export function EntregadoresPage() {
       email: formatEmailInput(entregador.email || ''),
       tipoVeiculo: entregador.tipoVeiculo === 'CARRO' ? 'CARRO' : 'MOTO',
       placaVeiculo: formatVehiclePlate(entregador.placaVeiculo || ''),
-      disponivel: entregador.disponivel,
+      disponivel: entregador.disponivel, tipoChavePix: entregador.tipoChavePix || '',
+      chavePix: entregador.chavePix || '', titularPix: entregador.titularPix || '',
     });
     setModalOpen(true);
   }
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    if (carregando) return;
     setCarregando(true);
     const payload = {
-      ...form,
+      ...form, tipoChavePix: form.tipoChavePix || null,
       cpf: onlyDigits(form.cpf),
       telefone: onlyDigits(form.telefone),
       email: formatEmailInput(form.email),
@@ -96,8 +99,8 @@ export function EntregadoresPage() {
       setForm(emptyForm);
       setEditingId(null);
       await carregarEntregadores();
-    } catch {
-      showToast('Revise os dados do entregador e tente novamente.', 'error');
+    } catch (reason) {
+      showToast(apiErrorMessage(reason, 'Revise os dados do entregador e tente novamente.'), 'error');
     } finally {
       setCarregando(false);
     }
@@ -280,6 +283,15 @@ export function EntregadoresPage() {
             <input type="checkbox" checked={form.disponivel} onChange={(event) => setForm({ ...form, disponivel: event.target.checked })} />
             Disponível para entregas
           </label>
+          <fieldset className="settingsForm">
+            <legend>Pix direto do entregador</legend>
+            <label>Tipo de chave<select value={form.tipoChavePix} onChange={e => setForm({ ...form, tipoChavePix: e.target.value as TipoChavePix | '' })}>
+              <option value="">Ainda não configurado</option><option value="CPF">CPF</option><option value="TELEFONE">Telefone</option><option value="EMAIL">E-mail</option><option value="ALEATORIA">Aleatória</option>
+            </select></label>
+            <label>Chave Pix<input required={!!form.tipoChavePix} maxLength={180} value={form.chavePix} onChange={e => setForm({ ...form, chavePix: e.target.value })} /></label>
+            <label>Nome do titular<input required={!!form.tipoChavePix} maxLength={140} value={form.titularPix} onChange={e => setForm({ ...form, titularPix: e.target.value })} /></label>
+            <p className="formHelp">O cliente deve conferir o destinatário no aplicativo do banco. Telefone aceita +55 e DDD; e-mail e chave aleatória não usam máscara numérica.</p>
+          </fieldset>
           <button className="primaryButton" disabled={carregando} type="submit">{editingId ? 'Salvar' : 'Cadastrar'}</button>
         </form>
       </Modal>

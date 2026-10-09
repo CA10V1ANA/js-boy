@@ -1,88 +1,43 @@
 # Segurança de sessão
 
-## Estado do P0
+Estado revisado em 08/10/2026. O backend é a autoridade dos papéis e vínculos; veja [matriz de permissões](matriz-permissoes.md).
 
-A autenticação usa um access token JWT assinado pelo backend. O token padrão
-expira em 15 minutos; o valor pode ser reduzido por ambiente com
-`JWT_EXPIRATION_MINUTES`. Não existe segredo padrão: `JWT_SECRET` é obrigatório
-fora do profile de teste e deve ter alta entropia e pelo menos 32 caracteres.
+## Login, armazenamento e renovação
 
-O token identifica o usuário, mas autorização não depende apenas do papel
-contido nele. O backend consulta o usuário e seus vínculos com `Cliente` ou
-`Entregador` e aplica a matriz descrita em
-[`matriz-permissoes.md`](matriz-permissoes.md).
+O access token JWT dura 15 minutos por padrão (`JWT_EXPIRATION_MINUTES`) e fica somente em memória. `JWT_SECRET` não tem segredo padrão e exige alta entropia e pelo menos 32 caracteres fora de teste. O filtro recarrega identidade e vínculo; usuário removido/renomeado não causa erro 500 nem conserva autorização pelo JWT antigo.
 
-## Armazenamento atual
+Refresh token fica no cookie `refresh_token`, HttpOnly, Secure, SameSite=Strict, path `/auth`. O banco guarda hash; cada renovação rotaciona o token e reutilização revoga sua família. Logout revoga a renovação. O corpo do login não entrega refresh token ao JavaScript.
 
-- Web: o token permanece temporariamente no `localStorage`. Isso o torna
-  acessível a JavaScript executado na mesma origem e, portanto, vulnerável a
-  roubo em caso de XSS.
+O frontend consulta `/auth/me`, renova em resposta 401 quando permitido e encerra a sessão quando a renovação falha. Usa coordenação da tentativa de refresh dentro da página. O reload restaura a sessão pelo cookie. `localStorage` conserva dados mínimos da conta e tentativas financeiras idempotentes, sem o token de acesso. Logout apaga esses dados e tentativas locais.
 
-Como mitigação temporária, o servidor estático aplica CSP, bloqueio de framing,
-`nosniff`, política de referência e política restritiva de permissões. A
-aplicação também deve evitar HTML não confiável, scripts de terceiros e logs de
-token. Essas medidas reduzem o risco, mas não equivalem a um cookie HttpOnly.
+Frontend e API em HTTPS no mesmo domínio-base são requisito da topologia atual. `app.exemplo.com.br` e `api.exemplo.com.br` são sites compatíveis com SameSite=Strict; URLs independentes `vercel.app`/`railway.app` não são. Não reduzir o atributo do cookie como atalho. Veja [publicação](publicacao-vercel-railway-supabase.md).
 
-## Tarefa técnica obrigatória
+## Senha e recuperação
 
-Uma etapa posterior deve implementar sessão completa, de maneira coordenada:
+BCrypt guarda hash da senha. Senhas novas/reset/bootstrap exigem 12 caracteres e limite de 72 **bytes UTF-8**; acentos podem consumir mais de um byte. Login conserva compatibilidade com senhas antigas menores e valida o limite antes do BCrypt.
 
-1. refresh token rotativo, revogável e armazenado com segurança;
-2. access token curto sem persistência duradoura no navegador;
-3. logout com revogação;
-4. recuperação de senha com token aleatório, expirável e de uso único;
-5. proteção CSRF adequada caso a autenticação passe a usar cookies.
+Recuperação usa token aleatório, hash, expiração e uso único; resposta de solicitação não revela se a conta existe. Há limites por origem/conta. O provedor local não envia e-mail. Em staging/prod, configurar Resend e testar entrega/URL real. Redefinição e desativação revogam renovação; autorização de identidade/vínculo continua sendo conferida no servidor.
 
-Não se deve migrar isoladamente para cookies antes de esse fluxo estar
-projetado e testado.
+## Superfícies e CORS
 
-## Ambientes e superfícies de desenvolvimento
+| Profile | Swagger/H2 | HTTPS | Bootstrap do proprietário |
+| --- | --- | --- | --- |
+| local | Configurável; apenas desenvolvimento | Não exigido | Conforme configuração local |
+| test | Desabilitados | Não exigido | Fixtures de teste |
+| staging | Desabilitados | Exigido por padrão | Somente ativação explícita em banco inicial |
+| prod | Desabilitados | Exigido | Somente ativação explícita em banco inicial |
 
-| Profile | Swagger | H2 Console | CORS | HTTPS |
-|---|---|---|---|---|
-| `local` | configurável, habilitado por padrão | configurável; Compose o desabilita | origens locais explícitas | não exigido |
-| `test` | desabilitado | desabilitado | origem de teste | não exigido |
-| `staging` | desabilitado | desabilitado | variável obrigatória, sem wildcard | exigido |
-| `prod` | desabilitado | desabilitado | variável obrigatória, sem wildcard | exigido |
+Staging/prod usam cabeçalhos encaminhados pelo proxy. Somente o ingresso confiável deve alcançar a API, com `X-Forwarded-Proto` correto. Não exponha diretamente portas internas ou gestão. Homologue essa configuração no Railway.
 
-Os profiles `staging` e `prod` processam cabeçalhos encaminhados porque operam
-atrás de um reverse proxy controlado. O proxy encerra TLS, remove cabeçalhos
-encaminhados recebidos do público e define `X-Forwarded-Proto=https`. A porta do
-backend não deve ficar exposta diretamente à internet. Profiles local e test
-ignoram esses cabeçalhos.
+CORS aceita origens completas explícitas (`https://app.exemplo.com.br`), sem caminho, barra final ou wildcard de credenciais. Origem permitida não concede papel nem posse. CSP, framing, nosniff e política de referência são camadas complementares; não eliminam riscos de XSS.
 
-## CORS
+## Bootstrap e respostas
 
-`CORS_ALLOWED_ORIGINS` recebe uma lista separada por vírgulas de origens
-completas, incluindo esquema e porta. Em produção:
+`APP_BOOTSTRAP_OWNER_ENABLED` é false por padrão em staging/prod. A ativação exige e-mail/senha, verifica população do banco e é idempotente para o proprietário compatível; não substitui contas existentes. Desligar após o primeiro acesso e remover SEED_* da configuração protegida. Nunca versionar credenciais.
 
-- usar somente origens HTTPS conhecidas;
-- não usar `*` quando credenciais estiverem habilitadas;
-- não incluir barra final ou caminho;
-- revisar a lista ao trocar domínio.
+- 401: identidade ausente, inválida ou expirada; a web pode tentar renovação antes de encerrar.
+- 403: papel autenticado não pode executar a ação.
+- 404: recurso inexistente ou fora do escopo quando a existência deve ser protegida.
+- 409: versão/estado/conciliação em conflito; atualizar e conferir, sem sobrescrever à força.
 
-CORS não substitui autenticação e não protege clientes que não sejam
-navegadores.
-
-## Credenciais de desenvolvimento
-
-O bootstrap do proprietário existe nos profiles `local` e `staging`, exige
-ativação explícita em staging e senha inicial com pelo menos 12 caracteres. Em
-staging ele recusa bancos que já possuam outros usuários, é idempotente para o
-mesmo proprietário e deve ser desabilitado logo após o primeiro login. O profile
-`prod` nunca carrega esse inicializador.
-
-O arquivo `.env.example` contém apenas nomes de variáveis e valores públicos
-locais. O `.env` preenchido é ignorado pelo Git. Segredos de produção devem vir
-de um gerenciador de segredos da plataforma, nunca de Compose ou da imagem.
-
-## Respostas e logs
-
-- `401`: credencial ausente, inválida ou expirada;
-- `403`: usuário autenticado não pode executar a ação;
-- `404`: recurso inexistente ou fora do escopo do usuário, quando revelar a
-  existência criaria enumeração;
-- tokens, senhas, segredos, documentos e dados pessoais completos não podem ser
-  registrados;
-- logout local deve apagar token e dados de usuário do armazenamento;
-- qualquer `401` em revalidação deve encerrar a sessão local.
+Logs e evidências não devem conter senhas, tokens, chaves privadas ou dados pessoais completos. Segredos pertencem às variáveis protegidas dos provedores. O Supabase não substitui a autorização Spring; tabelas de negócio devem permanecer inacessíveis a anon/authenticated pela Data API.

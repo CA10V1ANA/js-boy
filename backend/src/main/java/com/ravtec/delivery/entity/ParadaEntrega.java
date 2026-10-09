@@ -47,4 +47,6 @@ public class ParadaEntrega extends BaseEntity {
     private OffsetDateTime realizadaEm;
     @Version
     private Long version;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Usuario usuarioConclusao;
 }

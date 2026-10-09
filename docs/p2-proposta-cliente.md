@@ -1,99 +1,45 @@
-# P2 — Completar a proposta ao cliente
+# Proposta ao cliente e operação atual
 
-## Fronteiras de acesso
+Revisado em 08/10/2026. Escopo desta publicação: web React + API Spring, Pix direto/dinheiro, paradas manuais e financeiro autorizado. Veja [explicação completa](explicacao-completa-do-projeto.md).
 
-- `CLIENTE`: o vínculo é sempre obtido do `SecurityContext`; solicita entregas e consulta somente entregas, pagamentos, paradas, ocorrências e comprovantes próprios.
-- `ENTREGADOR`: o vínculo é sempre obtido do `SecurityContext`; opera somente entregas designadas a ele.
-- `PROPRIETARIO`: administra solicitações, links, recorrências e exceções.
-- Rastreamento público usa token aleatório de 256 bits. Somente SHA-256 do token é persistido.
+## Acessos
 
-O rastreamento não retorna UUID interno, valores, documentos, telefones de destinatários, observações privadas nem localização em tempo real. Links podem expirar e ser revogados.
+Cliente solicita e acompanha apenas seus serviços. Entregador executa suas entregas e confere recebimentos próprios. Proprietário define preço, designação, rota e exceções. Vínculos vêm da conta autenticada; UUID enviado não prova autorização.
 
-## Endpoints P2
+Solicitação de cliente entra SOLICITADA. O cliente não escolhe valor, outro cliente, status ou entregador. Orçamento negociado pendente exige definição explícita antes da aprovação; zero não equivale a aprovação gratuita automática.
 
-### Cliente autenticado
+## Contratos ativos
 
-- `POST /cliente/entregas`
-- `GET /cliente/entregas/{id}/paradas`
-- `GET /cliente/entregas/{id}/comprovantes`
-- `GET /cliente/entregas/{id}/ocorrencias`
-- `GET|PUT /cliente/notificacoes/preferencias`
+Caminhos são relativos à raiz da API; não acrescentar um prefixo `/api` geral.
 
-Toda solicitação do cliente entra em `SOLICITADA`; cliente não envia `clienteId`, valor, status ou entregador.
+| Contrato | Perfil e regra |
+| --- | --- |
+| `POST /cliente/entregas` | Cliente vinculado; cria solicitação |
+| `GET /cliente/entregas/{id}/paradas` e `/ocorrencias` | Cliente próprio |
+| `GET /recebimentos/entregas/{id}` | Proprietário, entregador próprio ou cliente próprio |
+| `POST /recebimentos/entregas/{id}/confirmar` | Proprietário ou entregador próprio; Idempotency-Key e referência atual do recebedor |
+| `GET /rotas/entregas/{id}` | Proprietário ou vínculo próprio |
+| `PUT /rotas/entregas/{id}` | Proprietário, versão atual e condições de edição |
+| `POST /rotas/entregas/{id}/paradas/{paradaId}/concluir` | Proprietário ou entregador próprio; versão da parada e ordem |
+| `POST /operacao-entregador/entregas/{id}/ocorrencias` | Entregador próprio; não reabre parada concluída |
+| `POST /operacao-entregador/offline/entregas/{id}/status` | Sincronização idempotente autorizada; mesmas condições de domínio |
+| `GET|PUT /cliente/notificacoes/preferencias` | Preferências próprias |
+| `POST /entregas/{id}/rastreamentos` e `DELETE /entregas/{id}/rastreamentos/{linkId}` | Proprietário cria/revoga links |
+| `GET /public/rastreamento/{token}` | Público, token limitado, sem dados financeiros ou GPS |
+| `POST /recorrencias`, `POST /recorrencias/gerar`, `PATCH /recorrencias/{id}/ativa` | Administração da recorrência |
 
-### Operação do entregador
+Fluxo principal: SOLICITADA → CONFIRMADA/AGENDADA → AGUARDANDO_ENTREGADOR → ENTREGADOR_DESIGNADO → COLETADA → EM_ROTA → ENTREGUE, com atalhos permitidos apenas pela máquina de estados. Há tentativa frustrada, devolução, falha definitiva e cancelamento anterior à coleta.
 
-- `GET /operacao-entregador/entregas/{id}/paradas`
-- `POST /operacao-entregador/entregas/{id}/paradas/{paradaId}/concluir`
-- `POST /operacao-entregador/entregas/{id}/comprovantes`
-- `POST /operacao-entregador/entregas/{id}/ocorrencias`
-- `POST /operacao-entregador/offline/entregas/{id}/status`
+ENTREGUE exige todas as paradas concluídas e saldo regular, além de estado e entregador válidos. Valor zero explícito não exige recebimento fictício. Confirmação Pix é manual após conferir o banco; dinheiro após conferir o valor em mãos. Cliente não confirma, e copiar a chave não registra crédito. Estornos e tentativas repetidas usam o razão/idempotência existente.
 
-Uploads e sincronizações exigem `Idempotency-Key`. Paradas anteriores pendentes impedem concluir uma parada futura.
+## Acervo e integrações
 
-### Proprietário e público
+Foto, assinatura, upload e OTP não fazem parte das exigências atuais. Listagem/download autorizado de comprovantes antigos permanecem para o acervo; `GET /comprovantes/{entregaId}/{comprovanteId}/arquivo` não torna o objeto público. Bucket Supabase privado via S3, acessado somente pela API. Não há nova emissão Mercado Pago; consulta/webhook preservados para conciliação legada.
 
-- `POST /entregas/{id}/rastreamentos?expiraEm=...`
-- `DELETE /entregas/{id}/rastreamentos/{linkId}`
-- `GET /public/rastreamento/{token}`
-- `POST /recorrencias`
-- `POST /recorrencias/gerar?ate=AAAA-MM-DD`
-- `PATCH /recorrencias/{id}/ativa?ativa=false`
-- `GET /comprovantes/{entregaId}/{comprovanteId}/arquivo` (autenticado e autorizado)
+Notificações usam outbox transacional, retentativas e Resend quando configurado. O provedor local é apenas desenvolvimento, não envio real. A web precisa de conexão para confirmar ações. A existência de endpoint de sincronização não significa que esta entrega tenha aplicativo Flutter ou fila offline completa.
 
-## Máquina de estados
+Rastreamento usa token aleatório com hash no banco, expiração/revogação, timeline e contato da empresa. Não fornece localização do entregador em tempo real, Pix, valores ou documentos do destinatário.
 
-Fluxo principal:
+## Configuração e validação
 
-`SOLICITADA → CONFIRMADA/AGENDADA → AGUARDANDO_ENTREGADOR → ENTREGADOR_DESIGNADO → COLETADA → EM_ROTA → ENTREGUE`
-
-Exceções:
-
-- `EM_ROTA → TENTATIVA_FALHOU → EM_ROTA | EM_DEVOLUCAO | FALHA_OPERACIONAL`
-- `COLETADA | EM_ROTA → EM_DEVOLUCAO → DEVOLVIDA`
-- `ENTREGADOR_DESIGNADO | COLETADA | EM_ROTA → FALHA_OPERACIONAL`
-
-`ENTREGUE`, `DEVOLVIDA`, `FALHA_OPERACIONAL` e `CANCELADA` são terminais. A conclusão em `ENTREGUE` exige comprovante de entrega.
-
-## Uploads
-
-- Tipos aceitos: JPEG, PNG e PDF, confirmados por conteúdo.
-- Limite padrão: 5 MiB.
-- JPEG/PNG são decodificados e regravados, removendo metadados não necessários.
-- Nomes são UUIDs aleatórios; arquivos não são gravados no repositório.
-- O provedor local usa diretório temporário apenas em desenvolvimento.
-- Produção deve fornecer implementação de `ArmazenamentoArquivo` para objeto privado (S3 compatível, Blob etc.).
-- Downloads passam por autorização e usam `Cache-Control: no-store`; não há URL pública previsível.
-
-Retenção recomendada: definir prazo jurídico/contratual; ao expirar, excluir o objeto e anonimizar/remover o registro conforme a política LGPD. Não executar limpeza sem política aprovada.
-
-## Notificações
-
-A outbox é transacional, idempotente e tem tentativas com backoff. O provedor `local` apenas registra metadados não sensíveis no log. Um provedor real deve implementar `NotificacaoProvider`; nenhuma credencial ou fornecedor está fixado.
-
-Eventos iniciais suportados pela arquitetura: solicitação recebida, confirmação, designação, coleta, rota, conclusão, falha, devolução e pagamento.
-
-## Offline Flutter
-
-- Cache de entregas e filas ficam no Keystore/Keychain via `flutter_secure_storage`.
-- Ações de status usam chave idempotente persistida no backend.
-- Fotos capturadas são copiadas para diretório privado do aplicativo e removidas somente após confirmação do servidor.
-- A interface mostra modo offline e quantidade pendente.
-- Conflito HTTP 409 mantém a ação na fila para revisão; não força sobrescrita.
-
-O provedor de mapas é escolhido por `--dart-define=MAPS_PROVIDER=google|apple|osm`. O app abre rota externa e não apresenta ETA ou localização em tempo real.
-
-## Configuração
-
-```text
-APP_STORAGE_PROVIDER=local
-APP_STORAGE_LOCAL_ROOT=<diretorio fora do repositorio>
-APP_STORAGE_MAX_FILE_BYTES=5242880
-APP_PROOF_PHOTO_REQUIRED=false
-APP_NOTIFICATIONS_PROVIDER=local
-APP_NOTIFICATIONS_POLL_MS=30000
-APP_TRACKING_RATE_LIMIT_MAX_REQUESTS=30
-APP_TRACKING_RATE_LIMIT_WINDOW_MINUTES=5
-```
-
-As propriedades Spring equivalentes são `app.storage.*`, `app.proof.*`, `app.notifications.*` e `app.tracking.*`. Para Flutter, use `API_URL` e `MAPS_PROVIDER` via `--dart-define`.
+A configuração autoritativa está em [publicação Vercel/Railway/Supabase](publicacao-vercel-railway-supabase.md). Modelos locais/provedores não contêm credenciais. Retenção, conciliação física dos créditos e recuperação de acervo precisam de procedimento operacional da JS Boy. Testar três perfis, saldo/paradas, dinheiro, Pix, resposta perdida e restauração antes de liberar produção.

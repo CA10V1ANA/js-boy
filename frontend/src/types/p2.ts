@@ -16,7 +16,7 @@ export type SolicitacaoEntrega = {
   enderecoOrigem: string; bairroOrigem: string; enderecoDestino: string; bairroDestino: string;
   destinatarioNome: string; destinatarioTelefone: string; descricaoMercadoria: string;
   observacoes: string; distanciaKm: number; agendadaInicio?: string; agendadaFim?: string;
-  fusoHorario?: string;
+  fusoHorario?: string; formaPagamento?: 'PIX' | 'DINHEIRO';
 };
 export type RastreamentoPublico = {
   codigoPublico: string; status: StatusEntrega;

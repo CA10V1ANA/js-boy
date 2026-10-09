@@ -123,6 +123,21 @@ class AuthControllerIT extends AbstractIntegrationTest {
     }
 
     @Test
+    void identidadeAlteradaInvalidaJwtSemErroInterno() {
+        var login = restTemplate.postForEntity("/auth/login", new LoginRequest(OWNER_EMAIL, OWNER_PASSWORD), LoginResponse.class);
+        var usuario = usuarioRepository.findByEmail(OWNER_EMAIL).orElseThrow();
+        usuario.setEmail("alterado-auth-it@example.invalid");
+        usuarioRepository.saveAndFlush(usuario);
+        try {
+            var headers = new HttpHeaders(); headers.setBearerAuth(login.getBody().token());
+            var response = restTemplate.exchange("/auth/me", HttpMethod.GET, new HttpEntity<>(headers), String.class);
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        } finally {
+            usuario.setEmail(OWNER_EMAIL); usuarioRepository.saveAndFlush(usuario);
+        }
+    }
+
+    @Test
     void deveRejeitarImediatamenteJwtEmitidoAntesDaDesativacao() {
         var login = restTemplate.postForEntity(
             "/auth/login", new LoginRequest(OWNER_EMAIL, OWNER_PASSWORD), LoginResponse.class

@@ -59,7 +59,9 @@ class EntregaServiceTest {
     @Mock
     private IdentidadeAtual identidadeAtual;
     @Mock
-    private ComprovanteEntregaRepository comprovanteRepository;
+    private RecebimentoService recebimentoService;
+    @Mock
+    private com.ravtec.delivery.repository.EntregaFinanceiraRepository entregaFinanceiraRepository;
     @Mock
     private ParadaEntregaService paradaService;
     @Mock
@@ -73,7 +75,7 @@ class EntregaServiceTest {
         entregaService = new EntregaService(
             entregaRepository, clienteRepository, entregadorRepository,
             historicoEntregaRepository, configuracaoPrecoService, tabelaPrecoService, new EntregaMapper(),
-            identidadeAtual, new EntregaStatusPolicy(), paradaService, notificacaoService, comprovanteRepository
+            identidadeAtual, new EntregaStatusPolicy(), paradaService, notificacaoService, recebimentoService, entregaFinanceiraRepository
         );
 
         usuarioLogado = new Usuario();
@@ -150,7 +152,7 @@ class EntregaServiceTest {
     void deveLancarExcecaoAoDesignarEntregadorInexistente() {
         var entrega = criarEntrega();
         var entregadorId = UUID.randomUUID();
-        when(entregaRepository.findById(entrega.getId())).thenReturn(Optional.of(entrega));
+        when(entregaFinanceiraRepository.buscarParaAtualizacao(entrega.getId())).thenReturn(Optional.of(entrega));
         when(entregadorRepository.findById(entregadorId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> entregaService.designarEntregador(entrega.getId(), new DesignarEntregadorRequest(entregadorId)))
@@ -160,6 +162,7 @@ class EntregaServiceTest {
     @Test
     void deveNegarAlteracaoDeStatusQuandoEntregaNaoPertenceAoEntregadorLogado() {
         var entrega = criarEntrega();
+        when(entregaFinanceiraRepository.buscarParaAtualizacao(entrega.getId())).thenReturn(Optional.of(entrega));
         when(entregaRepository.findByIdAndEntregadorUsuarioId(entrega.getId(), usuarioLogado.getId()))
             .thenReturn(Optional.empty());
 
@@ -173,6 +176,7 @@ class EntregaServiceTest {
         entregador.setUsuario(usuarioLogado);
         var entrega = criarEntrega();
         entrega.setEntregador(entregador);
+        when(entregaFinanceiraRepository.buscarParaAtualizacao(entrega.getId())).thenReturn(Optional.of(entrega));
         when(entregaRepository.findByIdAndEntregadorUsuarioId(entrega.getId(), usuarioLogado.getId()))
             .thenReturn(Optional.of(entrega));
 
@@ -191,20 +195,22 @@ class EntregaServiceTest {
     }
 
     @Test
-    void deveRejeitarEntregaSemComprovanteFinalVerificado() {
+    void deveRejeitarFinalizacaoComSaldoPendente() {
         var entregador = criarEntregador();
         entregador.setUsuario(usuarioLogado);
         var entrega = criarEntrega();
         entrega.setEntregador(entregador);
         entrega.setStatus(StatusEntrega.EM_ROTA);
+        when(entregaFinanceiraRepository.buscarParaAtualizacao(entrega.getId())).thenReturn(Optional.of(entrega));
         when(entregaRepository.findByIdAndEntregadorUsuarioId(entrega.getId(), usuarioLogado.getId()))
             .thenReturn(Optional.of(entrega));
-        when(comprovanteRepository.existsEntregaFinalVerificada(entrega.getId())).thenReturn(false);
+        org.mockito.Mockito.doThrow(new com.ravtec.delivery.exception.ConflitoException("Existe saldo pendente"))
+            .when(recebimentoService).validarFinalizacao(entrega);
 
         assertThatThrownBy(() -> entregaService.alterarStatusMinhaEntrega(
             entrega.getId(), new EntregaStatusRequest(StatusEntrega.ENTREGUE)))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("valide o comprovante");
+            .isInstanceOf(com.ravtec.delivery.exception.ConflitoException.class)
+            .hasMessageContaining("saldo pendente");
     }
 
     private Cliente criarCliente() {

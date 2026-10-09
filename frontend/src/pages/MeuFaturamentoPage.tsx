@@ -4,6 +4,7 @@ import { FeedbackMessage } from '../components/AsyncState';
 import { api } from '../services/api';
 import { apiErrorMessage } from '../services/apiError';
 import type { ExtratoMensalEntregador } from '../types/p3';
+import { businessDate } from '../utils/businessDate';
 
 const money = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -12,7 +13,7 @@ const dateTime = (value: string) =>
   new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value));
 
 export function MeuFaturamentoPage() {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = businessDate();
   const [inicio, setInicio] = useState(today.slice(0, 8) + '01');
   const [fim, setFim] = useState(today);
   const [extrato, setExtrato] = useState<ExtratoMensalEntregador | null>(null);

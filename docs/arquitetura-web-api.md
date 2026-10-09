@@ -3,8 +3,9 @@
 Decisão registrada em 02/10/2026 a partir de
 `JS_BOY_ARQUITETURA_E_PLANO_DE_ENTREGA_2026.md` e das escolhas de Caio. Este
 documento descreve o destino da entrega web; não atesta que os serviços já
-estejam configurados ou publicados. O estado verificável está no
-[backlog](backlog-estabilizacao-web-api.md).
+estejam configurados ou publicados. O estado verificável está na
+[revisão atual](revisao-completa-2026-10-08.md); a configuração segue o
+[procedimento de publicação](publicacao-vercel-railway-supabase.md).
 
 ## Topologia escolhida
 
@@ -30,7 +31,7 @@ provedores não cria microserviços.
 | API | Serviço Railway com root `backend/`, Java 21 e uma instância inicialmente. | Confirmar build, health, TLS confiável, CORS e segredos separados por ambiente. |
 | Banco | Novo PostgreSQL Supabase vazio, usado somente pela API. Flyway é a fonte única das migrations de negócio. | Criar/identificar projeto, ler histórico aplicado, obter backup verificável antes de mexer em migrations existentes; testar conexão, SSL, grants, RLS/Data API e pool. |
 | Comprovantes | Bucket privado Supabase Storage via adaptador S3 no backend. Download continua autorizado pela API. | Testar bucket real, acesso negado, upload, download, exclusão, reconciliação e recuperação dos bytes. |
-| Identidade | JWT, refresh tokens e regras de vínculo atuais permanecem na API. | Homologar sessões, recuperação e papéis no domínio final. |
+| Identidade | JWT, refresh tokens e regras de vínculo atuais permanecem na API; frontend/API HTTPS no mesmo domínio-base para SameSite=Strict. | Homologar sessões, recuperação e papéis no domínio final. |
 | Escala | Uma instância da API até medir carga e centralizar limitadores. | Medir pool, fila de notificações, locks financeiros e limites por origem antes de criar réplicas. |
 | Release | Mesmo commit deve passar CI web/API e infraestrutura; preparar artefato identificável antes de promover. | Executar gate remoto e homologação; publicação é etapa posterior. |
 

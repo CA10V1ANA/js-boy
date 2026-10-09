@@ -36,7 +36,7 @@ class PixServiceTest {
         entregas = mock(EntregaFinanceiraRepository.class); pagamentos = mock(PagamentoRepository.class);
         service = new PixService(client, cobrancas, entregas, pagamentos,
             new TransactionTemplate(mock(PlatformTransactionManager.class)),
-            mock(ControleFechamentoFinanceiroService.class), "fake-token", "https://example.invalid/webhook", "secret");
+            mock(ControleFechamentoFinanceiroService.class), "fake-token");
         ReflectionTestUtils.setField(service, "entityManager", mock(EntityManager.class));
         user = new Usuario(); user.setId(UUID.randomUUID()); user.setPerfil(PerfilAcesso.PROPRIETARIO);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
@@ -81,34 +81,17 @@ class PixServiceTest {
         assertThatThrownBy(() -> service.atualizar(c.getId(), payment("approved")))
             .isInstanceOf(IllegalArgumentException.class);
     }
-    @Test void clienteNaoPodeGerarPixDeOutroCliente() {
+    @Test void conciliaCancelamentoConfirmadoPeloProvedorSemEmitirCobranca() throws Exception {
+        var resposta = payment("cancelled");
+        when(client.get(eq(123L), any())).thenReturn(resposta);
+        assertThat(service.conciliar(c.getId(), 123L).status()).isEqualTo("CANCELADO");
+        verify(client, never()).create(any(), any());
+        verify(pagamentos, never()).saveAndFlush(any());
+    }
+    @Test void clienteNaoPodeConciliarCobranca() {
         user.setPerfil(PerfilAcesso.CLIENTE);
-        assertThatThrownBy(() -> service.gerar(entrega.getId())).isInstanceOf(AccessDeniedException.class);
+        assertThatThrownBy(() -> service.conciliar(c.getId(), 123L)).isInstanceOf(AccessDeniedException.class);
         verifyNoInteractions(client);
-    }
-    @Test void cobrancaExistenteNaoChamaProvedorNovamente() {
-        c.setMercadoPagoId(123L);
-        when(cobrancas.findByEntregaId(entrega.getId())).thenReturn(Optional.of(c));
-        assertThat(service.gerar(entrega.getId()).mercadoPagoId()).isEqualTo(123L);
-        verifyNoInteractions(client);
-    }
-    @Test void respostaPerdidaReutilizaMesmaChaveNoProvedor() throws Exception {
-        c.setEmailPagador("payer@example.invalid"); c.setExpiraEm(OffsetDateTime.now().plusMinutes(30));
-        when(cobrancas.findByEntregaId(entrega.getId())).thenReturn(Optional.of(c));
-        var resposta = payment("pending");
-        when(client.create(any(), any())).thenThrow(new RuntimeException("resposta perdida"))
-            .thenReturn(resposta);
-        assertThatThrownBy(() -> service.gerar(entrega.getId())).isInstanceOf(IllegalStateException.class);
-        service.gerar(entrega.getId());
-        var options = org.mockito.ArgumentCaptor.forClass(com.mercadopago.core.MPRequestOptions.class);
-        var requests = org.mockito.ArgumentCaptor.forClass(com.mercadopago.client.payment.PaymentCreateRequest.class);
-        verify(client, times(2)).create(requests.capture(), options.capture());
-        assertThat(options.getAllValues()).allSatisfy(o ->
-            assertThat(o.getCustomHeaders().get("X-Idempotency-Key")).isEqualTo(c.getId().toString()));
-        assertThat(requests.getAllValues()).allSatisfy(r -> {
-            assertThat(r.getTransactionAmount()).isEqualByComparingTo("50.00");
-            assertThat(r.getExternalReference()).isEqualTo(c.getId().toString());
-        });
     }
     @Test void notificacaoConsultaTransacaoEmVezDeConfiarNoCorpo() throws Exception {
         var resposta = payment("approved");

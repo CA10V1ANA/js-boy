@@ -2,18 +2,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ArrowLeft,
   ArrowRight,
-  Camera,
   Check,
   CheckCircle2,
   DollarSign,
-  FileCheck2,
   MapPin,
   PackageCheck,
   Search,
   Truck,
   UserPlus,
 } from "lucide-react";
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   ConfirmDialog,
@@ -22,13 +20,13 @@ import {
   LoadingState,
 } from "../components/AsyncState";
 import { Modal } from "../components/Modal";
-import { PixPagamento } from "../components/PixPagamento";
+import { OperacaoEntrega } from "../components/OperacaoEntrega";
 import { useToast } from "../contexts/ToastContext";
 import { ClienteFormData, clienteSchema } from "../schemas/clienteSchema";
 import { api } from "../services/api";
 import { apiErrorMessage } from "../services/apiError";
 import { EntregaOperacional, ResumoEntregador, StatusEntrega } from "../types";
-import { publicDeliveryCode, titleCase } from "../utils/display";
+import { titleCase } from "../utils/display";
 import {
   formatCep,
   formatCpfOrCnpj,
@@ -84,8 +82,8 @@ function next(status: StatusEntrega) {
     return { status: "COLETADA" as StatusEntrega, label: "Confirmar coleta" };
   if (status === "COLETADA")
     return { status: "EM_ROTA" as StatusEntrega, label: "Iniciar rota" };
-  if (status === "EM_ROTA")
-    return { status: "ENTREGUE" as StatusEntrega, label: "Confirmar entrega" };
+  if (status === "TENTATIVA_FALHOU")
+    return { status: "EM_ROTA" as StatusEntrega, label: "Retomar rota" };
   return null;
 }
 function statusClass(status: StatusEntrega) {
@@ -96,16 +94,6 @@ function statusClass(status: StatusEntrega) {
     return "statusBadge progress";
   return "statusBadge pending";
 }
-type ProofDraft = {
-  delivery: EntregaOperacional;
-  type: "COLETA" | "ENTREGA";
-  file: File | null;
-  receiver: string;
-  observation: string;
-  otp: string;
-  otpDestination: string;
-};
-
 export function MinhasEntregasPage() {
   const { showToast } = useToast();
   const [items, setItems] = useState<EntregaOperacional[]>([]);
@@ -117,7 +105,6 @@ export function MinhasEntregasPage() {
     "ATIVAS",
   );
   const [pending, setPending] = useState<EntregaOperacional | null>(null);
-  const [proof, setProof] = useState<ProofDraft | null>(null);
   const [clientOpen, setClientOpen] = useState(false);
   const [clientStep, setClientStep] = useState(1);
   const [busy, setBusy] = useState(false);
@@ -197,70 +184,6 @@ export function MinhasEntregasPage() {
     } catch (reason) {
       setError(
         apiErrorMessage(reason, "Não foi possível atualizar esta entrega."),
-      );
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function submitProof(event: FormEvent) {
-    event.preventDefault();
-    if (!proof || busy) return;
-    if (proof.type === "ENTREGA" && !proof.receiver.trim()) {
-      setError("Informe quem recebeu a entrega.");
-      return;
-    }
-    if (proof.type === "ENTREGA" && !/^\d{6}$/.test(proof.otp)) {
-      setError("Informe o código de 6 dígitos enviado ao destinatário.");
-      return;
-    }
-    setBusy(true);
-    setError("");
-    try {
-      const body = new FormData();
-      body.append("tipo", proof.type);
-      if (proof.file) body.append("arquivo", proof.file);
-      if (proof.receiver.trim())
-        body.append("recebedorNome", proof.receiver.trim());
-      if (proof.type === "ENTREGA") body.append("otp", proof.otp);
-      if (proof.observation.trim())
-        body.append("observacao", proof.observation.trim());
-      await api.post(
-        `/operacao-entregador/entregas/${proof.delivery.id}/comprovantes`,
-        body,
-        { headers: { "Idempotency-Key": crypto.randomUUID() } },
-      );
-      showToast("Documentação registrada com sucesso.", "success");
-      setProof(null);
-      await load();
-    } catch (reason) {
-      setError(
-        apiErrorMessage(reason, "Não foi possível registrar a documentação."),
-      );
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function requestProofOtp() {
-    if (!proof || busy) return;
-    setBusy(true);
-    setError("");
-    try {
-      const response = await api.post<{ destinoMascarado: string }>(
-        `/operacao-entregador/entregas/${proof.delivery.id}/comprovante-otp`,
-      );
-      setProof({ ...proof, otpDestination: response.data.destinoMascarado });
-      showToast(
-        `Código enviado ao destinatário ${response.data.destinoMascarado}.`,
-        "success",
-      );
-    } catch (reason) {
-      setError(
-        apiErrorMessage(
-          reason,
-          "Não foi possível enviar o código ao destinatário.",
-        ),
       );
     } finally {
       setBusy(false);
@@ -353,7 +276,7 @@ export function MinhasEntregasPage() {
           <span className="modalEyebrow">PAINEL DO ENTREGADOR</span>
           <h1>Seu dia de trabalho, em um só lugar</h1>
           <p>
-            Acompanhe rotas, registre comprovantes e mantenha os clientes da
+            Acompanhe rotas, confirme recebimentos e mantenha os clientes da
             operação atualizados.
           </p>
         </div>
@@ -405,28 +328,11 @@ export function MinhasEntregasPage() {
           </article>
         ))}
       </section>
-      {summary.documentacaoPendente > 0 ? (
-        <section className="attentionBanner">
-          <span className="metricIcon tone-red">
-            <FileCheck2 size={19} />
-          </span>
-          <div>
-            <strong>
-              {summary.documentacaoPendente}{" "}
-              {summary.documentacaoPendente === 1
-                ? "entrega precisa"
-                : "entregas precisam"}{" "}
-              de documentação
-            </strong>
-            <p>Registre a coleta ou a entrega antes de encerrar a etapa.</p>
-          </div>
-        </section>
-      ) : null}
       <section className="panelCard" id="entregas-operacionais">
         <div className="panelCardHeader roleListHeader">
           <div>
             <h2>Minhas entregas</h2>
-            <p>Priorize as ativas e documente cada etapa.</p>
+            <p>Priorize as ativas e conclua os locais na ordem planejada.</p>
           </div>
         </div>
         <div className="roleFilters">
@@ -461,13 +367,13 @@ export function MinhasEntregasPage() {
           <EmptyState title="Nenhuma entrega neste filtro" />
         ) : (
           <div className="roleDeliveryList">
-            {visible.map((delivery, index) => {
+            {visible.map((delivery) => {
               const action = next(delivery.status);
               return (
                 <article className="roleDeliveryCard" key={delivery.id}>
                   <div className="roleDeliveryMain">
                     <span className="publicRecordCode">
-                      {publicDeliveryCode(index)}
+                      {delivery.codigo}
                     </span>
                     <div>
                       <strong>{titleCase(delivery.destinatarioNome)}</strong>
@@ -494,30 +400,8 @@ export function MinhasEntregasPage() {
                       {labelStatus(delivery.status)}
                     </span>
                   </div>
+                  <OperacaoEntrega entregaId={delivery.id} versao={delivery.versao} perfil="ENTREGADOR" onChange={() => void load()} />
                   <div className="roleDeliveryActions">
-                    {delivery.status !== 'CANCELADA' ? <PixPagamento entregaId={delivery.id} /> : null}
-                    {!finished.includes(delivery.status) ? (
-                      <button
-                        className="secondaryButton"
-                        type="button"
-                        onClick={() =>
-                          setProof({
-                            delivery,
-                            type:
-                              delivery.status === "EM_ROTA"
-                                ? "ENTREGA"
-                                : "COLETA",
-                            file: null,
-                            receiver: "",
-                            observation: "",
-                            otp: "",
-                            otpDestination: "",
-                          })
-                        }
-                      >
-                        <Camera size={16} /> Documentar
-                      </button>
-                    ) : null}
                     {action ? (
                       <button
                         className="darkButton"
@@ -537,135 +421,12 @@ export function MinhasEntregasPage() {
       <ConfirmDialog
         open={pending !== null}
         title={`${pending ? next(pending.status)?.label : "Atualizar entrega"}?`}
-        description="Confirme apenas depois da etapa. Para finalizar, o comprovante e obrigatorio."
+        description="Confirme apenas depois da etapa. A finalização exige rota concluída e saldo regularizado."
         confirmLabel={pending ? next(pending.status)?.label : "Confirmar"}
         busy={busy}
         onCancel={() => setPending(null)}
         onConfirm={() => void advance()}
       />
-      <Modal
-        open={proof !== null}
-        onClose={() => !busy && setProof(null)}
-        eyebrow="DOCUMENTACAO DA ENTREGA"
-        title={
-          proof?.type === "ENTREGA"
-            ? "Comprovante de entrega"
-            : "Comprovante de coleta"
-        }
-        maxWidth={560}
-      >
-        {proof ? (
-          <form className="settingsForm proofForm" onSubmit={submitProof}>
-            {error ? (
-              <div className="portalInlineError" role="alert">
-                {error}
-              </div>
-            ) : null}
-            <div className="proofDeliverySummary">
-              <span>Entrega selecionada</span>
-              <strong>{titleCase(proof.delivery.destinatarioNome)}</strong>
-              <small>{proof.delivery.enderecoDestino}</small>
-            </div>
-            <label>
-              Tipo
-              <select
-                value={proof.type}
-                onChange={(event) =>
-                  setProof({
-                    ...proof,
-                    type: event.target.value as "COLETA" | "ENTREGA",
-                    otp: "",
-                    otpDestination: "",
-                  })
-                }
-              >
-                <option value="COLETA">Coleta</option>
-                <option value="ENTREGA">Entrega</option>
-              </select>
-            </label>
-            {proof.type === "ENTREGA" ? (
-              <>
-                <label>
-                  Quem recebeu
-                  <input
-                    required
-                    value={proof.receiver}
-                    onChange={(event) =>
-                      setProof({ ...proof, receiver: event.target.value })
-                    }
-                    placeholder="Nome da pessoa que recebeu"
-                  />
-                </label>
-                <button
-                  className="secondaryButton"
-                  type="button"
-                  disabled={busy}
-                  onClick={() => void requestProofOtp()}
-                >
-                  <Check size={16} />{" "}
-                  {proof.otpDestination
-                    ? "Reenviar código"
-                    : "Enviar código ao destinatário"}
-                </button>
-                <label>
-                  Código do destinatário
-                  <input
-                    required
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    maxLength={6}
-                    pattern="[0-9]{6}"
-                    value={proof.otp}
-                    onChange={(event) =>
-                      setProof({
-                        ...proof,
-                        otp: onlyDigits(event.target.value).slice(0, 6),
-                      })
-                    }
-                    placeholder="000000"
-                  />
-                  {proof.otpDestination ? (
-                    <span className="formHelp">
-                      Enviado para {proof.otpDestination}.
-                    </span>
-                  ) : (
-                    <span className="formHelp">
-                      Solicite o código antes de registrar.
-                    </span>
-                  )}
-                </label>
-              </>
-            ) : null}
-            <label>
-              Foto JPEG ou PNG
-              <input
-                required
-                type="file"
-                accept="image/jpeg,image/png"
-                onChange={(event) =>
-                  setProof({ ...proof, file: event.target.files?.[0] || null })
-                }
-              />
-              <span className="formHelp">Arquivo de até 5 MB.</span>
-            </label>
-            <label>
-              Observação
-              <textarea
-                rows={3}
-                maxLength={500}
-                value={proof.observation}
-                onChange={(event) =>
-                  setProof({ ...proof, observation: event.target.value })
-                }
-              />
-            </label>
-            <button className="primaryButton" type="submit" disabled={busy}>
-              <FileCheck2 size={16} />{" "}
-              {busy ? "Registrando..." : "Registrar documentação"}
-            </button>
-          </form>
-        ) : null}
-      </Modal>
       <Modal
         open={clientOpen}
         onClose={() => !busy && setClientOpen(false)}

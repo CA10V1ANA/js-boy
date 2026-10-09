@@ -13,7 +13,9 @@ class ParadaEntregaServiceTest {
     void criaColetaEEntregaComContatoDoDestinatarioQuandoRotaNaoInformada() {
         var repository = mock(ParadaEntregaRepository.class);
         var service = new ParadaEntregaService(repository, mock(EntregaAcessoService.class),
-            new NormalizacaoService(), mock(AuditoriaService.class));
+            new NormalizacaoService(), mock(AuditoriaService.class),
+            mock(com.ravtec.delivery.repository.EntregaFinanceiraRepository.class),
+            mock(com.ravtec.delivery.security.IdentidadeAtual.class), mock(RecebimentoService.class));
         var entrega = new Entrega(); entrega.setId(UUID.randomUUID());
         entrega.setEnderecoOrigem("Origem"); entrega.setBairroOrigem("Centro");
         entrega.setEnderecoDestino("Destino"); entrega.setBairroDestino("Aldeota");
@@ -32,10 +34,11 @@ class ParadaEntregaServiceTest {
     void rejeitaOrdemComLacuna() {
         var repository = mock(ParadaEntregaRepository.class);
         var service = new ParadaEntregaService(repository, mock(EntregaAcessoService.class),
-            new NormalizacaoService(), mock(AuditoriaService.class));
+            new NormalizacaoService(), mock(AuditoriaService.class),
+            mock(com.ravtec.delivery.repository.EntregaFinanceiraRepository.class),
+            mock(com.ravtec.delivery.security.IdentidadeAtual.class), mock(RecebimentoService.class));
         var entrega = new Entrega();
         entrega.setId(UUID.randomUUID());
-        when(repository.findByEntregaIdOrderByOrdem(entrega.getId())).thenReturn(List.of());
         var requests = List.of(
             parada(1, TipoParada.COLETA),
             parada(3, TipoParada.ENTREGA)

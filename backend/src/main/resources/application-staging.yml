@@ -35,7 +35,7 @@ app:
     max-file-bytes: ${APP_STORAGE_MAX_FILE_BYTES:5242880}
   proof:
     otp:
-      provider: ${APP_PROOF_OTP_PROVIDER:local}
+      provider: ${APP_PROOF_OTP_PROVIDER:disabled}
       webhook-url: ${PROOF_OTP_WEBHOOK_URL:}
       webhook-token: ${PROOF_OTP_WEBHOOK_TOKEN:}
   notifications:

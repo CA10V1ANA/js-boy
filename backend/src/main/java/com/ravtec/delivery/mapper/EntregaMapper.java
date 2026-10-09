@@ -29,7 +29,7 @@ public class EntregaMapper {
             entrega.isPossuiRetorno(), entrega.getTaxaRetornoAplicada(), entrega.getTempoEsperaMinutos(),
             entrega.getTaxaEsperaAplicada(), entrega.getValorNegociado(), entrega.getStatus(),
             entrega.getConcluidaEm(), entrega.getCriadoEm(),
-            historico, entrega.getVersion()
+            historico, entrega.getVersion(), entrega.getFormaPagamento()
         );
     }
 

@@ -14,7 +14,7 @@ import { Entrega, FormaPagamento, Pagamento, PagamentoForm, RelatorioFinanceiro 
 
 const emptyForm: PagamentoForm = { entregaId: '', valor: '', formaPagamento: 'PIX', comprovante: '', observacoes: '' };
 const emptyReport: RelatorioFinanceiro = { valorEntregas: 0, valorRecebido: 0, valorPendente: 0, pagamentosRegistrados: 0, pendencias: [] };
-const formas: FormaPagamento[] = ['PIX', 'DINHEIRO', 'CARTAO', 'BOLETO', 'TRANSFERENCIA', 'OUTRO'];
+const formas: FormaPagamento[] = ['PIX', 'DINHEIRO'];
 const money = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
 export function PagamentosPage() {
@@ -159,7 +159,7 @@ export function PagamentosPage() {
         <form onSubmit={submit} className="settingsForm">
           <label>Entrega<select value={form.entregaId} onChange={(e) => setForm({ ...form, entregaId: e.target.value })} required><option value="">Selecione</option>{deliveries.map((delivery) => <option key={delivery.id} value={delivery.id}>{delivery.codigo} - {delivery.clienteNome}</option>)}</select></label>
           <div className="formGrid"><label>Valor<input type="number" min="0.01" step="0.01" placeholder="0,00" value={form.valor} onChange={(e) => setForm({ ...form, valor: e.target.value })} required /></label><label>Forma<select value={form.formaPagamento} onChange={(e) => setForm({ ...form, formaPagamento: e.target.value as FormaPagamento })}>{formas.map((forma) => <option key={forma}>{forma}</option>)}</select></label></div>
-          <label>Comprovante<input value={form.comprovante} onChange={(e) => setForm({ ...form, comprovante: e.target.value })} /></label>
+
           <label>Observações<textarea rows={3} value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} /></label>
           <button className="primaryButton" type="submit" disabled={busy}>Revisar pagamento</button>
         </form>

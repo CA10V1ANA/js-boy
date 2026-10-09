@@ -5,5 +5,5 @@ import jakarta.validation.constraints.Size;
 
 public record RedefinirSenhaRequest(
     @NotBlank String token,
-    @NotBlank @Size(min = 12, max = 128) String novaSenha
+    @NotBlank @Size(min = 12, max = 72) String novaSenha
 ) {}

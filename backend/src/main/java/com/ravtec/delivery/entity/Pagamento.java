@@ -55,4 +55,13 @@ public class Pagamento extends BaseEntity {
 
     @Column(length = 500, updatable = false)
     private String motivo;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Entregador recebedor;
+    @Column(length = 140, updatable = false)
+    private String recebedorNome;
+    @Column(length = 180, updatable = false)
+    private String chavePixRecebedor;
+    @Column(length = 140, updatable = false)
+    private String titularPixRecebedor;
 }

@@ -12,14 +12,35 @@ const refundPayloadSchema = z.object({ valor: z.number().positive(), motivo: z.s
 const base = { usuarioId: z.string().uuid(), chave: z.string().min(8) };
 const paymentIntentSchema = z.object({ ...base, payload: paymentPayloadSchema });
 const refundIntentSchema = z.object({ ...base, pagamentoId: z.string().uuid(), payload: refundPayloadSchema });
+const receiptPayloadSchema = z.object({
+  valor: z.number().positive(), formaPagamento: z.enum(['PIX', 'DINHEIRO']), referenciaRecebedor: z.string().min(1),
+});
+const receiptIntentSchema = z.object({ ...base, entregaId: z.string(), payload: receiptPayloadSchema });
 
 export type PaymentPayload = z.infer<typeof paymentPayloadSchema>;
 export type RefundPayload = z.infer<typeof refundPayloadSchema>;
 export type PendingPayment = z.infer<typeof paymentIntentSchema>;
 export type PendingRefund = z.infer<typeof refundIntentSchema>;
+export type ReceiptPayload = z.infer<typeof receiptPayloadSchema>;
+export type PendingReceipt = z.infer<typeof receiptIntentSchema>;
 
 const PAYMENT_KEY = 'jsboy.intent.payment';
 const REFUND_KEY = 'jsboy.intent.refund';
+const RECEIPT_PREFIX = 'jsboy.intent.receipt.';
+
+export function pendingReceipt(usuarioId: string, entregaId: string) {
+  return read(`${RECEIPT_PREFIX}${entregaId}`, usuarioId, receiptIntentSchema);
+}
+
+export function createReceiptIntent(usuarioId: string, entregaId: string, payload: ReceiptPayload): PendingReceipt {
+  const previous = pendingReceipt(usuarioId, entregaId);
+  if (previous) return previous;
+  const intent = receiptIntentSchema.parse({ usuarioId, entregaId, chave: idempotencyKey('receipt'), payload });
+  localStorage.setItem(`${RECEIPT_PREFIX}${entregaId}`, JSON.stringify(intent));
+  return intent;
+}
+
+export function clearReceiptIntent(entregaId: string) { localStorage.removeItem(`${RECEIPT_PREFIX}${entregaId}`); }
 
 function read<T>(key: string, usuarioId: string, schema: z.ZodType<T>): T | null {
   const raw = localStorage.getItem(key);
@@ -61,4 +82,8 @@ export function clearRefundIntent() { localStorage.removeItem(REFUND_KEY); }
 export function clearFinancialIntents() {
   clearPaymentIntent();
   clearRefundIntent();
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const key = localStorage.key(i);
+    if (key?.startsWith(RECEIPT_PREFIX)) localStorage.removeItem(key);
+  }
 }

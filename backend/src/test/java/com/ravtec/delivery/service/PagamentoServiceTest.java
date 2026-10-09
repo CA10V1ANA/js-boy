@@ -77,6 +77,10 @@ class PagamentoServiceTest {
         entrega.setId(UUID.randomUUID());
         entrega.setCodigo("JSB-TEST");
         entrega.setCliente(cliente);
+        var recebedor = new com.ravtec.delivery.entity.Entregador();
+        recebedor.setId(UUID.randomUUID()); recebedor.setNome("Recebedor");
+        recebedor.setChavePix("recebedor@example.test"); recebedor.setTitularPix("Recebedor teste");
+        entrega.setEntregador(recebedor);
         entrega.setValorFinal(new BigDecimal("100.00"));
 
         lenient().when(entregaFinanceiraRepository.buscarParaAtualizacao(entrega.getId()))

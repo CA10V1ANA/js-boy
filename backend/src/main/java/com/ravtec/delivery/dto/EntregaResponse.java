@@ -43,6 +43,7 @@ public record EntregaResponse(
     OffsetDateTime concluidaEm,
     OffsetDateTime criadoEm,
     List<HistoricoEntregaResponse> historico,
-    Long versao
+    Long versao,
+    com.ravtec.delivery.entity.FormaPagamento formaPagamento
 ) {
 }

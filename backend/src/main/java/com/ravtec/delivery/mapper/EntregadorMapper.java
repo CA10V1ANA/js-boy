@@ -25,6 +25,11 @@ public class EntregadorMapper {
         entregador.setPlacaVeiculo(request.placaVeiculo() == null || request.placaVeiculo().isBlank()
             ? null : request.placaVeiculo().trim().toUpperCase(Locale.ROOT));
         entregador.setDisponivel(request.disponivel());
+        var chave = new com.ravtec.delivery.service.ChavePixService().normalizar(
+            request.tipoChavePix(), request.chavePix(), request.titularPix());
+        entregador.setTipoChavePix(chave == null ? null : request.tipoChavePix());
+        entregador.setChavePix(chave);
+        entregador.setTitularPix(chave == null ? null : request.titularPix().trim());
     }
 
     public EntregadorResponse toResponse(Entregador entregador) {
@@ -32,7 +37,8 @@ public class EntregadorMapper {
             entregador.getId(), entregador.getNome(), entregador.getCpf(), entregador.getTelefone(),
             entregador.getEmail(), entregador.getTipoVeiculo(), entregador.getPlacaVeiculo(),
             entregador.isAtivo(), entregador.isDisponivel(), entregador.getUsuario() != null,
-            entregador.getCriadoEm(), entregador.getVersion()
+            entregador.getCriadoEm(), entregador.getVersion(), entregador.getTipoChavePix(),
+            entregador.getChavePix(), entregador.getTitularPix()
         );
     }
 }

@@ -190,7 +190,7 @@ export function PublicLayout() {
   const [showTop, setShowTop] = useState(false);
   useEffect(() => {
     const pages: Record<string, [string, string]> = {
-      '/': ['JS BOY - Entregas Empresariais', 'Gestão de entregas empresariais com acompanhamento, comprovantes e controle financeiro.'],
+      '/': ['JS BOY - Entregas Empresariais', 'Gestão de entregas empresariais com acompanhamento, Pix direto e controle financeiro.'],
       '/servicos': ['Serviços de entrega | JS BOY', 'Conheça os serviços de coleta, entrega e acompanhamento operacional da JS Boy.'],
       '/como-funciona': ['Como funciona | JS BOY', 'Entenda como contratar e acompanhar entregas com a JS Boy.'],
       '/para-empresas': ['Soluções para clientes | JS BOY', 'Operação de entregas para pessoas e empresas com acesso protegido.'],

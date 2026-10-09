@@ -9,6 +9,7 @@ import java.time.*;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -23,10 +24,11 @@ public class RecorrenciaEntregaService {
     private final com.ravtec.delivery.security.IdentidadeAtual identidadeAtual;
     private final NotificacaoOutboxService notificacaoService;
     private final EntregaService entregaService;
+    @Value("${app.business-zone:America/Fortaleza}") private String zona;
 
     @Transactional
     public RecorrenciaResponse criar(RecorrenciaRequest r) {
-        if (r.dataInicial().isBefore(LocalDate.now())) throw new IllegalArgumentException("Data inicial deve ser futura");
+        if (r.dataInicial().isBefore(LocalDate.now(ZoneId.of(zona)))) throw new IllegalArgumentException("Data inicial deve ser futura");
         if (r.dataFinal() != null && r.dataFinal().isBefore(r.dataInicial())) {
             throw new IllegalArgumentException("Data final invalida");
         }
@@ -46,7 +48,7 @@ public class RecorrenciaEntregaService {
 
     @Transactional
     public int gerarAte(LocalDate ate) {
-        if (ate.isAfter(LocalDate.now().plusMonths(3))) {
+        if (ate.isAfter(LocalDate.now(ZoneId.of(zona)).plusMonths(3))) {
             throw new IllegalArgumentException("Gere no maximo tres meses por vez");
         }
         int geradas = 0;

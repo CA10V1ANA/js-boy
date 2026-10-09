@@ -67,9 +67,19 @@ public class PagamentoService {
 
     @Transactional
     public PagamentoResponse registrar(String idempotencyKey, PagamentoRequest request) {
+        var principal = usuarioAtual();
+        var perfil = principal.getUsuario().getPerfilEfetivo();
+        if (perfil != com.ravtec.delivery.entity.PerfilAcesso.PROPRIETARIO
+            && perfil != com.ravtec.delivery.entity.PerfilAcesso.ENTREGADOR)
+            throw new AccessDeniedException("Perfil sem permissão para recebimento");
         var chave = validarChave(idempotencyKey);
         var entrega = entregaFinanceiraRepository.buscarParaAtualizacao(request.entregaId())
             .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega não encontrada"));
+        var recebedor = entrega.getEntregador();
+        if (perfil == com.ravtec.delivery.entity.PerfilAcesso.ENTREGADOR
+            && (recebedor == null || recebedor.getUsuario() == null
+                || !principal.getId().equals(recebedor.getUsuario().getId()) || !recebedor.isAtivo()))
+            throw new AccessDeniedException("Entrega não pertence ao recebedor");
         var valor = monetario(request.valor());
         validarValorPositivo(valor);
         validarData(request.pagoEm());
@@ -77,6 +87,15 @@ public class PagamentoService {
         var existente = buscarIdempotente(chave, hash);
         if (existente != null) {
             return pagamentoMapper.toResponse(existente);
+        }
+        if (entrega.getFormaPagamento() != null && request.formaPagamento() != entrega.getFormaPagamento())
+            throw new ConflitoException("A forma do recebimento deve corresponder à forma atual da entrega");
+        if (request.formaPagamento() == com.ravtec.delivery.entity.FormaPagamento.PIX
+            || request.formaPagamento() == com.ravtec.delivery.entity.FormaPagamento.DINHEIRO) {
+            if (entrega.getFormaPagamento() == null) entrega.setFormaPagamento(request.formaPagamento());
+            if (recebedor == null) throw new ConflitoException("Designe o entregador que recebeu o pagamento");
+            if (request.formaPagamento() == com.ravtec.delivery.entity.FormaPagamento.PIX && recebedor.getChavePix() == null)
+                throw new ConflitoException("Cadastre a chave Pix do entregador designado");
         }
         if (cobrancasPix != null && cobrancasPix.findByEntregaId(entrega.getId())
             .filter(c -> "PENDENTE".equals(c.getStatus())).isPresent()) {
@@ -94,6 +113,11 @@ public class PagamentoService {
         }
         var pagamento = new Pagamento();
         pagamento.setEntrega(entrega);
+        pagamento.setRecebedor(recebedor);
+        pagamento.setRecebedorNome(recebedor == null ? null : recebedor.getNome());
+        pagamento.setChavePixRecebedor(request.formaPagamento() == com.ravtec.delivery.entity.FormaPagamento.PIX
+            && recebedor != null ? recebedor.getChavePix() : null);
+        pagamento.setTitularPixRecebedor(recebedor == null ? null : recebedor.getTitularPix());
         pagamento.setValor(valor);
         pagamento.setFormaPagamento(request.formaPagamento());
         pagamento.setTipo(TipoLancamentoFinanceiro.RECEBIMENTO);
@@ -142,6 +166,10 @@ public class PagamentoService {
         }
         var estorno = new Pagamento();
         estorno.setEntrega(original.getEntrega());
+        estorno.setRecebedor(original.getRecebedor());
+        estorno.setRecebedorNome(original.getRecebedorNome());
+        estorno.setChavePixRecebedor(original.getChavePixRecebedor());
+        estorno.setTitularPixRecebedor(original.getTitularPixRecebedor());
         estorno.setValor(valor);
         estorno.setFormaPagamento(original.getFormaPagamento());
         estorno.setTipo(TipoLancamentoFinanceiro.ESTORNO);

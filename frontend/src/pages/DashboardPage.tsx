@@ -21,7 +21,7 @@ import {
   RelatorioFinanceiro,
   StatusEntrega,
 } from '../types';
-import { publicDeliveryCode, titleCase } from '../utils/display';
+import { titleCase } from '../utils/display';
 
 const emptyResumo: DashboardResumo = {
   totalEntregas: 0,
@@ -43,12 +43,14 @@ const emptyRelatorio: RelatorioFinanceiro = {
 };
 
 const emAndamentoStatus: StatusEntrega[] = [
-  'SOLICITADA',
   'CONFIRMADA',
+  'AGENDADA',
   'AGUARDANDO_ENTREGADOR',
   'ENTREGADOR_DESIGNADO',
   'COLETADA',
   'EM_ROTA',
+  'TENTATIVA_FALHOU',
+  'EM_DEVOLUCAO',
 ];
 
 function money(value: number) {
@@ -313,9 +315,9 @@ export function DashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {entregasEmAndamento.map((entrega, index) => (
+                    {entregasEmAndamento.map((entrega) => (
                       <tr key={entrega.id}>
-                        <td data-label="Entrega"><strong className="publicRecordCode">{publicDeliveryCode(index)}</strong></td>
+                        <td data-label="Entrega"><strong className="publicRecordCode">{entrega.codigo}</strong></td>
                         <td data-label="Destinatário">
                           <div style={{ minWidth: 0 }}>
                             <div style={{ fontWeight: 700, color: 'var(--ink)', fontSize: 13 }}>{entrega.destinatarioNome}</div>

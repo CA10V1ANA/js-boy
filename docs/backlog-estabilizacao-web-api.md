@@ -1,5 +1,7 @@
 # Estabilização web + API — evidências e próximos passos
 
+> **Registro histórico.** Para o estado atual, consulte [a revisão de 08/10](revisao-completa-2026-10-08.md) e [o procedimento Vercel/Railway/Supabase](publicacao-vercel-railway-supabase.md). Resultados e pendências abaixo se referem à execução anterior. Não são o checklist vigente de publicação.
+
 Atualizado em 06/10/2026. Este registro acompanha o plano
 `JS_BOY_ARQUITETURA_E_PLANO_DE_ENTREGA_2026.md`. A base examinada é `main`
 em `71994dd28cf3154d7b84ef8e42cf3aa826af909e`, inicialmente limpa. A revisão

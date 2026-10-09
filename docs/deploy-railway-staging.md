@@ -1,5 +1,7 @@
 # Deploy de homologação no Railway
 
+> **Registro histórico.** Para o estado atual, consulte [a revisão de 08/10](revisao-completa-2026-10-08.md) e [o procedimento Vercel/Railway/Supabase](publicacao-vercel-railway-supabase.md). Resultados e pendências abaixo se referem à execução anterior. Não são o checklist vigente de publicação.
+
 > **Topologia anterior.** Este runbook inclui frontend e PostgreSQL na Railway
 > e comprovantes em volume local. Para a decisão atual (web na Vercel, API na
 > Railway, PostgreSQL e arquivos no Supabase), consulte

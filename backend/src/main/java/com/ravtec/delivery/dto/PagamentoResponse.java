@@ -20,6 +20,7 @@ public record PagamentoResponse(
     TipoLancamentoFinanceiro tipo,
     UUID lancamentoOriginalId,
     String motivo,
-    String usuarioResponsavelNome
+    String usuarioResponsavelNome,
+    UUID recebedorId, String recebedorNome
 ) {
 }
