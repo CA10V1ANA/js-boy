@@ -53,6 +53,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Configurar Java e restaurar dependências Maven
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      - name: Preparar dependências Java para a análise
+        working-directory: backend
+        run: mvn -B -ntp -DskipTests dependency:resolve
       - name: Analisar código, imagens declaradas e configurações
         uses: aquasecurity/trivy-action@master
         with:
