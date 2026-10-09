@@ -1,5 +1,13 @@
 # Estado do JS Boy
 
+## Resolução dos gates após merge na main
+
+- Branch `fix/gates-seguranca`, base `54dbd79`; usuário solicitou resolver verificações e segurança pendentes.
+- Trivy remoto confirmou apenas dois CVEs restantes de Spring WebMVC; os outros 18 alertas foram corrigidos pelas atualizações enviadas.
+- Não aplicabilidade de XSLT/SSE documentada com exceções apenas para dois IDs e `spring-webmvc@6.2.19`, vencimento 08/11/2026, e `SuperficieRestTest` obrigatório antes da análise. Não se afirma que a biblioteca foi corrigida.
+- Auditoria Java consolidada no Trivy; npm audit preservado, limites de tempo e concorrência adicionados. OWASP não forneceu resultado final antes da mudança; não registrar como aprovado.
+- Maven verify local: 140 testes unitários + 31 de integração aprovados. YAML/diff e escopo/prazo das exceções validados. Nova execução remota ainda requer confirmação.
+
 ## Acompanhamento do PR #2
 
 - Os cinco commits da implementação/revisão foram enviados para `origin/work` a pedido do usuário; PR #2 aberto para `main`.
