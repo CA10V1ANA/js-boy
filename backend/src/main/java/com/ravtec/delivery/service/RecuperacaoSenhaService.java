@@ -74,6 +74,7 @@ public class RecuperacaoSenhaService {
     }
 
     private void validarSenha(String senha) {
+        com.ravtec.delivery.security.PoliticaSenha.validarTamanho(senha, 12);
         if (senha == null || senha.length() < 12 || !senha.matches(".*[A-Z].*")
             || !senha.matches(".*[a-z].*") || !senha.matches(".*\\d.*")) {
             throw new IllegalArgumentException("A senha deve ter 12 caracteres, maiuscula, minuscula e numero");

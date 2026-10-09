@@ -44,7 +44,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            var userDetails = usuarioDetailsService.loadUserByUsername(email);
+            org.springframework.security.core.userdetails.UserDetails userDetails;
+            try {
+                userDetails = usuarioDetailsService.loadUserByUsername(email);
+            } catch (org.springframework.security.core.userdetails.UsernameNotFoundException exception) {
+                // An anonymized/renamed account invalidates the old identity without producing HTTP 500.
+                filterChain.doFilter(request, response);
+                return;
+            }
 
             if (userDetails.isEnabled()
                 && userDetails.isAccountNonExpired()

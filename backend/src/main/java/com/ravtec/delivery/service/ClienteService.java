@@ -141,6 +141,7 @@ public class ClienteService {
 
     @Transactional
     public ClienteResponse criarAcesso(UUID id, CriarAcessoClienteRequest request) {
+        com.ravtec.delivery.security.PoliticaSenha.validarTamanho(request.senha(), 12);
         var cliente = buscarEntidade(id);
         if (!cliente.isAtivo()) {
             throw new IllegalStateException("Cliente inativo não pode receber acesso");

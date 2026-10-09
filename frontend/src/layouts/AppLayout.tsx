@@ -52,7 +52,7 @@ export function AppLayout() {
   const isClientPortal = location.pathname.startsWith('/portal');
   const current = visibleItems.find((item) => location.pathname.startsWith(item.to));
   const title = isDashboard || isCourierPortal ? `${saudacao()}, ${(usuario?.nome || '').split(' ')[0]}.` : current?.label || 'JS BOY';
-  const subtitle = isDashboard ? 'Visão geral da operação.' : isCourierPortal ? 'Rotas, clientes e comprovantes.' : isClientPortal ? 'Solicitações, acompanhamento e conta.' : 'Painel de entregas';
+  const subtitle = isDashboard ? 'Visão geral da operação.' : isCourierPortal ? 'Rotas, clientes e recebimentos.' : isClientPortal ? 'Solicitações, acompanhamento e conta.' : 'Painel de entregas';
 
   function handleLogout() {
     logout();

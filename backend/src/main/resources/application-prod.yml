@@ -39,6 +39,12 @@ server:
       remote-ip-header: X-Forwarded-For
 
 app:
+  bootstrap:
+    owner:
+      enabled: ${APP_BOOTSTRAP_OWNER_ENABLED:false}
+  seed:
+    owner-email: ${SEED_OWNER_EMAIL:}
+    owner-password: ${SEED_OWNER_PASSWORD:}
   security:
     jwt-secret: ${JWT_SECRET}
     jwt-expiration-minutes: ${JWT_EXPIRATION_MINUTES:15}
@@ -75,8 +81,8 @@ app:
       max-pixels: ${PROOF_IMAGE_MAX_PIXELS:12000000}
       max-expansion-ratio: ${PROOF_IMAGE_MAX_EXPANSION_RATIO:250}
     otp:
-      provider: ${APP_PROOF_OTP_PROVIDER}
-      webhook-url: ${PROOF_OTP_WEBHOOK_URL}
+      provider: ${APP_PROOF_OTP_PROVIDER:disabled}
+      webhook-url: ${PROOF_OTP_WEBHOOK_URL:}
       expiration-minutes: ${PROOF_OTP_EXPIRATION_MINUTES:10}
       resend-seconds: ${PROOF_OTP_RESEND_SECONDS:60}
       max-attempts: ${PROOF_OTP_MAX_ATTEMPTS:5}

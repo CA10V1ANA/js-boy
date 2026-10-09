@@ -1,6 +1,6 @@
 spring:
   application:
-    name: delivery-management
+    name: js-boy-api
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
@@ -27,7 +27,7 @@ springdoc:
     enabled: false
 
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${PORT:${SERVER_PORT:8080}}
   forward-headers-strategy: none
   error:
     include-binding-errors: never
@@ -38,7 +38,6 @@ app:
   mercadopago:
     access-token: ${MERCADOPAGO_ACCESS_TOKEN:}
     webhook-secret: ${MERCADOPAGO_WEBHOOK_SECRET:}
-    notification-url: ${MERCADOPAGO_NOTIFICATION_URL:}
   security:
     jwt-secret: ${JWT_SECRET}
     jwt-expiration-minutes: ${JWT_EXPIRATION_MINUTES:15}

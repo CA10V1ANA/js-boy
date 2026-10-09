@@ -26,7 +26,11 @@ export const api = axios.create({
 
 type RetryConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 let refreshPromise: Promise<string> | null = null;
-function authEndpoint(url?: string) { return Boolean(url?.includes('/auth/')); }
+function authEndpoint(url?: string) {
+  // /auth/me requires the current session, including renewal after a page reload.
+  const path = url?.split('?')[0];
+  return Boolean(path?.includes('/auth/')) && !path?.endsWith('/auth/me');
+}
 
 async function refreshAccessToken() {
   // If no user is stored, we don't have a session to refresh

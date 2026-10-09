@@ -44,6 +44,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+        com.ravtec.delivery.security.PoliticaSenha.validarTamanho(request.senha(), 1);
         String email = request.email().trim().toLowerCase();
         tentativaLoginService.verificarOrigem(httpRequest.getRemoteAddr());
         try {

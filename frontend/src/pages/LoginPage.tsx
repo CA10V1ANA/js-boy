@@ -49,7 +49,7 @@ export function LoginPage() {
       <PublicHeader />
       <section className="clientArea">
         <div className="siteContainer">
-          <h1>Area do Cliente</h1>
+          <h1>Acesso à JS Boy</h1>
           <section className="clientLoginCard">
             <div className="clientTabs" aria-label="Acesso ao sistema">
               <span className="active">Entrar</span>
