@@ -16,7 +16,15 @@ Foram atualizados Jackson para 2.21.7, Netty para 4.1.137.Final, HttpCore5 para 
 - **CVE-2026-47884:** o registro do fabricante exige `XsltView`, mapeamento `/**` com renderização de view e nome de view implícito. Os controladores da aplicação são REST; não foi encontrado uso de `XsltView` ou configuração de renderização XSLT.
 - **CVE-2026-47890:** o registro do fabricante exige SSE com fragmentos de views. Não foi encontrado uso de SSE, `SseEmitter` ou `FragmentsRendering` no código da API.
 
-A versão do pacote continua incluída nos intervalos afetados. A ausência desses recursos é evidência de não aplicabilidade à implementação revisada, não uma correção da biblioteca ou garantia sobre configurações futuras. Os alertas não foram suprimidos e continuam bloqueando o gate até atualização compatível ou decisão documentada de tratamento. A versão corrigida pública indicada pelo scanner é 7.0.9; trocar somente o Spring sob Boot 3 não é uma atualização segura. Uma migração para Boot 4 requer revisão de compatibilidade própria.
+A versão do pacote continua incluída nos intervalos afetados. A ausência desses recursos é evidência de não aplicabilidade à implementação revisada, não uma correção da biblioteca ou garantia sobre configurações futuras. A versão corrigida pública indicada pelo scanner é 7.0.9; trocar somente o Spring sob Boot 3 não é uma atualização segura. Uma migração para Boot 4 requer revisão de compatibilidade própria.
+
+### Tratamento após a integração na main
+
+As duas ocorrências foram classificadas como não aplicáveis à superfície atual. `.trivyignore.yaml` limita as exceções aos dois IDs e ao PURL exato `spring-webmvc@6.2.19`, com vencimento em **08/11/2026**. Nenhum outro CVE, pacote ou versão é excepcionado. Remover as exceções ao atualizar a biblioteca corrigida; antecipar a revisão se a API passar a usar views, XSLT ou SSE.
+
+`SuperficieRestTest` exige controladores REST, ausência de beans XSLT e ausência de referências a XSLT/SSE/fragmentos nas fontes e configurações de todos os perfis. A análise Trivy depende desse gate; se ele falhar, as exceções não são usadas nessa execução. O teste é conservador e pode exigir revisão mesmo para usos de SSE/views fora das condições exatas dos CVEs. Código gerado, bibliotecas externas configuradas dinamicamente e reflexão requerem revisão adicional: o teste não substitui análise de alterações arquiteturais.
+
+As exceções são uma decisão de aplicabilidade fundamentada nos registros do fabricante, não uma correção das classes afetadas. O gate continua falhando diante de qualquer outro alerta HIGH/CRITICAL com correção disponível ou após o prazo das exceções.
 
 Fontes consultadas: registros publicados pela VMware/Spring no CVE Project:
 
@@ -25,7 +33,7 @@ Fontes consultadas: registros publicados pela VMware/Spring no CVE Project:
 
 ## Auditoria Java e Cloudflare
 
-A auditoria OWASP estava em execução, sem resultado final disponível. Não foi possível atribuir uma causa definitiva à demora.
+A auditoria OWASP estava em execução, sem resultado final disponível. Não foi possível atribuir uma causa definitiva à demora. O workflow passa a concentrar a auditoria Java no Trivy, que efetivamente resolveu e identificou dependências diretas e transitivas neste projeto, enquanto o job `dependencies` mantém `npm audit`. Esta alteração remove a segunda auditoria Java e sua inicialização da base NVD; não equivale a um resultado aprovado do OWASP. Java continua bloqueando a entrega por alertas HIGH/CRITICAL no Trivy. Os jobs agora têm limites de tempo e execuções antigas na mesma branch são canceladas; não há fallback que aprove uma análise indisponível.
 
 O check `Workers Builds: js-boy` pertence à integração externa Cloudflare. O GitHub fornece um link para o painel, mas não expõe o log que permitiria identificar a causa. Não há configuração Wrangler neste projeto. A topologia escolhida é Vercel + Railway + Supabase; se esse Worker não tem função na entrega, desconectar o build deste repositório no painel Cloudflare evita um check alheio à publicação planejada. Nenhuma integração externa foi alterada.
 
