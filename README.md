@@ -246,6 +246,7 @@ As orientações do agente pessoal estão em [devpilot](devpilot/INTEGRACAO.md),
 
 ## Documentação adicional
 
+- [Implementação dos portais, cadastro e conversas — 09/10/2026](docs/plano-implementacao-2026-10-09.md)
 - [Explicação completa do projeto](docs/explicacao-completa-do-projeto.md)
 - [Revisão de 08/10/2026 e pendências de publicação](docs/revisao-completa-2026-10-08.md)
 - [Publicação Vercel + Railway + Supabase](docs/publicacao-vercel-railway-supabase.md)

@@ -1,101 +1,80 @@
 # Matriz de permissões
 
-## Modelo autoritativo
+Atualizada em 09/10/2026 para os portais, cadastro e conversas por entrega.
 
-A JS Boy é a única empresa operadora. O sistema não é multi-tenant e não existe
-o papel de atendente. Os únicos papéis de negócio são:
+## Modelo de acesso
 
-- `PROPRIETARIO`: administra toda a operação da JS Boy;
-- `ENTREGADOR`: funcionário da JS Boy que realiza entregas;
-- `CLIENTE`: pessoa ou empresa que contrata a JS Boy.
+A JS Boy é a única empresa operadora. Existem três perfis: PROPRIETARIO,
+ENTREGADOR e CLIENTE. FUNCIONARIO continua sendo um alias legado de entregador,
+sem privilégios adicionais. Cadastro público cria exclusivamente cliente.
 
-`FUNCIONARIO` é um alias temporário e depreciado de `ENTREGADOR`. Enquanto
-existirem usuários legados com esse valor, eles devem receber exatamente as
-mesmas permissões e restrições de `ENTREGADOR`. Não se deve criar novos acessos
-com esse perfil; a migração para `ENTREGADOR` depende de vínculo válido com a
-entidade de entregador.
+O proprietário pode vincular a própria conta a um entregador ativo. Nas rotas
+/operacao-entregador, o backend exige esse vínculo e restringe a operação às
+entregas atribuídas a ele. Desativar o vínculo bloqueia a operação e preserva o
+acesso administrativo. Não é criada uma segunda conta.
 
-Não há `ATENDENTE`, nem perfil equivalente.
-
-## Princípios de autorização
-
-1. O backend decide o escopo a partir do usuário autenticado e de seus vínculos.
-2. `clienteId` e `entregadorId` recebidos por URL ou payload nunca provam posse.
-3. Um usuário `CLIENTE` precisa estar vinculado a exatamente um `Cliente`.
-4. Um usuário `ENTREGADOR` precisa estar vinculado a exatamente um `Entregador`.
-5. A ausência ou ambiguidade do vínculo nega o acesso.
-6. Esconder controles na interface é apenas conveniência; requests manuais
-   continuam sujeitos às mesmas regras no backend.
-7. Em consulta a registro fora do escopo do usuário, a API deve preferir `404`
-   para não confirmar que o recurso existe. Uma ação conhecida, mas proibida
-   para o papel, retorna `403`.
-8. O proprietário também respeita regras de domínio, como estados terminais,
-   idempotência financeira e limites de estorno.
+O servidor verifica posse, perfil, vínculo ativo, estado e versão. UUID recebido
+não comprova autorização. Consultas fora do escopo retornam 404; operações
+incompatíveis com o perfil retornam 403. Menus e guards não substituem isso.
 
 ## Matriz
 
-Legenda: `Tudo` = toda a operação; `Próprio` = somente o registro vinculado ao
-usuário; `Operacional` = somente campos e transições necessários à entrega;
-`—` = não permitido.
+Próprias significa entregas do cliente vinculado ou atualmente atribuídas ao
+entregador. A coluna operacional também se aplica ao proprietário nesse contexto.
 
-| Recurso / ação | PROPRIETARIO | ENTREGADOR | CLIENTE |
+| Recurso / ação | Proprietário administrativo | Entregador / proprietário operacional | Cliente |
 |---|---|---|---|
-| Cliente — listar | Tudo | — | — |
-| Cliente — consultar | Tudo | Dados mínimos da entrega própria | Próprio |
-| Cliente — criar | Tudo | Permitido, com vínculo ativo, limite diário e auditoria | — |
-| Cliente — aprovar ou vincular acesso | Tudo | — | — |
-| Cliente — editar | Tudo | — | — |
-| Entregador — listar | Tudo | — | — |
-| Entregador — consultar | Tudo | Próprio | — |
-| Entregador — criar, editar ou vincular acesso | Tudo | — | — |
-| Entrega — listar | Tudo | Próprio | Próprio |
-| Entrega — consultar | Tudo | Próprio, visão operacional | Próprio, visão permitida |
-| Entrega — criar | Tudo | — | Solicitar para o próprio vínculo, sem definir valor/status/designação |
-| Entrega — editar | Tudo, quando o estado permitir | — | — |
-| Entrega — designar ou trocar entregador | Tudo, somente antes da coleta | — | — |
-| Entrega — alterar status | Tudo, conforme máquina de estados | Próprio, somente avanço operacional permitido | — |
-| Entrega — cancelar | Tudo, antes da coleta e conforme máquina de estados | — | — |
-| Histórico — consultar | Tudo | Próprio, histórico operacional | Próprio, eventos permitidos |
-| Pagamento — listar ou consultar | Tudo | — | Próprio |
-| Pagamento — registrar | Tudo | — | — |
-| Recebimento direto — consultar | Tudo | Próprio | Próprio |
-| Recebimento direto — confirmar Pix/dinheiro | Tudo, conferência administrativa | Próprio, com recebedor/referência válidos | — |
-| Rota — editar | Tudo, antes da execução/crédito e com versões válidas | — | — |
-| Parada — concluir | Tudo, conforme ordem/versão | Próprio, conforme ordem/versão | — |
-| Pagamento — estornar | Tudo, conforme saldo e idempotência | — | — |
-| Relatório operacional ou financeiro | Tudo | — | — |
-| Configuração de preço | Gerenciar | — | — |
-| Usuários e acessos | Gerenciar | — | — |
-| Solicitação de contato pública | Consultar e tratar | — | Criar sem autenticação, com proteção antiabuso |
+| Clientes: listar, cadastrar, administrar | Toda a operação | Não | Consultar/editar contato e preferências próprios |
+| Entregadores e acessos internos | Gerenciar e convidar | Consultar vínculo e atualizar telefone próprio | Não |
+| Vínculo operacional do proprietário | Criar na própria conta | Usar enquanto ativo | Não |
+| Entregas: consultar | Todas | Próprias | Próprias, visão permitida |
+| Entregas: criar | Cadastro administrativo | Não | Solicitar, sem definir preço/status/designação |
+| Entregas: editar | Conforme estado e regras existentes | Não | Solicitação simples com duas paradas, SOLICITADA, antes da análise, com versão válida |
+| Entregas: cancelar | Conforme máquina de estados | Não | Própria, antes da coleta, sem recebimento, com motivo e versão válida |
+| Entregas: repetir | Cadastro administrativo | Não | Nova solicitação para revisão, sem copiar preço, status ou responsável |
+| Designação e edição de rota | Conforme estado, versões e regras financeiras | Não | Não |
+| Avanço operacional, tentativa e retomada | Conforme máquina de estados | Próprias, etapas permitidas | Não |
+| Concluir parada | Ordem e versão válidas | Próprias, ordem e versão válidas | Não |
+| Confirmar Pix/dinheiro | Conferência administrativa auditada | Próprias, recebedor/referência válidos e auditoria | Não |
+| Finalizar entrega | Saldo regular e todas as paradas concluídas | Mesmas condições, em entrega própria | Não |
+| Estornar / razão financeiro | Regras financeiras existentes | Não | Não |
+| Financeiro | Toda a operação | Extrato e valores movimentados próprios | Histórico e saldo das entregas próprias, somente leitura |
+| Endereços frequentes | Sem autosserviço de terceiros | Não | CRUD próprio, sem mudar entregas históricas |
+| Conversa por entrega | Todas | Atribuições atuais, vínculo ativo | Entregas próprias |
+| Reabrir conversa | Motivo, prazo futuro de até sete dias e auditoria | Não | Não |
+| Notificações internas | Próprias, com acesso atual ao destino | Próprias e limitadas à operação atual | Próprias |
+| Preços, relatórios administrativos, empresa e usuários | Gerenciar | Não | Não |
+| Privacidade | Fluxo administrativo existente | Não | Exportar dados próprios e solicitar anonimização |
+| Ajuda e contato | Contato configurado da empresa | Contato configurado da empresa | Contato configurado da empresa |
 
-## Transições operacionais do entregador
+## Identidade e convites
 
-O entregador nunca escolhe ou troca a designação. Para uma entrega já atribuída
-a ele, pode apenas avançar pelas etapas operacionais liberadas pela máquina de
-estados, como:
+Cadastro por senha depende de confirmação do e-mail por token com hash, prazo de
+24 horas e uso único. Reenvio e cadastro possuem limites e respostas genéricas.
+E-mail alterado na conta do cliente exige nova confirmação. O acesso Google
+valida assinatura, emissor, audiência, expiração e e-mail verificado no servidor;
+aceita somente cliente. Associar Google a uma conta existente requer sessão
+autenticada e identidade compatível. Não promove cliente a perfil interno.
 
-- `ENTREGADOR_DESIGNADO → COLETADA`;
-- `COLETADA → EM_ROTA`;
-- `EM_ROTA → ENTREGUE`.
+O proprietário convida entregadores por definição de senha de uso único.
+A senha inicial é aleatória e não é entregue ao operador. Perfil operacional
+não edita atividade, comissão, documento, vínculos ou movimentações históricas.
 
-ENTREGUE também exige saldo regular e todas as paradas concluídas. O entregador pode confirmar recebimentos próprios pelo endpoint específico, sem editar preço, estornar, trocar recebedor ou acessar o razão administrativo. Não pode regressar status, cancelar após coleta ou agir sobre entrega alheia.
+## Operação e conversa
 
-## Cadastro e vínculos
+Dinheiro é apresentado primeiro. Pix é direto ao entregador designado, com
+recebimento manual autorizado. Foto, OTP e comprovante não são requisitos para
+concluir; documentos históricos permanecem preservados. Identificador da entrega
+é administrativo e não é código de confirmação.
 
-O P0 não oferece cadastro público automático. O proprietário e o entregador
-com vínculo ativo podem cadastrar o registro operacional do cliente; cadastros
-feitos por entregador têm limite diário e trilha de auditoria. Somente o
-proprietário cria ou vincula o acesso do cliente. O mesmo vale para o acesso do entregador.
-Uma conta sem vínculo válido permanece autenticável apenas se necessário para
-diagnóstico, mas não recebe acesso às áreas protegidas de negócio.
+Mensagem nunca altera preço, status, saldo ou paradas. Chat verifica autorização
+em cada consulta e envio. Troca de responsável ou desativação revoga o acesso do
+entregador anterior, inclusive no próximo ciclo de atualização da tela.
+Cancelamento fecha o envio imediatamente. Conclusão permite envio por 48 horas
+configuráveis; depois mantém leitura para usuários ainda autorizados. Reabrir
+conversa não reabre a entrega. Proprietário que entrega aparece uma vez.
 
-## Casos mínimos de teste
+## Evidências
 
-- proprietário acessa recursos administrativos;
-- entregador lista e altera somente entregas próprias;
-- `FUNCIONARIO` legado é tratado como entregador, sem privilégios extras;
-- entregador não se designa nem acessa entrega alheia;
-- cliente consulta somente cadastro, entregas e pagamentos próprios;
-- cliente não altera status nem registra ou estorna pagamento;
-- conta sem vínculo recebe acesso negado;
-- troca manual de UUID não expõe a existência nem os dados do registro.
+Os testes e os limites da homologação estão registrados no
+[relatório da implementação](plano-implementacao-2026-10-09.md).
