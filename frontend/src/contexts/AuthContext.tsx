@@ -9,6 +9,7 @@ import { clearFinancialIntents } from '../services/financialIntent';
 type LoginResponse = { token: string; usuario: UsuarioAutenticado };
 type AuthContextValue = {
   token: string | null; usuario: UsuarioAutenticado | null; autenticado: boolean;
+  entrarGoogle: (credencial: string, cliente?: unknown) => Promise<void>;
   carregando: boolean; login: (email: string, senha: string) => Promise<void>; logout: () => void;
 };
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -37,6 +38,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await api.post<LoginResponse>('/auth/login', { email, senha });
       storeAuth(response.data.token, response.data.usuario);
       setToken(response.data.token); setUsuario(response.data.usuario);
+    },
+    async entrarGoogle(credencial, cliente) {
+      const response = await api.post<LoginResponse>('/auth/google', { credencial, cliente });
+      storeAuth(response.data.token, response.data.usuario); setToken(response.data.token); setUsuario(response.data.usuario);
     },
     logout() {
       // we don't need to pass the refresh token in the body anymore, the cookie handles it

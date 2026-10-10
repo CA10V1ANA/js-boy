@@ -25,7 +25,7 @@ describe('PagamentosPage: resposta perdida e reenvio', () => {
     payments = [];
     mockedUseAuth.mockReturnValue({
       token: 'token', usuario, autenticado: true, carregando: false,
-      login: vi.fn(), logout: vi.fn(),
+      login: vi.fn(), entrarGoogle: vi.fn(), logout: vi.fn(),
     });
     mockedApi.get.mockImplementation(async (url) => ({
       data: url === '/entregas'

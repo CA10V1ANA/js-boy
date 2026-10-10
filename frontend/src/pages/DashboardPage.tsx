@@ -303,44 +303,13 @@ export function DashboardPage() {
                 <h2>Entregas em andamento</h2>
                 <button className="smallButton" type="button" onClick={() => navigate('/entregas')}>Ver todas</button>
               </div>
-              <div className="tableWrap">
-                <table className="responsiveTable">
-                  <thead>
-                    <tr>
-                      <th style={{ paddingLeft: 20 }}>Entrega</th>
-                      <th>Destinatário</th>
-                      <th>Status</th>
-                      <th>Entregador</th>
-                      <th style={{ textAlign: 'right', paddingRight: 20 }}>Valor</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {entregasEmAndamento.map((entrega) => (
-                      <tr key={entrega.id}>
-                        <td data-label="Entrega"><strong className="publicRecordCode">{entrega.codigo}</strong></td>
-                        <td data-label="Destinatário">
-                          <div style={{ minWidth: 0 }}>
-                            <div style={{ fontWeight: 700, color: 'var(--ink)', fontSize: 13 }}>{entrega.destinatarioNome}</div>
-                            <div style={{ color: 'var(--faint)', fontSize: 11.5 }}>{entrega.bairroDestino}</div>
-                          </div>
-                        </td>
-                        <td data-label="Status"><span className={toneStatus(entrega.status)}>{labelStatus(entrega.status)}</span></td>
-                        <td data-label="Entregador">
-                          {entrega.entregadorNome ? (
-                            <div className="nameCell" style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--body-2)' }}>
-                              <span className="avatarTile" style={{ width: 26, height: 26, fontSize: 10 }}>{iniciais(entrega.entregadorNome)}</span>
-                              {entrega.entregadorNome}
-                            </div>
-                          ) : (
-                            <span style={{ color: '#C6C1B4' }}>—</span>
-                          )}
-                        </td>
-                        <td data-label="Valor" style={{ fontWeight: 700, color: 'var(--ink)' }}>{money(entrega.valorFinal)}</td>
-                      </tr>
-                    ))}
-                    {entregasEmAndamento.length === 0 ? <tr><td className="responsiveTableEmpty" colSpan={5}>Nenhuma entrega em andamento.</td></tr> : null}
-                  </tbody>
-                </table>
+              <div className="ownerDeliveryList">
+                {entregasEmAndamento.map(entrega => <button className="ownerDeliveryCard" key={entrega.id} type="button" onClick={() => navigate('/entregas?busca=' + encodeURIComponent(entrega.codigo))}>
+                  <div><strong>{entrega.codigo}</strong><span>{entrega.destinatarioNome}</span><small>{entrega.bairroOrigem} → {entrega.bairroDestino}</small></div>
+                  <div><small>Entregador</small><span>{entrega.entregadorNome || 'Aguardando designação'}</span></div>
+                  <div><span className={toneStatus(entrega.status)}>{labelStatus(entrega.status)}</span><strong>{money(entrega.valorFinal)}</strong></div>
+                </button>)}
+                {entregasEmAndamento.length === 0 ? <p className="emptyNote">Nenhuma entrega em andamento.</p> : null}
               </div>
             </div>
           ) : null}

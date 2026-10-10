@@ -201,7 +201,7 @@
   font-size: 12px;
 }
 
-.proofForm input[type='file'] {
+.proofForm input[type="file"] {
   min-height: auto;
   padding: 10px;
   background: var(--surface-input);
@@ -423,5 +423,535 @@
   .clientDeliveryDetail {
     padding-right: 16px;
     padding-left: 16px;
+  }
+}
+
+/* Compact delivery headers; operational details always occupy their own row. */
+.roleDeliveryCard {
+  grid-template-columns: minmax(200px, 1fr) minmax(300px, 1.5fr);
+  align-items: start;
+}
+.roleDeliveryCard > .roleDeliveryActions,
+.roleDeliveryCard > .operacaoEntrega,
+.roleDeliveryCard > .clientDeliveryDetail {
+  grid-column: 1/-1;
+}
+.operacaoEntrega {
+  width: 100%;
+  min-width: 0;
+}
+.operationGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 18px;
+  margin: 14px 0;
+  align-items: start;
+}
+.operationGrid > .routeCards {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0;
+}
+.operationGrid > .paymentSummary {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+}
+.routeCards li {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.routeCards p,
+.paymentSummary p {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.deliveryAccordion {
+  border: 1px solid var(--row-divider);
+  border-radius: 12px;
+  margin-top: 12px;
+}
+.deliveryAccordion[open] {
+  border-color: #eaaa13;
+}
+.deliveryAccordion > summary {
+  display: grid;
+  grid-template-columns: 1.2fr 1.2fr 0.7fr 1fr 0.7fr auto;
+  gap: 16px;
+  padding: 20px;
+  cursor: pointer;
+  align-items: center;
+}
+.deliveryAccordion > summary > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.deliveryAccordion small {
+  display: block;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.deliveryExpanded {
+  padding: 0 20px 20px;
+}
+.nextDelivery,
+.quickLinks {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.nextDelivery {
+  padding: 24px;
+}
+.nextDelivery > div {
+  flex: 1;
+}
+.deliveryOverviewRow {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 18px 24px;
+  border-top: 1px solid var(--row-divider);
+  color: var(--ink);
+  text-decoration: none;
+}
+.quickLinks {
+  margin: 14px 0;
+}
+.sideHelp {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 12px;
+  color: inherit;
+  text-decoration: none;
+  font-size: 13px;
+}
+.sideNav {
+  flex: 1;
+  align-content: start;
+}
+.sidebar {
+  overflow-y: auto;
+}
+.notificationPanel {
+  padding: 24px;
+}
+.notificationRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--row-divider);
+}
+.paymentDetails {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--row-divider);
+}
+.paymentDetails > summary {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  cursor: pointer;
+}
+.conversationsPage {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.6fr);
+  gap: 20px;
+  min-height: calc(100vh - 140px);
+}
+.conversationInbox {
+  padding: 24px;
+  min-width: 0;
+}
+.conversationInbox input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px;
+  margin: 14px 0;
+  border: 1px solid var(--row-divider);
+  border-radius: 10px;
+}
+.conversationItem {
+  display: grid;
+  gap: 7px;
+  padding: 18px 12px;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid var(--row-divider);
+  background: transparent;
+  color: var(--ink);
+  border-radius: 10px;
+  cursor: pointer;
+}
+.conversationItem span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.conversationItem small {
+  color: var(--muted);
+}
+.conversationItem.selected {
+  background: #fff5dc;
+  box-shadow: inset 3px 0 #efad00;
+}
+.conversationThread {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 24px;
+}
+.conversationHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.conversationParticipants {
+  font-size: 13px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--row-divider);
+  padding-bottom: 16px;
+}
+.messageViewport {
+  flex: 1;
+  height: 44vh;
+  min-height: 220px;
+  max-height: 58vh;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 16px 0;
+}
+.chatMessage {
+  align-self: flex-start;
+  max-width: 85%;
+}
+.chatMessage p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 5px 0;
+  background: #f0f0f4;
+  padding: 14px 18px;
+  border-radius: 14px;
+}
+.chatMessage.own {
+  align-self: flex-end;
+}
+.chatMessage.own p {
+  background: #ffedb9;
+}
+.chatMessage.system {
+  align-self: center;
+  text-align: center;
+  max-width: 95%;
+  font-size: 13px;
+}
+.chatMessage.system p {
+  background: #eaf3ff;
+}
+.chatMessage small,
+.chatMessage time {
+  font-size: 12px;
+  color: var(--muted);
+}
+.messageComposer {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 16px;
+}
+.messageComposer textarea {
+  flex: 1;
+  min-width: 0;
+  resize: vertical;
+  border: 1px solid var(--row-divider);
+  border-radius: 10px;
+  padding: 14px;
+  font: inherit;
+}
+.chatNotice {
+  background: #fff4da;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+.conversationEmpty {
+  margin: auto;
+  text-align: center;
+  max-width: 360px;
+  color: var(--muted);
+}
+.mobileBack {
+  display: none;
+}
+:focus-visible {
+  outline: 3px solid #eaaa13;
+  outline-offset: 3px;
+}
+@media (max-width: 1100px) {
+  .deliveryAccordion > summary {
+    grid-template-columns: 1fr 1fr;
+  }
+  .roleDeliveryCard {
+    grid-template-columns: 1fr;
+  }
+  .roleDeliveryMeta {
+    grid-column: 1;
+  }
+}
+@media (max-width: 760px) {
+  .operationGrid {
+    grid-template-columns: 1fr;
+  }
+  .operationGrid > .routeCards,
+  .operationGrid > .paymentSummary {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .operationGrid > .routeCards {
+    order: 0;
+  }
+  .operationGrid > .paymentSummary {
+    order: 1;
+  }
+  .roleDeliveryMain {
+    flex-wrap: wrap;
+  }
+  .roleDeliveryMain strong,
+  .roleDeliveryMeta strong {
+    white-space: normal;
+  }
+  .conversationsPage {
+    display: block;
+  }
+  .conversationThread {
+    display: none;
+    min-height: calc(100dvh - 140px);
+    padding: 16px;
+  }
+  .conversationsPage.hasSelection .conversationInbox {
+    display: none;
+  }
+  .conversationsPage.hasSelection .conversationThread {
+    display: flex;
+  }
+  .mobileBack {
+    display: inline-flex;
+    align-self: flex-start;
+    margin-bottom: 12px;
+  }
+  .messageViewport {
+    max-height: 50dvh;
+  }
+  .messageComposer {
+    align-items: stretch;
+  }
+  .messageComposer button {
+    padding: 10px;
+  }
+  .notificationRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .deliveryExpanded {
+    padding: 0 12px 16px;
+  }
+  .conversationHeader {
+    flex-wrap: wrap;
+  }
+  .chatMessage {
+    max-width: 95%;
+  }
+}
+
+.ownerDeliveryList {
+  padding: 0 20px 20px;
+  display: grid;
+  gap: 10px;
+}
+.ownerDeliveryCard {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 0.8fr);
+  gap: 14px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+}
+.ownerDeliveryCard > div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.ownerDeliveryCard small {
+  color: var(--faint);
+}
+.navBadge {
+  margin-left: auto;
+  border-radius: 50%;
+  padding: 3px 7px;
+  background: var(--yellow, #ffc000);
+  color: #18150d;
+  font-size: 12px;
+}
+.paymentDetails > .paymentSummary {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  border: 0;
+  background: transparent;
+  padding: 12px;
+  cursor: pointer;
+  text-align: left;
+}
+.paymentDetails > .paymentSummary strong {
+  margin-right: auto;
+}
+@media (max-width: 700px) {
+  .ownerDeliveryCard {
+    grid-template-columns: 1fr;
+  }
+}
+
+.segmentedControl {
+  display: inline-flex;
+  gap: 4px;
+  background: #f1efea;
+  padding: 4px;
+  border-radius: 10px;
+}
+.segmentedControl button {
+  padding: 10px 14px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--body-2);
+  font: inherit;
+  cursor: pointer;
+}
+.segmentedControl button.active,
+.segmentedControl button[aria-pressed="true"] {
+  background: #fff3cd;
+  border-color: #edb217;
+  color: var(--ink);
+  font-weight: 700;
+}
+.operationGrid > .paymentSummary {
+  border: 1px solid var(--row-divider);
+  border-radius: 12px;
+  padding: 18px;
+  background: white;
+}
+.operationGrid > .paymentSummary label {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+  font-size: 13px;
+}
+.operationGrid > .paymentSummary input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border: 1px solid var(--row-divider);
+  border-radius: 8px;
+  font: inherit;
+}
+.operationGrid > .paymentSummary button {
+  width: 100%;
+  margin-top: 8px;
+}
+@media (max-width: 760px) {
+  .messageComposer {
+    flex-wrap: wrap;
+  }
+  .messageComposer textarea {
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 760px) {
+  .conversationThread {
+    padding: 16px;
+  }
+  .messageViewport {
+    flex: none;
+    height: 35dvh;
+    min-height: 180px;
+    max-height: 420px;
+  }
+}
+.deliveryFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 20px;
+}
+.deliveryFilters label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+.deliveryFilters input,
+.deliveryFilters select {
+  border: 1px solid var(--row-divider);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font: inherit;
+  background: white;
+}
+
+.clientRoleHero {
+  padding: 18px 22px;
+}
+.clientRoleHero h1 {
+  font-size: 26px;
+  margin: 0;
+}
+@media (max-width: 760px) {
+  .roleMetricGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .roleMetricGrid .metricCard {
+    padding: 16px;
+    min-height: 135px;
+  }
+  .roleMetricGrid .metricCard > strong {
+    font-size: 25px;
+    overflow-wrap: anywhere;
+  }
+  .roleMetricGrid .metricCard > span {
+    font-size: 12px;
+  }
+  .clientRoleHero {
+    padding: 16px;
+    gap: 14px;
+  }
+  .clientRoleHero h1 {
+    font-size: 25px;
+  }
+}
+.portalSummaryExtras {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+@media (max-width: 768px) {
+  .portalSummaryExtras {
+    grid-template-columns: 1fr;
   }
 }

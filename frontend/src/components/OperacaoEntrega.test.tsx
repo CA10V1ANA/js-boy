@@ -31,7 +31,7 @@ describe('Operação e confirmação financeira', () => {
     expect(await screen.findByRole('button', { name: 'Finalizar entrega' })).toBeDisabled();
     expect(screen.queryByRole('button', { name: 'Copiar chave Pix' })).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Confirmar dinheiro recebido' }));
-    expect(api.post).toHaveBeenCalledWith('/recebimentos/entregas/entrega-1/confirmar',
+    expect(api.post).toHaveBeenCalledWith('/operacao-entregador/recebimentos/entrega-1/confirmar',
       { valor: 80, formaPagamento: 'DINHEIRO', referenciaRecebedor: 'ref-recebedor' },
       { headers: { 'Idempotency-Key': expect.any(String) } });
     expect(await screen.findByText('Recebimento regularizado')).toBeInTheDocument();
@@ -55,8 +55,8 @@ describe('Operação e confirmação financeira', () => {
   });
   it('mostra somente a primeira parada pendente como ação disponível', async () => {
     render(<OperacaoEntrega entregaId="entrega-1" versao={2} perfil="ENTREGADOR" />);
-    expect(await screen.findByRole('button', { name: 'Confirmar coleta' })).toBeEnabled();
-    expect(screen.queryByRole('button', { name: 'Comprovante de entrega' })).not.toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Concluir coleta' })).toBeEnabled();
+    expect(screen.queryByRole('button', { name: 'Concluir parada' })).not.toBeInTheDocument();
   });
   it('conclui a entrega com quem recebeu, observação opcional e sem foto ou código', async () => {
     const user = userEvent.setup();
@@ -64,16 +64,16 @@ describe('Operação e confirmação financeira', () => {
     vi.mocked(api.get).mockImplementation(async url => ({ data: String(url).includes('/recebimentos/') ? { ...state } : pendente }));
     vi.mocked(api.post).mockResolvedValue({ data: {} });
     render(<OperacaoEntrega entregaId="entrega-1" versao={2} perfil="ENTREGADOR" />);
-    expect(screen.queryByLabelText('Quem recebeu')).not.toBeInTheDocument();
-    await user.click(await screen.findByRole('button', { name: 'Comprovante de entrega' }));
-    const dialog = screen.getByRole('dialog', { name: 'Comprovante de entrega' });
-    const concluir = within(dialog).getByRole('button', { name: 'Registrar comprovante' });
-    expect(concluir).toBeDisabled();
+    expect(screen.queryByLabelText('Quem recebeu (opcional)')).not.toBeInTheDocument();
+    await user.click(await screen.findByRole('button', { name: 'Concluir parada' }));
+    const dialog = screen.getByRole('dialog', { name: 'Concluir parada' });
+    const concluir = within(dialog).getByRole('button', { name: 'Confirmar conclusão' });
+    expect(concluir).toBeEnabled();
     expect(screen.queryByText(/foto/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/código/i)).not.toBeInTheDocument();
-    await user.type(screen.getByLabelText('Quem recebeu'), 'Alysson');
+    await user.type(screen.getByLabelText('Quem recebeu (opcional)'), 'Alysson');
     await user.click(concluir);
-    expect(api.post).toHaveBeenCalledWith('/rotas/entregas/entrega-1/paradas/stop-2/concluir',
+    expect(api.post).toHaveBeenCalledWith('/operacao-entregador/entregas/entrega-1/paradas/stop-2/concluir',
       { recebedorNome: 'Alysson', observacao: null }, { headers: { 'If-Match': '0' } });
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
@@ -82,19 +82,26 @@ describe('Operação e confirmação financeira', () => {
     vi.mocked(api.get).mockImplementation(async url => ({ data: String(url).includes('/recebimentos/') ? { ...state } : [stops[1]] }));
     vi.mocked(api.post).mockRejectedValue(new Error('falha no envio'));
     render(<OperacaoEntrega entregaId="entrega-1" perfil="ENTREGADOR" />);
-    await user.click(await screen.findByRole('button', { name: 'Comprovante de entrega' }));
+    await user.click(await screen.findByRole('button', { name: 'Concluir parada' }));
     await user.keyboard('{Escape}');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(api.post).not.toHaveBeenCalled();
-    await user.click(screen.getByRole('button', { name: 'Comprovante de entrega' }));
-    await user.type(screen.getByLabelText('Quem recebeu'), 'Alysson');
+    await user.click(screen.getByRole('button', { name: 'Concluir parada' }));
+    await user.type(screen.getByLabelText('Quem recebeu (opcional)'), 'Alysson');
     await user.type(screen.getByLabelText(/Observação/), 'Entregue na recepção');
-    await user.click(screen.getByRole('button', { name: 'Registrar comprovante' }));
-    const dialog = screen.getByRole('dialog', { name: 'Comprovante de entrega' });
+    await user.click(screen.getByRole('button', { name: 'Confirmar conclusão' }));
+    const dialog = screen.getByRole('dialog', { name: 'Concluir parada' });
     expect(await within(dialog).findByRole('alert')).toBeInTheDocument();
-    expect(within(dialog).getByLabelText('Quem recebeu')).toHaveValue('Alysson');
-    expect(api.post).toHaveBeenCalledWith('/rotas/entregas/entrega-1/paradas/stop-2/concluir',
+    expect(within(dialog).getByLabelText('Quem recebeu (opcional)')).toHaveValue('Alysson');
+    expect(api.post).toHaveBeenCalledWith('/operacao-entregador/entregas/entrega-1/paradas/stop-2/concluir',
       { recebedorNome: 'Alysson', observacao: 'Entregue na recepção' }, { headers: { 'If-Match': '0' } });
+  });
+  it('não apresenta controles de documentação ou upload', async () => {
+    render(<OperacaoEntrega entregaId="entrega-1" perfil="ENTREGADOR" />);
+    await screen.findByRole('button', { name: 'Concluir coleta' });
+    expect(screen.queryByText('Documentar')).not.toBeInTheDocument();
+    expect(screen.queryByText('Comprovante de entrega')).not.toBeInTheDocument();
+    expect(document.querySelector('input[type=file]')).not.toBeInTheDocument();
   });
   it('recupera a mesma confirmação após fechar a tela com resposta perdida', async () => {
     const user = userEvent.setup();

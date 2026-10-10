@@ -13,7 +13,7 @@ function switchHome(perfil: Exclude<PerfilAcesso, 'FUNCIONARIO'>) {
     case 'PROPRIETARIO':
       return '/dashboard';
     case 'ENTREGADOR':
-      return '/minhas-entregas';
+      return '/operacional';
     case 'CLIENTE':
       return '/portal';
   }

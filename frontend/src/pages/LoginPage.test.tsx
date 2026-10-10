@@ -26,7 +26,7 @@ describe('LoginPage', () => {
   });
 
   it('exibe erros de validacao quando o formulario e enviado vazio', async () => {
-    mockedUseAuth.mockReturnValue({ autenticado: false, carregando: false, login: vi.fn(), usuario: null, token: null, logout: vi.fn() });
+    mockedUseAuth.mockReturnValue({ autenticado: false, carregando: false, login: vi.fn(), usuario: null, token: null, entrarGoogle: vi.fn(), logout: vi.fn() });
     const user = userEvent.setup();
     const form = renderLoginPage();
 
@@ -39,7 +39,7 @@ describe('LoginPage', () => {
   });
 
   it('permite mostrar e ocultar a senha', async () => {
-    mockedUseAuth.mockReturnValue({ autenticado: false, carregando: false, login: vi.fn(), usuario: null, token: null, logout: vi.fn() });
+    mockedUseAuth.mockReturnValue({ autenticado: false, carregando: false, login: vi.fn(), usuario: null, token: null, entrarGoogle: vi.fn(), logout: vi.fn() });
     const user = userEvent.setup();
     const form = renderLoginPage();
     const password = form.getByLabelText('Senha');
@@ -53,7 +53,7 @@ describe('LoginPage', () => {
 
   it('chama login e nao mostra erro quando as credenciais sao validas', async () => {
     const login = vi.fn().mockResolvedValue(undefined);
-    mockedUseAuth.mockReturnValue({ autenticado: false, carregando: false, login, usuario: null, token: null, logout: vi.fn() });
+    mockedUseAuth.mockReturnValue({ autenticado: false, carregando: false, login, usuario: null, token: null, entrarGoogle: vi.fn(), logout: vi.fn() });
     const user = userEvent.setup();
     const form = renderLoginPage();
 
@@ -67,7 +67,7 @@ describe('LoginPage', () => {
 
   it('mostra mensagem de erro quando o login falha', async () => {
     const login = vi.fn().mockRejectedValue(new Error('unauthorized'));
-    mockedUseAuth.mockReturnValue({ autenticado: false, carregando: false, login, usuario: null, token: null, logout: vi.fn() });
+    mockedUseAuth.mockReturnValue({ autenticado: false, carregando: false, login, usuario: null, token: null, entrarGoogle: vi.fn(), logout: vi.fn() });
     const user = userEvent.setup();
     const form = renderLoginPage();
 
@@ -78,12 +78,13 @@ describe('LoginPage', () => {
     expect(await screen.findByText('E-mail ou senha inválidos.')).toBeInTheDocument();
   });
 
-  it('nao preenche credenciais nem oferece cadastro publico', () => {
-    mockedUseAuth.mockReturnValue({ autenticado: false, carregando: false, login: vi.fn(), usuario: null, token: null, logout: vi.fn() });
+  it('não preenche credenciais e oferece cadastro exclusivo de cliente', () => {
+    mockedUseAuth.mockReturnValue({ autenticado: false, carregando: false, login: vi.fn(), usuario: null, token: null, entrarGoogle: vi.fn(), logout: vi.fn() });
     const form = renderLoginPage();
 
     expect(form.getByLabelText('E-mail')).toHaveValue('');
     expect(form.getByLabelText('Senha')).toHaveValue('');
-    expect(screen.queryByText(/criar conta/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Criar conta como cliente' })).toHaveAttribute('href', '/cadastro');
+    expect(screen.queryByText(/sou funcionário|sou entregador/i)).not.toBeInTheDocument();
   });
 });

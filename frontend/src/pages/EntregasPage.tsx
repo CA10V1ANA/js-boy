@@ -1,3 +1,4 @@
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Ban, Check, History, MapPinned, Pencil, Plus, Search, UserRoundCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { OperacaoEntrega } from '../components/OperacaoEntrega';
@@ -28,7 +29,7 @@ const emptyForm: EntregaForm = {
   tipoVeiculo: 'MOTO',
   tempoEsperaMinutos: '0',
   possuiRetorno: false,
-  valorNegociado: '', formaPagamento: 'PIX',
+  valorNegociado: '', formaPagamento: 'DINHEIRO',
 };
 
 const statusOptions: StatusEntrega[] = [
@@ -80,13 +81,15 @@ function normalize(value: string) {
 }
 
 export function EntregasPage() {
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
   const { showToast } = useToast();
   const [entregas, setEntregas] = useState<Entrega[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [entregadores, setEntregadores] = useState<Entregador[]>([]);
   const [configPreco, setConfigPreco] = useState<ConfiguracaoPreco | null>(null);
   const [tabelaPreco, setTabelaPreco] = useState<TabelaPreco | null>(null);
-  const [busca, setBusca] = useState('');
+  const [busca, setBusca] = useState(() => params.get('busca') || '');
   const [filtro, setFiltro] = useState<Filtro>('Todas');
 
   const [wizardOpen, setWizardOpen] = useState(false);
@@ -405,6 +408,7 @@ export function EntregasPage() {
                   <td data-label="Ações">
                     <TableActions actions={[
                       { label: 'Editar entrega', icon: <Pencil size={16} />, onClick: () => abrirWizardEdicao(entrega) },
+                      { label: 'Conversar', icon: <MapPinned size={16} />, onClick: () => navigate(`/conversas?entrega=${entrega.id}`) },
                       { label: 'Rota e recebimento', icon: <MapPinned size={16} />, onClick: () => { setOperacao(entrega); setRotaEdit(null); setRouteError(''); } },
                       { label: 'Alterar status', icon: <Check size={16} />, onClick: () => abrirStatusModal(entrega) },
                       { label: 'Designar entregador', icon: <UserRoundCheck size={16} />, onClick: () => abrirDesignarModal(entrega) },
@@ -552,7 +556,7 @@ export function EntregasPage() {
 
         {wizardStep === 4 ? (
           <>
-            <label>Forma de pagamento<select value={form.formaPagamento} onChange={e => setForm({ ...form, formaPagamento: e.target.value as 'PIX' | 'DINHEIRO' })}><option value="PIX">Pix direto do entregador</option><option value="DINHEIRO">Dinheiro</option></select></label>
+            <label>Forma de pagamento<select value={form.formaPagamento} onChange={e => setForm({ ...form, formaPagamento: e.target.value as 'PIX' | 'DINHEIRO' })}><option value="DINHEIRO">Dinheiro</option><option value="PIX">Pix direto do entregador</option></select></label>
             <div className="modalFormGrid deliveryPricingFields">
               {areaPreco?.valorNegociado || locais.length > 2 || editingId ? (
                 <label>

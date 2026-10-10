@@ -1,3 +1,5 @@
+import { CadastroClientePage } from './pages/CadastroClientePage';
+import { VerificarEmailPage } from './pages/VerificarEmailPage';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
@@ -16,6 +18,13 @@ import { DashboardPage } from './pages/DashboardPage';
 import { ClientesPage } from './pages/ClientesPage';
 import { EntregadoresPage } from './pages/EntregadoresPage';
 import { EntregasPage } from './pages/EntregasPage';
+import { EntregadorOverviewPage } from './pages/EntregadorOverviewPage';
+import { ConversasPage } from './pages/ConversasPage';
+import { NotificacoesPage } from './pages/NotificacoesPage';
+import { EnderecosPage } from './pages/EnderecosPage';
+import { MeuPerfilPage } from './pages/MeuPerfilPage';
+import { ClientePagamentosPage } from './pages/ClientePagamentosPage';
+import { AjudaPage } from './pages/AjudaPage';
 import { MinhasEntregasPage } from './pages/MinhasEntregasPage';
 import { MeuFaturamentoPage } from './pages/MeuFaturamentoPage';
 import { ConfiguracaoPrecoPage } from './pages/ConfiguracaoPrecoPage';
@@ -55,6 +64,8 @@ const router = createBrowserRouter([
       { path: 'politica-de-privacidade', element: <PoliticaPrivacidadePage /> },
     ],
   },
+  { path: '/cadastro', element: <CadastroClientePage /> },
+  { path: '/verificar-email', element: <VerificarEmailPage /> },
   { path: '/login', element: <LoginPage /> },
   { path: '/esqueci-senha', element: <EsqueciSenhaPage /> },
   { path: '/redefinir-senha', element: <RedefinirSenhaPage /> },
@@ -65,6 +76,9 @@ const router = createBrowserRouter([
       element: <AppLayout />,
       children: [
         { path: '/app', element: <HomeRedirect /> },
+        { path: '/conversas', element: <ConversasPage /> },
+        { path: '/notificacoes', element: <NotificacoesPage /> },
+        { path: '/ajuda', element: <AjudaPage /> },
         {
           element: <RoleRoute perfis={['PROPRIETARIO']} />,
           children: [
@@ -79,8 +93,13 @@ const router = createBrowserRouter([
           ],
         },
         {
-          element: <RoleRoute perfis={['ENTREGADOR', 'FUNCIONARIO']} />,
+          element: <RoleRoute perfis={['ENTREGADOR', 'FUNCIONARIO', 'PROPRIETARIO']} operacional />,
           children: [
+            { path: '/operacional', element: <EntregadorOverviewPage /> },
+            { path: '/operacional/ajuda', element: <AjudaPage /> },
+            { path: '/operacional/conversas', element: <ConversasPage /> },
+            { path: '/operacional/notificacoes', element: <NotificacoesPage /> },
+            { path: '/meu-perfil', element: <MeuPerfilPage /> },
             { path: '/minhas-entregas', element: <MinhasEntregasPage /> },
             { path: '/meu-faturamento', element: <MeuFaturamentoPage /> },
           ],
@@ -89,7 +108,11 @@ const router = createBrowserRouter([
           element: <RoleRoute perfis={['CLIENTE']} />,
           children: [
             { path: '/portal', element: <ClientePortalPage /> },
-            { path: '/minha-conta', element: <Navigate to="/portal" replace /> },
+            { path: '/portal/entregas', element: <ClientePortalPage /> },
+            { path: '/portal/conta', element: <ClientePortalPage /> },
+            { path: '/portal/enderecos', element: <EnderecosPage /> },
+            { path: '/portal/pagamentos', element: <ClientePagamentosPage /> },
+            { path: '/minha-conta', element: <Navigate to="/portal/conta" replace /> },
           ],
         },
       ],

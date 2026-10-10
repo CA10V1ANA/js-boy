@@ -121,11 +121,11 @@ export function EntregadoresPage() {
     event.preventDefault();
 
     try {
-      await api.post(`/entregadores/${accessForm.entregadorId}/acesso`, {
+      await api.post(`/entregadores/${accessForm.entregadorId}/convite`, {
         email: formatEmailInput(accessForm.email),
-        senha: accessForm.senha,
+
       });
-      showToast('Acesso do entregador criado.', 'success');
+      showToast('Convite enviado para definição de senha.', 'success');
       setAccessForm({ entregadorId: '', email: '', senha: '' });
       setAccessModalOpen(false);
       await carregarEntregadores();
@@ -183,6 +183,7 @@ export function EntregadoresPage() {
                   { label: 'Editar entregador', icon: <Pencil size={16} />, onClick: () => editar(entregador) },
                 ];
                 if (!entregador.possuiAcesso) {
+                  menuItems.push({ label: 'Vincular minha conta de proprietário', icon: <UserPlus size={16} />, onClick: () => { if (!window.confirm('Vincular este cadastro à sua conta de proprietário?')) return; void api.post(`/entregadores/${entregador.id}/vincular-proprietario`).then(() => { showToast('Vínculo criado. Recarregue a página para alternar o modo.', 'success'); void carregarEntregadores(); }).catch(r => showToast(apiErrorMessage(r, 'Não foi possível vincular.'), 'error')); } });
                   menuItems.push({ label: 'Criar acesso', icon: <UserPlus size={16} />, onClick: () => prepararAcesso(entregador) });
                 }
                 menuItems.push({
@@ -234,11 +235,7 @@ export function EntregadoresPage() {
             E-mail de login
             <input type="email" inputMode="email" autoComplete="email" placeholder="nome@exemplo.com" value={accessForm.email} onChange={(event) => setAccessForm({ ...accessForm, email: formatEmailInput(event.target.value) })} required />
           </label>
-          <label>
-            Senha inicial
-            <input type="password" minLength={12} autoComplete="new-password" placeholder="Mínimo de 12 caracteres" value={accessForm.senha} onChange={(event) => setAccessForm({ ...accessForm, senha: event.target.value })} required />
-          </label>
-          <p className="formHelp">A senha será armazenada de forma protegida e não poderá ser visualizada depois.</p>
+          <p className="formHelp">O entregador define sua senha pelo link de uso único enviado ao e-mail. O convite expira em 20 minutos.</p>
           <button className="primaryButton" type="submit"><KeyRound size={17} /> Criar acesso</button>
         </form>
       </Modal>

@@ -3,7 +3,7 @@ import { PerfilAcesso } from '../types';
 export const USER_KEY = 'jsboy.usuario';
 
 export type UsuarioAutenticado = {
-  id: string; nome: string; email: string; perfil: PerfilAcesso;
+  id: string; nome: string; email: string; perfil: PerfilAcesso; vinculoOperacionalAtivo?: boolean;
 };
 
 const perfis: PerfilAcesso[] = ['PROPRIETARIO', 'ENTREGADOR', 'CLIENTE', 'FUNCIONARIO'];

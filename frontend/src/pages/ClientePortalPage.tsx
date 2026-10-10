@@ -1,3 +1,14 @@
+import { ContaClienteEdicao } from "../components/ContaClienteEdicao";
+import { AvisosResumo } from "../components/AvisosResumo";
+import { EnderecosResumo } from "../components/EnderecosResumo";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
+import { SegurancaConta } from "../components/SegurancaConta";
+import { Endereco } from "./EnderecosPage";
 import {
   ArrowLeft,
   ArrowRight,
@@ -55,7 +66,8 @@ const emptyRequest: SolicitacaoEntrega = {
   destinatarioTelefone: "",
   descricaoMercadoria: "",
   observacoes: "",
-  distanciaKm: 0, formaPagamento: "PIX",
+  distanciaKm: 0,
+  formaPagamento: "DINHEIRO",
 };
 const finalStatuses: StatusEntrega[] = [
   "ENTREGUE",
@@ -86,12 +98,47 @@ function statusClass(status: StatusEntrega) {
   return "statusBadge pending";
 }
 
+function localDatetime(v?: string) {
+  if (!v) return undefined;
+  const d = new Date(v);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 16);
+}
 export function ClientePortalPage() {
   const [data, setData] = useState<PortalData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [feedback, setFeedback] = useState("");
-  const [tab, setTab] = useState<Tab>("RESUMO");
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const tab: Tab = location.pathname.includes("/entregas")
+    ? "ENTREGAS"
+    : location.pathname.includes("/conta")
+      ? "CONTA"
+      : "RESUMO";
+  const setTab = (t: Tab) =>
+    navigate(
+      t === "ENTREGAS"
+        ? "/portal/entregas"
+        : t === "CONTA"
+          ? "/portal/conta"
+          : "/portal",
+    );
+  const [enderecos, setEnderecos] = useState<Endereco[]>([]);
+  const [busca, setBusca] = useState("");
+  const [editing, setEditing] = useState<{ id: string; versao: number } | null>(
+    null,
+  );
+  const [cancelamento, setCancelamento] = useState<{
+    id: string;
+    versao: number;
+  } | null>(null);
+  const [motivoCancelamento, setMotivoCancelamento] = useState("");
+  const [statusFiltro, setStatusFiltro] = useState("");
+  const [inicio, setInicio] = useState("");
+  const [fim, setFim] = useState("");
   const [requestOpen, setRequestOpen] = useState(false);
   const [requestStep, setRequestStep] = useState(1);
   const [request, setRequest] = useState(emptyRequest);
@@ -133,7 +180,7 @@ export function ClientePortalPage() {
     setSending(true);
     setFeedback("");
     try {
-      await api.post("/cliente/entregas", {
+      const payload = {
         ...request,
         distanciaKm: Number(request.distanciaKm),
         fusoHorario: request.agendadaInicio
@@ -145,7 +192,13 @@ export function ClientePortalPage() {
         agendadaFim: request.agendadaFim
           ? new Date(request.agendadaFim).toISOString()
           : undefined,
-      });
+      };
+      if (editing)
+        await api.put("/cliente/entregas/" + editing.id, payload, {
+          headers: { "If-Match": String(editing.versao) },
+        });
+      else await api.post("/cliente/entregas", payload);
+      setEditing(null);
       setRequest(emptyRequest);
       setRequestOpen(false);
       setRequestStep(1);
@@ -163,12 +216,34 @@ export function ClientePortalPage() {
   }
 
   function openRequest() {
+    setEditing(null);
     setRequest(emptyRequest);
     setRequestStep(1);
     setFeedback("");
     setRequestOpen(true);
   }
 
+  useEffect(() => {
+    if (!requestOpen) return;
+    let active = true;
+    api
+      .get<Endereco[]>("/cliente/enderecos")
+      .then((r) => {
+        if (active) setEnderecos(r.data);
+      })
+      .catch((r) => {
+        if (active)
+          setFeedback(
+            apiErrorMessage(
+              r,
+              "Não foi possível carregar endereços frequentes.",
+            ),
+          );
+      });
+    return () => {
+      active = false;
+    };
+  }, [requestOpen]);
   function advanceRequest() {
     if (
       requestStep === 1 &&
@@ -195,6 +270,38 @@ export function ClientePortalPage() {
     }
     setFeedback("");
     setRequestStep((step) => Math.min(3, step + 1));
+  }
+  async function editarPedido(id: string) {
+    try {
+      const r = await api.get<{
+        solicitacao: SolicitacaoEntrega;
+        versao: number;
+      }>(`/cliente/entregas/${id}/edicao`);
+      setEditing({ id, versao: r.data.versao });
+      setRequest({
+        ...r.data.solicitacao,
+        observacoes: r.data.solicitacao.observacoes || "",
+        agendadaInicio: localDatetime(r.data.solicitacao.agendadaInicio),
+        agendadaFim: localDatetime(r.data.solicitacao.agendadaFim),
+      });
+      setRequestStep(1);
+      setRequestOpen(true);
+    } catch (e) {
+      setFeedback(apiErrorMessage(e, "Não foi possível editar."));
+    }
+  }
+  async function cancelarPedido(id: string) {
+    try {
+      const r = await api.get<{ versao: number }>(
+        `/cliente/entregas/${id}/cancelamento`,
+      );
+      setCancelamento({ id, versao: r.data.versao });
+      setMotivoCancelamento("");
+    } catch (e) {
+      setFeedback(
+        apiErrorMessage(e, "Não foi possível consultar a solicitação."),
+      );
+    }
   }
   async function loadDetail(deliveryId: string) {
     if (detailLoading) return;
@@ -225,6 +332,12 @@ export function ClientePortalPage() {
     }
   }
 
+  useEffect(() => {
+    const id = params.get("entrega");
+    if (data && id && data.entregas.some((e) => e.id === id) && !detail[id])
+      void loadDetail(id);
+  }, [data, params.get("entrega")]);
+
   function openProof(deliveryId: string, proofId: string) {
     void api
       .get(`/comprovantes/${deliveryId}/${proofId}/arquivo`, {
@@ -242,10 +355,25 @@ export function ClientePortalPage() {
       total: deliveries.length,
       active: deliveries.filter((item) => !finalStatuses.includes(item.status))
         .length,
-      route: deliveries.filter((item) =>
-        ["COLETADA", "EM_ROTA"].includes(item.status),
-      ).length,
+      route: deliveries.filter((item) => item.status === "SOLICITADA").length,
       delivered: deliveries.filter((item) => item.status === "ENTREGUE").length,
+      pending: deliveries
+        .filter((e) => e.status !== "CANCELADA")
+        .reduce(
+          (sum, e) =>
+            sum +
+            Math.max(
+              0,
+              e.valorFinal -
+                payments
+                  .filter((p) => p.entregaId === e.id)
+                  .reduce(
+                    (s, p) => s + (p.tipo === "ESTORNO" ? -p.valor : p.valor),
+                    0,
+                  ),
+            ),
+          0,
+        ),
       paid: payments.reduce(
         (sum, item) =>
           sum + (item.tipo === "ESTORNO" ? -item.valor : item.valor),
@@ -299,9 +427,7 @@ export function ClientePortalPage() {
         {deliveries.map((delivery) => (
           <article className="roleDeliveryCard" key={delivery.id}>
             <div className="roleDeliveryMain">
-              <span className="publicRecordCode">
-                {delivery.codigo}
-              </span>
+              <span className="publicRecordCode">{delivery.codigo}</span>
               <div>
                 <strong>{titleCase(delivery.destinatarioNome)}</strong>
                 <p>
@@ -321,14 +447,65 @@ export function ClientePortalPage() {
               </div>
               <div>
                 <span>Valor</span>
-                <strong>{delivery.status === 'SOLICITADA' && delivery.valorFinal === 0 ? 'A confirmar pela JS Boy' : money(delivery.valorFinal)}</strong>
+                <strong>
+                  {delivery.status === "SOLICITADA" && delivery.valorFinal === 0
+                    ? "A confirmar pela JS Boy"
+                    : money(delivery.valorFinal)}
+                </strong>
               </div>
               <span className={statusClass(delivery.status)}>
                 {statusLabel(delivery.status)}
               </span>
             </div>
-            <OperacaoEntrega entregaId={delivery.id} />
+
             <div className="roleDeliveryActions">
+              {delivery.status === "SOLICITADA" ? (
+                <button
+                  className="secondaryButton"
+                  onClick={() => void editarPedido(delivery.id)}
+                >
+                  Editar solicitação
+                </button>
+              ) : null}
+              {[
+                "SOLICITADA",
+                "CONFIRMADA",
+                "AGENDADA",
+                "AGUARDANDO_ENTREGADOR",
+                "ENTREGADOR_DESIGNADO",
+              ].includes(delivery.status) ? (
+                <button
+                  className="secondaryButton"
+                  onClick={() => void cancelarPedido(delivery.id)}
+                >
+                  Cancelar solicitação
+                </button>
+              ) : null}
+              <Link
+                className="secondaryButton"
+                to={`/conversas?entrega=${delivery.id}`}
+              >
+                Conversar
+              </Link>
+              <button
+                className="smallButton"
+                onClick={() => {
+                  setEditing(null);
+                  setRequest({
+                    ...emptyRequest,
+                    enderecoOrigem: delivery.enderecoOrigem,
+                    bairroOrigem: delivery.bairroOrigem,
+                    enderecoDestino: delivery.enderecoDestino,
+                    bairroDestino: delivery.bairroDestino,
+                    destinatarioNome: delivery.destinatarioNome,
+                    descricaoMercadoria: delivery.descricaoMercadoria,
+                  });
+                  setRequestStep(1);
+                  setRequestOpen(true);
+                }}
+              >
+                Repetir solicitação
+              </button>
 
               <button
                 className="secondaryButton"
@@ -345,42 +522,37 @@ export function ClientePortalPage() {
               </button>
             </div>
             {detail[delivery.id] ? (
-              <div className="clientDeliveryDetail">
-                <div className="deliveryTimeline">
-                  {detail[delivery.id].paradas.map((stop) => (
-                    <div key={stop.id}>
-                      <span
-                        className={stop.status === "CONCLUIDA" ? "done" : ""}
-                      />
-                      <div>
-                        <strong>
-                          {stop.ordem}. {statusLabel(stop.tipo)}
-                        </strong>
-                        <small>
-                          {stop.endereco} · {statusLabel(stop.status)}
-                        </small>
+              <>
+                <OperacaoEntrega entregaId={delivery.id} />
+                <div className="clientDeliveryDetail">
+                  <div className="deliveryTimeline">
+                    {delivery.historico.map((h, i) => (
+                      <div key={i}>
+                        <span className="done" />
+                        <div>
+                          <strong>{statusLabel(h.novoStatus)}</strong>
+                          <small>{date(h.alteradoEm)}</small>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                  <div className="proofLinks">
+                    {detail[delivery.id].comprovantes.length
+                      ? detail[delivery.id].comprovantes.map((proof) => (
+                          <button
+                            key={proof.id}
+                            className="proofLink"
+                            type="button"
+                            onClick={() => openProof(delivery.id, proof.id)}
+                          >
+                            <FileCheck2 size={16} /> Comprovante de{" "}
+                            {statusLabel(proof.tipo)}
+                          </button>
+                        ))
+                      : null}
+                  </div>
                 </div>
-                <div className="proofLinks">
-                  {detail[delivery.id].comprovantes.length ? (
-                    detail[delivery.id].comprovantes.map((proof) => (
-                      <button
-                        key={proof.id}
-                        className="proofLink"
-                        type="button"
-                        onClick={() => openProof(delivery.id, proof.id)}
-                      >
-                        <FileCheck2 size={16} /> Comprovante de{" "}
-                        {statusLabel(proof.tipo)}
-                      </button>
-                    ))
-                  ) : (
-                    <span></span>
-                  )}
-                </div>
-              </div>
+              </>
             ) : null}
           </article>
         ))}
@@ -396,37 +568,17 @@ export function ClientePortalPage() {
           {feedback}
         </FeedbackMessage>
       ) : null}
-      <section className="roleHero clientRoleHero">
-        <div>
-          <span className="modalEyebrow">PORTAL DO CLIENTE</span>
-          <h1>Ola, {titleCase(data.cliente.nome).split(" ")[0]}</h1>
-          <p>
-            Solicite e acompanhe a rota e o pagamento das suas entregas.
-          </p>
-        </div>
-        <button className="primaryButton" type="button" onClick={openRequest}>
-          <Plus size={17} /> Solicitar entrega
-        </button>
-      </section>
-      <nav className="portalTabs" aria-label="Secoes do portal">
-        {(
-          [
-            ["RESUMO", "Visao geral", Package],
-            ["ENTREGAS", "Minhas entregas", Truck],
-            ["CONTA", "Minha conta", User],
-          ] as const
-        ).map(([value, label, Icon]) => (
-          <button
-            key={value}
-            className={tab === value ? "active" : ""}
-            type="button"
-            onClick={() => setTab(value)}
-          >
-            <Icon size={16} /> {label}
+      {tab !== "CONTA" ? (
+        <section className="roleHero clientRoleHero">
+          <div>
+            <h1>Olá, {titleCase(data.cliente.nome).split(" ")[0]}</h1>
+            <p>Solicite e acompanhe a rota e o pagamento das suas entregas.</p>
+          </div>
+          <button className="primaryButton" type="button" onClick={openRequest}>
+            <Plus size={17} /> Solicitar entrega
           </button>
-        ))}
-      </nav>
-
+        </section>
+      ) : null}
       {tab === "RESUMO" ? (
         <>
           <section className="metricGrid roleMetricGrid">
@@ -434,7 +586,7 @@ export function ClientePortalPage() {
               <span className="metricIcon tone-yellow">
                 <Package size={19} />
               </span>
-              <span>Solicitacoes ativas</span>
+              <span>Solicitações ativas</span>
               <strong>{String(summary.active).padStart(2, "0")}</strong>
               <div className="metricDelta">
                 <span className="vs">em análise ou operação</span>
@@ -444,30 +596,30 @@ export function ClientePortalPage() {
               <span className="metricIcon tone-green">
                 <Truck size={19} />
               </span>
-              <span>Em rota</span>
+              <span>Aguardando orçamento</span>
               <strong>{String(summary.route).padStart(2, "0")}</strong>
               <div className="metricDelta">
-                <span className="vs">a caminho agora</span>
+                <span className="vs">aguardando análise e confirmação</span>
               </div>
             </article>
             <article className="metricCard">
               <span className="metricIcon tone-navy">
                 <Check size={19} />
               </span>
-              <span>Entregues</span>
+              <span>Entregues no histórico</span>
               <strong>{String(summary.delivered).padStart(2, "0")}</strong>
               <div className="metricDelta">
-                <span className="vs">de {summary.total} entregas</span>
+                <span className="vs">todo o período disponível</span>
               </div>
             </article>
             <article className="metricCard">
               <span className="metricIcon tone-blue">
                 <CreditCard size={19} />
               </span>
-              <span>Total pago</span>
-              <strong className="smaller">{money(summary.paid)}</strong>
+              <span>Pagamentos pendentes</span>
+              <strong className="smaller">{money(summary.pending)}</strong>
               <div className="metricDelta">
-                <span className="vs">histórico financeiro</span>
+                <span className="vs">saldo a regularizar</span>
               </div>
             </article>
           </section>
@@ -487,6 +639,10 @@ export function ClientePortalPage() {
             </div>
             {deliveryList(data.entregas.slice(0, 3))}
           </section>
+          <div className="portalSummaryExtras">
+            <EnderecosResumo />
+            <AvisosResumo />
+          </div>
         </>
       ) : null}
       {tab === "ENTREGAS" ? (
@@ -496,15 +652,59 @@ export function ClientePortalPage() {
               <h2>Minhas entregas</h2>
               <p>Histórico, rota e recebimentos da operação.</p>
             </div>
-            <button
-              className="primaryButton"
-              type="button"
-              onClick={openRequest}
-            >
-              <Plus size={16} /> Nova solicitação
-            </button>
+            <label>
+              Buscar entrega
+              <input
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                placeholder="Identificador, destino ou status"
+              />
+            </label>
           </div>
-          {deliveryList(data.entregas)}
+          <div className="deliveryFilters">
+            <label>
+              Status
+              <select
+                value={statusFiltro}
+                onChange={(e) => setStatusFiltro(e.target.value)}
+              >
+                <option value="">Todos</option>
+                {[...new Set(data.entregas.map((e) => e.status))].map((s) => (
+                  <option key={s} value={s}>
+                    {statusLabel(s)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              De
+              <input
+                type="date"
+                value={inicio}
+                onChange={(e) => setInicio(e.target.value)}
+              />
+            </label>
+            <label>
+              Até
+              <input
+                type="date"
+                value={fim}
+                onChange={(e) => setFim(e.target.value)}
+              />
+            </label>
+          </div>
+          {deliveryList(
+            data.entregas.filter(
+              (e) =>
+                [e.codigo, e.destinatarioNome, e.enderecoDestino, e.status]
+                  .join(" ")
+                  .toLowerCase()
+                  .includes(busca.toLowerCase()) &&
+                (!statusFiltro || e.status === statusFiltro) &&
+                (!inicio || e.criadoEm.slice(0, 10) >= inicio) &&
+                (!fim || e.criadoEm.slice(0, 10) <= fim),
+            ),
+          )}
         </section>
       ) : null}
       {tab === "CONTA" ? (
@@ -539,6 +739,11 @@ export function ClientePortalPage() {
                 <dd>{address || "Não informado"}</dd>
               </div>
             </dl>
+            <ContaClienteEdicao
+              cliente={data.cliente}
+              onChange={() => void load()}
+            />
+            <SegurancaConta />
           </section>
           <section className="panelCard contactCard">
             <div className="panelCardHeader">
@@ -581,39 +786,56 @@ export function ClientePortalPage() {
               ) : null}
             </ul>
           </section>
-          <section className="panelCard accountPayments">
-            <div className="panelCardHeader">
-              <h2>Pagamentos</h2>
-            </div>
-            {data.pagamentos.length ? (
-              <div className="portalPayments">
-                {data.pagamentos.map((payment) => (
-                  <article key={payment.id}>
-                    <div>
-                      <strong>Pagamento da entrega</strong>
-                      <span>
-                        {date(payment.pagoEm)} ·{" "}
-                        {statusLabel(payment.formaPagamento)}
-                      </span>
-                    </div>
-                    <strong>
-                      {payment.tipo === "ESTORNO" ? "-" : ""}
-                      {money(payment.valor)}
-                    </strong>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <EmptyState title="Nenhum pagamento vinculado" />
-            )}
-          </section>
         </div>
       ) : null}
 
       <Modal
+        open={!!cancelamento}
+        onClose={() => !sending && setCancelamento(null)}
+        title="Cancelar solicitação"
+      >
+        <form
+          className="settingsForm"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!cancelamento || sending) return;
+            setSending(true);
+            try {
+              await api.post(
+                "/cliente/entregas/" + cancelamento.id + "/cancelar",
+                { motivo: motivoCancelamento },
+                { headers: { "If-Match": String(cancelamento.versao) } },
+              );
+              setCancelamento(null);
+              await load();
+            } catch (r) {
+              setFeedback(apiErrorMessage(r, "Não foi possível cancelar."));
+            } finally {
+              setSending(false);
+            }
+          }}
+        >
+          <p>
+            O cancelamento depende do estado atual e da ausência de recebimento.
+          </p>
+          <label>
+            Motivo
+            <input
+              required
+              maxLength={500}
+              value={motivoCancelamento}
+              onChange={(e) => setMotivoCancelamento(e.target.value)}
+            />
+          </label>
+          <button className="primaryButton" disabled={sending}>
+            Confirmar cancelamento
+          </button>
+        </form>
+      </Modal>
+      <Modal
         open={requestOpen}
         onClose={() => !sending && setRequestOpen(false)}
-        eyebrow={`SOLICITAR ENTREGA · ETAPA ${requestStep}/3`}
+        eyebrow={`${editing ? "EDITAR SOLICITAÇÃO" : "SOLICITAR ENTREGA"} · ETAPA ${requestStep}/3`}
         title={
           requestStep === 1
             ? "Rota da entrega"
@@ -668,6 +890,55 @@ export function ClientePortalPage() {
           <span
             className={`wizardStepBar ${requestStep === 3 ? "done" : ""}`}
           />
+        </div>
+        <div className="quickLinks">
+          <label>
+            Origem frequente
+            <select
+              defaultValue=""
+              onChange={(e) => {
+                const a = enderecos.find((a) => a.id === e.target.value);
+                if (a)
+                  setRequest({
+                    ...request,
+                    enderecoOrigem: a.endereco,
+                    bairroOrigem: a.bairro,
+                  });
+              }}
+            >
+              <option value="">Selecionar</option>
+              {enderecos.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.apelido}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Destino frequente
+            <select
+              defaultValue=""
+              onChange={(e) => {
+                const a = enderecos.find((a) => a.id === e.target.value);
+                if (a)
+                  setRequest({
+                    ...request,
+                    enderecoDestino: a.endereco,
+                    bairroDestino: a.bairro,
+                    destinatarioNome: a.contatoNome || "",
+                    destinatarioTelefone: a.contatoTelefone || "",
+                    observacoes: a.referencia || "",
+                  });
+              }}
+            >
+              <option value="">Selecionar</option>
+              {enderecos.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.apelido}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
         <form
           id="client-request-form"
@@ -796,7 +1067,21 @@ export function ClientePortalPage() {
           ) : null}
           {requestStep === 3 ? (
             <div className="formGrid">
-              <label>Forma de pagamento<select value={request.formaPagamento || 'PIX'} onChange={e => setRequest({ ...request, formaPagamento: e.target.value as 'PIX' | 'DINHEIRO' })}><option value="PIX">Pix direto do entregador</option><option value="DINHEIRO">Dinheiro</option></select></label>
+              <label>
+                Forma de pagamento
+                <select
+                  value={request.formaPagamento || "DINHEIRO"}
+                  onChange={(e) =>
+                    setRequest({
+                      ...request,
+                      formaPagamento: e.target.value as "PIX" | "DINHEIRO",
+                    })
+                  }
+                >
+                  <option value="DINHEIRO">Dinheiro</option>
+                  <option value="PIX">Pix direto do entregador</option>
+                </select>
+              </label>
               <label>
                 <CalendarClock size={15} /> Início agendado (opcional)
                 <input
@@ -834,8 +1119,8 @@ export function ClientePortalPage() {
               <div className="requestReview requestWide">
                 <strong>Como funciona</strong>
                 <span>
-                  A solicitação entra como “Solicitada”. A JS Boy
-                  revisa rota, disponibilidade e valor antes de confirmar.
+                  A solicitação entra como “Solicitada”. A JS Boy revisa rota,
+                  disponibilidade e valor antes de confirmar.
                 </span>
               </div>
             </div>

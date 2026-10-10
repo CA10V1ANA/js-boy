@@ -36,7 +36,7 @@ export function MeuFaturamentoPage() {
   return (
     <main className="page">
       <div className="pageHeader">
-        <div><h1>Meu faturamento</h1><p>Entregas concluídas e valores do período.</p></div>
+        <div><h1>Meu faturamento</h1><p>Valores movimentados nas suas entregas concluídas. Não representam comissão ou ganho pessoal.</p></div>
       </div>
       {feedback ? <FeedbackMessage tone="error">{feedback}</FeedbackMessage> : null}
       <section className="panelCard financePanel">
@@ -56,7 +56,7 @@ export function MeuFaturamentoPage() {
       {extrato ? <>
         <section className="financeSummary">
           <article><span>Entregas concluídas</span><strong>{extrato.entregasConcluidas}</strong></article>
-          <article className="result"><span>Valor faturado</span><strong>{money(extrato.valorFaturado)}</strong></article>
+          <article className="result"><span>Valor movimentado</span><strong>{money(extrato.valorFaturado)}</strong></article>
         </section>
         <section className="panelCard" style={{ padding: 20, marginTop: 16 }}>
           <div className="panelCardHeader"><div><span className="panelIcon"><WalletCards size={18} /></span>

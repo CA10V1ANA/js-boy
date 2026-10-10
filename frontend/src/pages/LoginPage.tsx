@@ -1,3 +1,5 @@
+import { GoogleLoginButton } from '../components/GoogleLoginButton';
+import { apiErrorMessage } from '../services/apiError';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
@@ -9,7 +11,7 @@ import { formatEmailInput } from '../utils/inputMasks';
 import { PublicHeader, SiteFooter } from './LandingPage';
 
 export function LoginPage() {
-  const { autenticado, login } = useAuth();
+  const { autenticado, entrarGoogle, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [erro, setErro] = useState('');
@@ -83,6 +85,8 @@ export function LoginPage() {
                 {isSubmitting ? 'Entrando...' : 'Entrar'}
               </button>
             </form>
+            <p><Link to="/cadastro">Criar conta como cliente</Link></p>
+            <GoogleLoginButton onCredential={credencial => { void entrarGoogle(credencial).then(() => navigate('/portal', { replace: true })).catch(r => { if (r?.response?.data?.code === 'GOOGLE_CADASTRO_NECESSARIO') navigate('/cadastro', { state: { credencial } }); else setErro(apiErrorMessage(r, 'Não foi possível entrar com Google.')); }); }} />
             <p style={{ textAlign: 'center', marginTop: '0.75rem' }}>
               <Link to="/esqueci-senha" style={{ color: 'var(--primary, #0066cc)', fontSize: '0.875rem' }}>
                 Esqueci minha senha
