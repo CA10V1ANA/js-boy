@@ -8,14 +8,16 @@ public record UsuarioAutenticadoResponse(
     UUID id,
     String nome,
     String email,
-    PerfilAcesso perfil
+    PerfilAcesso perfil,
+    boolean vinculoOperacionalAtivo
 ) {
     public static UsuarioAutenticadoResponse from(Usuario usuario) {
         return new UsuarioAutenticadoResponse(
             usuario.getId(),
             usuario.getNome(),
             usuario.getEmail(),
-            usuario.getPerfilEfetivo()
+            usuario.getPerfilEfetivo(),
+            usuario.getEntregador() != null && usuario.getEntregador().isAtivo()
         );
     }
 }

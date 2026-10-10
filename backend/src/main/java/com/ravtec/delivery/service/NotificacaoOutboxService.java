@@ -11,11 +11,25 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class NotificacaoOutboxService {
+
     private final NotificacaoOutboxRepository repository;
     private final NotificacaoWorker worker;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private NotificacaoInternaService internas;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private ConversaService conversas;
+
+    @Transactional
+    public void eventoInterno(Entrega entrega, String evento, String chave) {
+        if (internas != null) internas.evento(entrega, evento, chave, null);
+        if (conversas != null) conversas.evento(entrega, evento, chave);
+    }
+
     @Transactional
     public void enfileirar(Entrega entrega, String evento, String chave) {
+        eventoInterno(entrega, evento, chave);
         if (repository.existsByChaveIdempotencia(chave)) {
             return;
         }
@@ -34,7 +48,9 @@ public class NotificacaoOutboxService {
 
     @Scheduled(fixedDelayString = "${app.notifications.poll-ms:30000}")
     public void processarPendentes() {
-        for (int i = 0; i < 50 && worker.processarUma(); i++) { /* bounded batch */ }
+        for (int i = 0; i < 50 && worker.processarUma(); i++) {
+            /* bounded batch */
+        }
     }
 
     private String mascarar(String value) {

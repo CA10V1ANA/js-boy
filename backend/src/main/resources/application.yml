@@ -35,6 +35,12 @@ server:
     include-stacktrace: never
 
 app:
+  google:
+    client-id: ${GOOGLE_CLIENT_ID:}
+  chat:
+    post-completion-hours: ${CHAT_POST_COMPLETION_HOURS:48}
+    max-chars: ${CHAT_MAX_CHARS:2000}
+    sends-per-minute: ${CHAT_SENDS_PER_MINUTE:20}
   mercadopago:
     access-token: ${MERCADOPAGO_ACCESS_TOKEN:}
     webhook-secret: ${MERCADOPAGO_WEBHOOK_SECRET:}

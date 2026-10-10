@@ -16,9 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/operacao-entregador")
-@PreAuthorize("hasRole('ENTREGADOR')")
+@PreAuthorize("hasAnyRole('ENTREGADOR', 'PROPRIETARIO')")
 @RequiredArgsConstructor
 public class PainelEntregadorController {
+
     private final PainelEntregadorService painelEntregadorService;
     private final ClienteService clienteService;
 
@@ -27,6 +28,7 @@ public class PainelEntregadorController {
         return painelEntregadorService.resumoHoje();
     }
 
+    @PreAuthorize("hasRole('PROPRIETARIO')")
     @PostMapping("/clientes")
     public ClienteResponse cadastrarCliente(@Valid @RequestBody ClienteRequest request) {
         return clienteService.criarPeloEntregador(request);

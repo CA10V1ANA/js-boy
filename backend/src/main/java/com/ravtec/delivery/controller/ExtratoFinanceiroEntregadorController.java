@@ -12,9 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/operacao-entregador/financeiro")
-@PreAuthorize("hasAnyRole('ENTREGADOR', 'FUNCIONARIO')")
+@PreAuthorize("hasAnyRole('ENTREGADOR', 'FUNCIONARIO', 'PROPRIETARIO')")
 @RequiredArgsConstructor
 public class ExtratoFinanceiroEntregadorController {
+
     private final RazaoFinanceiraService service;
 
     @GetMapping("/extrato")

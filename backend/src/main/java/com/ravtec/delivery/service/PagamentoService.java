@@ -38,15 +38,22 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class PagamentoService {
+
     private static final Pattern IDEMPOTENCY_KEY = Pattern.compile("[A-Za-z0-9._:-]{8,128}");
     private final PagamentoRepository pagamentoRepository;
     private final EntregaRepository entregaRepository;
     private final EntregaFinanceiraRepository entregaFinanceiraRepository;
     private final PagamentoMapper pagamentoMapper;
+
     @Autowired(required = false)
     private AuditoriaService auditoriaService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private NotificacaoOutboxService notificacoes;
+
     @Autowired(required = false)
     private ControleFechamentoFinanceiroService controleFechamento;
+
     @Autowired(required = false)
     private com.ravtec.delivery.repository.CobrancaPixRepository cobrancasPix;
 
@@ -61,25 +68,33 @@ public class PagamentoService {
         if (principal.getUsuario().getCliente() == null) {
             throw new AccessDeniedException("Usuario cliente sem vinculo ativo");
         }
-        return pagamentoRepository.findByEntregaClienteUsuarioIdOrderByPagoEmDesc(principal.getId()).stream()
-            .map(pagamentoMapper::toResponse).toList();
+        return pagamentoRepository
+            .findByEntregaClienteUsuarioIdOrderByPagoEmDesc(principal.getId())
+            .stream()
+            .map(pagamentoMapper::toResponse)
+            .toList();
     }
 
     @Transactional
     public PagamentoResponse registrar(String idempotencyKey, PagamentoRequest request) {
         var principal = usuarioAtual();
         var perfil = principal.getUsuario().getPerfilEfetivo();
-        if (perfil != com.ravtec.delivery.entity.PerfilAcesso.PROPRIETARIO
-            && perfil != com.ravtec.delivery.entity.PerfilAcesso.ENTREGADOR)
-            throw new AccessDeniedException("Perfil sem permissão para recebimento");
+        if (
+            perfil != com.ravtec.delivery.entity.PerfilAcesso.PROPRIETARIO &&
+            perfil != com.ravtec.delivery.entity.PerfilAcesso.ENTREGADOR
+        ) throw new AccessDeniedException("Perfil sem permissão para recebimento");
         var chave = validarChave(idempotencyKey);
-        var entrega = entregaFinanceiraRepository.buscarParaAtualizacao(request.entregaId())
+        var entrega = entregaFinanceiraRepository
+            .buscarParaAtualizacao(request.entregaId())
             .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega não encontrada"));
         var recebedor = entrega.getEntregador();
-        if (perfil == com.ravtec.delivery.entity.PerfilAcesso.ENTREGADOR
-            && (recebedor == null || recebedor.getUsuario() == null
-                || !principal.getId().equals(recebedor.getUsuario().getId()) || !recebedor.isAtivo()))
-            throw new AccessDeniedException("Entrega não pertence ao recebedor");
+        if (
+            perfil == com.ravtec.delivery.entity.PerfilAcesso.ENTREGADOR &&
+            (recebedor == null ||
+                recebedor.getUsuario() == null ||
+                !principal.getId().equals(recebedor.getUsuario().getId()) ||
+                !recebedor.isAtivo())
+        ) throw new AccessDeniedException("Entrega não pertence ao recebedor");
         var valor = monetario(request.valor());
         validarValorPositivo(valor);
         validarData(request.pagoEm());
@@ -88,35 +103,58 @@ public class PagamentoService {
         if (existente != null) {
             return pagamentoMapper.toResponse(existente);
         }
-        if (entrega.getFormaPagamento() != null && request.formaPagamento() != entrega.getFormaPagamento())
-            throw new ConflitoException("A forma do recebimento deve corresponder à forma atual da entrega");
-        if (request.formaPagamento() == com.ravtec.delivery.entity.FormaPagamento.PIX
-            || request.formaPagamento() == com.ravtec.delivery.entity.FormaPagamento.DINHEIRO) {
+        if (
+            entrega.getFormaPagamento() != null && request.formaPagamento() != entrega.getFormaPagamento()
+        ) throw new ConflitoException("A forma do recebimento deve corresponder à forma atual da entrega");
+        if (
+            request.formaPagamento() == com.ravtec.delivery.entity.FormaPagamento.PIX ||
+            request.formaPagamento() == com.ravtec.delivery.entity.FormaPagamento.DINHEIRO
+        ) {
             if (entrega.getFormaPagamento() == null) entrega.setFormaPagamento(request.formaPagamento());
-            if (recebedor == null) throw new ConflitoException("Designe o entregador que recebeu o pagamento");
-            if (request.formaPagamento() == com.ravtec.delivery.entity.FormaPagamento.PIX && recebedor.getChavePix() == null)
-                throw new ConflitoException("Cadastre a chave Pix do entregador designado");
+            if (recebedor == null) throw new ConflitoException(
+                "Designe o entregador que recebeu o pagamento"
+            );
+            if (
+                request.formaPagamento() == com.ravtec.delivery.entity.FormaPagamento.PIX &&
+                recebedor.getChavePix() == null
+            ) throw new ConflitoException("Cadastre a chave Pix do entregador designado");
         }
-        if (cobrancasPix != null && cobrancasPix.findByEntregaId(entrega.getId())
-            .filter(c -> "PENDENTE".equals(c.getStatus())).isPresent()) {
-            throw new ConflitoException("Entrega com cobrança Pix pendente. Concilie a cobrança antes do recebimento manual");
+        if (
+            cobrancasPix != null &&
+            cobrancasPix
+                .findByEntregaId(entrega.getId())
+                .filter(c -> "PENDENTE".equals(c.getStatus()))
+                .isPresent()
+        ) {
+            throw new ConflitoException(
+                "Entrega com cobrança Pix pendente. Concilie a cobrança antes do recebimento manual"
+            );
         }
         if (entrega.getStatus() == com.ravtec.delivery.entity.StatusEntrega.CANCELADA) {
-            throw new ConflitoException("Entrega cancelada não pode receber novos pagamentos", "ENTREGA_CANCELADA");
+            throw new ConflitoException(
+                "Entrega cancelada não pode receber novos pagamentos",
+                "ENTREGA_CANCELADA"
+            );
         }
         var pagoEm = request.pagoEm() == null ? OffsetDateTime.now() : request.pagoEm();
         validarPeriodoAberto(pagoEm);
         var recebido = pagamentoRepository.somarSaldoPorEntrega(entrega.getId());
         var saldo = monetario(entrega.getValorFinal().subtract(recebido));
         if (valor.compareTo(saldo) > 0) {
-            throw new ConflitoException("Pagamento excede o saldo disponivel da entrega", "SALDO_INSUFICIENTE");
+            throw new ConflitoException(
+                "Pagamento excede o saldo disponivel da entrega",
+                "SALDO_INSUFICIENTE"
+            );
         }
         var pagamento = new Pagamento();
         pagamento.setEntrega(entrega);
         pagamento.setRecebedor(recebedor);
         pagamento.setRecebedorNome(recebedor == null ? null : recebedor.getNome());
-        pagamento.setChavePixRecebedor(request.formaPagamento() == com.ravtec.delivery.entity.FormaPagamento.PIX
-            && recebedor != null ? recebedor.getChavePix() : null);
+        pagamento.setChavePixRecebedor(
+            request.formaPagamento() == com.ravtec.delivery.entity.FormaPagamento.PIX && recebedor != null
+                ? recebedor.getChavePix()
+                : null
+        );
         pagamento.setTitularPixRecebedor(recebedor == null ? null : recebedor.getTitularPix());
         pagamento.setValor(valor);
         pagamento.setFormaPagamento(request.formaPagamento());
@@ -128,26 +166,42 @@ public class PagamentoService {
         pagamento.setIdempotencyKey(chave);
         pagamento.setPayloadHash(hash);
         var salvo = pagamentoRepository.saveAndFlush(pagamento);
-        auditar("PAGAMENTO_REGISTRADO", salvo, Map.of(
-            "entregaId", entrega.getId(), "valor", valor, "forma", request.formaPagamento().name()
-        ), null);
-        log.info("finance_event=payment_registered payment_id={} delivery_id={} result=success",
-            salvo.getId(), entrega.getId());
+        auditar(
+            "PAGAMENTO_REGISTRADO",
+            salvo,
+            Map.of("entregaId", entrega.getId(), "valor", valor, "forma", request.formaPagamento().name()),
+            null
+        );
+        if (notificacoes != null) notificacoes.eventoInterno(
+            entrega,
+            "RECEBIMENTO_CONFIRMADO",
+            "recebimento:" + salvo.getId()
+        );
+        log.info(
+            "finance_event=payment_registered payment_id={} delivery_id={} result=success",
+            salvo.getId(),
+            entrega.getId()
+        );
         return pagamentoMapper.toResponse(salvo);
     }
 
     @Transactional
     public PagamentoResponse estornar(UUID pagamentoId, String idempotencyKey, EstornoRequest request) {
         if (cobrancasPix != null && cobrancasPix.existsByPagamentoId(pagamentoId)) {
-            throw new ConflitoException("Pagamento Mercado Pago exige reembolso no provedor e conciliação financeira");
+            throw new ConflitoException(
+                "Pagamento Mercado Pago exige reembolso no provedor e conciliação financeira"
+            );
         }
         var chave = validarChave(idempotencyKey);
-        var originalSemLock = pagamentoRepository.findById(pagamentoId)
+        var originalSemLock = pagamentoRepository
+            .findById(pagamentoId)
             .filter(item -> item.getTipo() == TipoLancamentoFinanceiro.RECEBIMENTO)
             .orElseThrow(() -> new RecursoNaoEncontradoException("Pagamento não encontrado"));
-        entregaFinanceiraRepository.buscarParaAtualizacao(originalSemLock.getEntrega().getId())
+        entregaFinanceiraRepository
+            .buscarParaAtualizacao(originalSemLock.getEntrega().getId())
             .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega não encontrada"));
-        var original = pagamentoRepository.findById(pagamentoId)
+        var original = pagamentoRepository
+            .findById(pagamentoId)
             .filter(item -> item.getTipo() == TipoLancamentoFinanceiro.RECEBIMENTO)
             .orElseThrow(() -> new RecursoNaoEncontradoException("Pagamento não encontrado"));
         var valor = monetario(request.valor());
@@ -162,7 +216,10 @@ public class PagamentoService {
         var jaEstornado = pagamentoRepository.somarEstornosDoLancamento(original.getId());
         var disponivel = monetario(original.getValor().subtract(jaEstornado));
         if (valor.compareTo(disponivel) > 0) {
-            throw new ConflitoException("Estorno excede o valor liquido disponivel do pagamento", "ESTORNO_EXCEDE_DISPONIVEL");
+            throw new ConflitoException(
+                "Estorno excede o valor liquido disponivel do pagamento",
+                "ESTORNO_EXCEDE_DISPONIVEL"
+            );
         }
         var estorno = new Pagamento();
         estorno.setEntrega(original.getEntrega());
@@ -180,11 +237,22 @@ public class PagamentoService {
         estorno.setPagoEm(estornadoEm);
         estorno.setMotivo(request.motivo().trim());
         var salvo = pagamentoRepository.saveAndFlush(estorno);
-        auditar("ESTORNO_REGISTRADO", salvo, Map.of(
-            "pagamentoOriginalId", original.getId(), "valor", valor
-        ), request.motivo());
-        log.info("finance_event=refund_registered refund_id={} original_id={} result=success",
-            salvo.getId(), original.getId());
+        auditar(
+            "ESTORNO_REGISTRADO",
+            salvo,
+            Map.of("pagamentoOriginalId", original.getId(), "valor", valor),
+            request.motivo()
+        );
+        if (notificacoes != null) notificacoes.eventoInterno(
+            original.getEntrega(),
+            "RECEBIMENTO_ESTORNADO",
+            "estorno:" + salvo.getId()
+        );
+        log.info(
+            "finance_event=refund_registered refund_id={} original_id={} result=success",
+            salvo.getId(),
+            original.getId()
+        );
         return pagamentoMapper.toResponse(salvo);
     }
 
@@ -194,9 +262,14 @@ public class PagamentoService {
         var valorRecebido = pagamentoRepository.somarSaldoFinanceiro();
         var pendencias = calcularPendencias();
         return new RelatorioFinanceiroResponse(
-            valorEntregas, valorRecebido,
-            pendencias.stream().map(PendenciaFinanceiraResponse::valorPendente).reduce(BigDecimal.ZERO, BigDecimal::add),
-            pagamentoRepository.countByTipo(TipoLancamentoFinanceiro.RECEBIMENTO), pendencias
+            valorEntregas,
+            valorRecebido,
+            pendencias
+                .stream()
+                .map(PendenciaFinanceiraResponse::valorPendente)
+                .reduce(BigDecimal.ZERO, BigDecimal::add),
+            pagamentoRepository.countByTipo(TipoLancamentoFinanceiro.RECEBIMENTO),
+            pendencias
         );
     }
 
@@ -205,7 +278,11 @@ public class PagamentoService {
         if (!entregaRepository.existsById(entregaId)) {
             throw new RecursoNaoEncontradoException("Entrega não encontrada");
         }
-        return pagamentoRepository.findByEntregaId(entregaId).stream().map(pagamentoMapper::toResponse).toList();
+        return pagamentoRepository
+            .findByEntregaId(entregaId)
+            .stream()
+            .map(pagamentoMapper::toResponse)
+            .toList();
     }
 
     private List<PendenciaFinanceiraResponse> calcularPendencias() {
@@ -217,8 +294,12 @@ public class PagamentoService {
         if (existente == null) {
             return null;
         }
-        if (!MessageDigest.isEqual(existente.getPayloadHash().getBytes(StandardCharsets.UTF_8),
-            payloadHash.getBytes(StandardCharsets.UTF_8))) {
+        if (
+            !MessageDigest.isEqual(
+                existente.getPayloadHash().getBytes(StandardCharsets.UTF_8),
+                payloadHash.getBytes(StandardCharsets.UTF_8)
+            )
+        ) {
             throw new ConflitoException("Idempotency-Key ja utilizada com dados diferentes");
         }
         return existente;
@@ -247,19 +328,31 @@ public class PagamentoService {
     }
 
     private String hashRecebimento(PagamentoRequest request, BigDecimal valor) {
-        return sha256(String.join("|", "RECEBIMENTO", request.entregaId().toString(), valor.toPlainString(),
-            request.formaPagamento().name(), Objects.toString(request.pagoEm(), ""),
-            Objects.toString(limpar(request.comprovante()), ""), Objects.toString(limpar(request.observacoes()), "")));
+        return sha256(
+            String.join(
+                "|",
+                "RECEBIMENTO",
+                request.entregaId().toString(),
+                valor.toPlainString(),
+                request.formaPagamento().name(),
+                Objects.toString(request.pagoEm(), ""),
+                Objects.toString(limpar(request.comprovante()), ""),
+                Objects.toString(limpar(request.observacoes()), "")
+            )
+        );
     }
 
     private String hashEstorno(UUID originalId, EstornoRequest request, BigDecimal valor) {
-        return sha256(String.join("|", "ESTORNO", originalId.toString(), valor.toPlainString(), request.motivo().trim()));
+        return sha256(
+            String.join("|", "ESTORNO", originalId.toString(), valor.toPlainString(), request.motivo().trim())
+        );
     }
 
     private String sha256(String value) {
         try {
-            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
-                .digest(value.getBytes(StandardCharsets.UTF_8)));
+            return HexFormat.of().formatHex(
+                MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8))
+            );
         } catch (NoSuchAlgorithmException exception) {
             throw new IllegalStateException("SHA-256 indisponivel", exception);
         }
@@ -287,7 +380,9 @@ public class PagamentoService {
 
     private UsuarioPrincipal usuarioAtual() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !(authentication.getPrincipal() instanceof UsuarioPrincipal principal)) {
+        if (
+            authentication == null || !(authentication.getPrincipal() instanceof UsuarioPrincipal principal)
+        ) {
             throw new AccessDeniedException("Usuario autenticado obrigatorio");
         }
         return principal;

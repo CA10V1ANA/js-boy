@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class EntregaService {
+
     private final EntregaRepository entregaRepository;
     private final ClienteRepository clienteRepository;
     private final EntregadorRepository entregadorRepository;
@@ -47,6 +48,7 @@ public class EntregaService {
     private final com.ravtec.delivery.repository.EntregaFinanceiraRepository entregaFinanceiraRepository;
     private final VersionamentoService versionamento = new VersionamentoService();
     private final NormalizacaoService normalizacao = new NormalizacaoService();
+
     @Autowired(required = false)
     private AuditoriaService auditoriaService;
 
@@ -54,7 +56,10 @@ public class EntregaService {
     public List<EntregaResponse> listar(String busca) {
         var entregas = busca == null || busca.isBlank()
             ? entregaRepository.findAll()
-            : entregaRepository.findByCodigoContainingIgnoreCaseOrClienteNomeContainingIgnoreCase(busca, busca);
+            : entregaRepository.findByCodigoContainingIgnoreCaseOrClienteNomeContainingIgnoreCase(
+                  busca,
+                  busca
+              );
         return entregas.stream().map(entregaMapper::toResponse).toList();
     }
 
@@ -66,8 +71,11 @@ public class EntregaService {
     @Transactional(readOnly = true)
     public List<EntregaOperacionalResponse> listarMinhasEntregas() {
         identidadeAtual.entregadorObrigatorio();
-        return entregaRepository.findByEntregadorUsuarioIdOrderByCriadoEmDesc(identidadeAtual.principal().getId()).stream()
-            .map(entregaMapper::toOperacionalResponse).toList();
+        return entregaRepository
+            .findByEntregadorUsuarioIdOrderByCriadoEmDesc(identidadeAtual.principal().getId())
+            .stream()
+            .map(entregaMapper::toOperacionalResponse)
+            .toList();
     }
 
     @Transactional(readOnly = true)
@@ -78,20 +86,36 @@ public class EntregaService {
 
     @Transactional
     public EntregaResponse criar(EntregaRequest request) {
-        return criar(request, request.paradas(), request.entregadorId() == null
-            ? StatusEntrega.SOLICITADA : StatusEntrega.ENTREGADOR_DESIGNADO);
+        return criar(
+            request,
+            request.paradas(),
+            request.entregadorId() == null ? StatusEntrega.SOLICITADA : StatusEntrega.ENTREGADOR_DESIGNADO
+        );
     }
 
     @Transactional
-    public EntregaResponse criar(EntregaRequest request,
-        List<com.ravtec.delivery.dto.ParadaRequest> paradas, StatusEntrega statusInicial) {
+    public EntregaResponse criar(
+        EntregaRequest request,
+        List<com.ravtec.delivery.dto.ParadaRequest> paradas,
+        StatusEntrega statusInicial
+    ) {
         var entrega = new Entrega();
-        if (paradas != null && paradas.size() > 2 && request.valorNegociado() == null)
-            throw new IllegalArgumentException("Informe valor negociado explícito para a rota com vários locais");
+        if (
+            paradas != null && paradas.size() > 2 && request.valorNegociado() == null
+        ) throw new IllegalArgumentException(
+            "Informe valor negociado explícito para a rota com vários locais"
+        );
         if (paradas != null && !paradas.isEmpty()) {
-            var ordenadas = paradas.stream().sorted(java.util.Comparator.comparing(com.ravtec.delivery.dto.ParadaRequest::ordem)).toList();
-            if (!request.bairroDestino().trim().equalsIgnoreCase(ordenadas.get(ordenadas.size() - 1).bairro().trim()))
-                throw new IllegalArgumentException("O bairro do preço deve corresponder ao destino da rota");
+            var ordenadas = paradas
+                .stream()
+                .sorted(java.util.Comparator.comparing(com.ravtec.delivery.dto.ParadaRequest::ordem))
+                .toList();
+            if (
+                !request
+                    .bairroDestino()
+                    .trim()
+                    .equalsIgnoreCase(ordenadas.get(ordenadas.size() - 1).bairro().trim())
+            ) throw new IllegalArgumentException("O bairro do preço deve corresponder ao destino da rota");
         }
         preencher(entrega, request, paradas != null && paradas.size() > 2);
         entrega.setCodigo(gerarCodigo());
@@ -122,9 +146,16 @@ public class EntregaService {
         var valorAnterior = entrega.getValorFinal();
         var formaAnterior = entrega.getFormaPagamento();
         preencher(entrega, request, paradaService.possuiMultiplosLocais(entrega.getId()));
-        if (valorAnterior.compareTo(entrega.getValorFinal()) != 0 || formaAnterior != entrega.getFormaPagamento())
-            recebimentoService.exigirSemRecebimento(entrega);
+        if (
+            valorAnterior.compareTo(entrega.getValorFinal()) != 0 ||
+            formaAnterior != entrega.getFormaPagamento()
+        ) recebimentoService.exigirSemRecebimento(entrega);
         paradaService.atualizarProjecao(entrega);
+        notificacaoService.eventoInterno(
+            entrega,
+            "ENTREGA_ATUALIZADA",
+            "edicao:" + id + ":" + UUID.randomUUID()
+        );
         auditar("ENTREGA_ATUALIZADA", entrega, anterior, resumo(entrega), request.observacaoValorManual());
         entregaRepository.flush();
         return entregaMapper.toResponse(entrega);
@@ -174,7 +205,8 @@ public class EntregaService {
         var entrega = buscarParaAtualizacao(id);
         versionamento.validar(versao, entrega.getVersion());
         entregaStatusPolicy.validarEdicaoAntesDaColeta(entrega.getStatus());
-        var entregador = entregadorRepository.findById(request.entregadorId())
+        var entregador = entregadorRepository
+            .findById(request.entregadorId())
             .orElseThrow(() -> new RecursoNaoEncontradoException("Entregador não encontrado"));
         if (!entregador.isAtivo()) {
             throw new IllegalStateException("Entregador inativo não pode ser designado");
@@ -187,17 +219,34 @@ public class EntregaService {
             entregaStatusPolicy.validarTransicao(statusAnterior, StatusEntrega.ENTREGADOR_DESIGNADO);
             entrega.setStatus(StatusEntrega.ENTREGADOR_DESIGNADO);
             registrarHistorico(entrega, statusAnterior, StatusEntrega.ENTREGADOR_DESIGNADO);
-            notificacaoService.enfileirar(entrega, StatusEntrega.ENTREGADOR_DESIGNADO.name(),
-                "status:" + entrega.getId() + ":" + UUID.randomUUID());
+            notificacaoService.enfileirar(
+                entrega,
+                StatusEntrega.ENTREGADOR_DESIGNADO.name(),
+                "status:" + entrega.getId() + ":" + UUID.randomUUID()
+            );
         }
-        auditar(anteriorId == null ? "ENTREGADOR_DESIGNADO" : "ENTREGADOR_TROCADO", entrega,
-            Map.of("entregadorId", valor(anteriorId)), Map.of("entregadorId", entregador.getId().toString()), null);
+        if (
+            statusAnterior == StatusEntrega.ENTREGADOR_DESIGNADO &&
+            !Objects.equals(anteriorId, entregador.getId())
+        ) notificacaoService.eventoInterno(
+            entrega,
+            "ENTREGADOR_TROCADO",
+            "designacao:" + id + ":" + UUID.randomUUID()
+        );
+        auditar(
+            anteriorId == null ? "ENTREGADOR_DESIGNADO" : "ENTREGADOR_TROCADO",
+            entrega,
+            Map.of("entregadorId", valor(anteriorId)),
+            Map.of("entregadorId", entregador.getId().toString()),
+            null
+        );
         entregaRepository.flush();
         return entregaMapper.toResponse(entrega);
     }
 
     private void preencher(Entrega entrega, EntregaRequest request, boolean multiplosLocais) {
-        var cliente = clienteRepository.findById(request.clienteId())
+        var cliente = clienteRepository
+            .findById(request.clienteId())
             .orElseThrow(() -> new RecursoNaoEncontradoException("Cliente não encontrado"));
         if (!cliente.isAtivo()) {
             throw new IllegalStateException("Cliente inativo não pode receber uma nova entrega");
@@ -205,32 +254,45 @@ public class EntregaService {
         var config = configuracaoPrecoService.buscarAtual();
         var distancia = request.distanciaKm().setScale(2, RoundingMode.HALF_UP);
         var calculo = tabelaPrecoService.calcular(
-            request.bairroDestino(), request.tipoVeiculo(), request.tempoEsperaMinutos(),
-            request.possuiRetorno(), request.valorNegociado(), distancia
+            request.bairroDestino(),
+            request.tipoVeiculo(),
+            request.tempoEsperaMinutos(),
+            request.possuiRetorno(),
+            request.valorNegociado(),
+            distancia
         );
         if (calculo.valorNegociadoObrigatorio() || calculo.valorCalculado() == null) {
             throw new IllegalArgumentException("Informe o valor negociado para a Regiao Metropolitana");
         }
-        if (multiplosLocais && request.valorNegociado() == null)
-            throw new IllegalArgumentException("Informe o valor negociado explícito para todos os locais da rota");
-        var valorCalculado = multiplosLocais ? request.valorNegociado().add(calculo.taxaRetorno())
-            .add(calculo.taxaEspera()).setScale(2, RoundingMode.HALF_UP) : calculo.valorCalculado();
+        if (multiplosLocais && request.valorNegociado() == null) throw new IllegalArgumentException(
+            "Informe o valor negociado explícito para todos os locais da rota"
+        );
+        var valorCalculado = multiplosLocais
+            ? request
+                  .valorNegociado()
+                  .add(calculo.taxaRetorno())
+                  .add(calculo.taxaEspera())
+                  .setScale(2, RoundingMode.HALF_UP)
+            : calculo.valorCalculado();
         var valorFinal = request.valorFinal() == null
-            ? valorCalculado : request.valorFinal().setScale(2, RoundingMode.HALF_UP);
+            ? valorCalculado
+            : request.valorFinal().setScale(2, RoundingMode.HALF_UP);
         if (valorFinal.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("O valor final não pode ser negativo");
         }
         if (request.formaPagamento() != null) {
-            if (request.formaPagamento() != com.ravtec.delivery.entity.FormaPagamento.PIX
-                && request.formaPagamento() != com.ravtec.delivery.entity.FormaPagamento.DINHEIRO)
-                throw new IllegalArgumentException("Escolha Pix ou Dinheiro");
+            if (
+                request.formaPagamento() != com.ravtec.delivery.entity.FormaPagamento.PIX &&
+                request.formaPagamento() != com.ravtec.delivery.entity.FormaPagamento.DINHEIRO
+            ) throw new IllegalArgumentException("Escolha Pix ou Dinheiro");
             entrega.setFormaPagamento(request.formaPagamento());
         }
         entrega.setCliente(cliente);
         if (request.entregadorId() == null) {
             entrega.setEntregador(null);
         } else {
-            var entregador = entregadorRepository.findById(request.entregadorId())
+            var entregador = entregadorRepository
+                .findById(request.entregadorId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Entregador não encontrado"));
             if (!entregador.isAtivo()) {
                 throw new IllegalStateException("Entregador inativo não pode ser designado");
@@ -251,18 +313,26 @@ public class EntregaService {
         entrega.setValorCalculado(valorCalculado);
         entrega.setValorFinal(valorFinal);
         entrega.setTipoVeiculo(calculo.tipoVeiculo());
-        entrega.setOrigemPreco(multiplosLocais ? com.ravtec.delivery.entity.OrigemPreco.NEGOCIADO : calculo.origemPreco());
+        entrega.setOrigemPreco(
+            multiplosLocais ? com.ravtec.delivery.entity.OrigemPreco.NEGOCIADO : calculo.origemPreco()
+        );
         entrega.setAreaPrecoCodigo(calculo.areaCodigo());
         entrega.setAreaPrecoNome(calculo.areaNome());
         entrega.setTarifaBairro(multiplosLocais ? request.valorNegociado() : calculo.tarifaBase());
         entrega.setPossuiRetorno(Boolean.TRUE.equals(request.possuiRetorno()));
         entrega.setTaxaRetornoAplicada(calculo.taxaRetorno());
-        entrega.setTempoEsperaMinutos(request.tempoEsperaMinutos() == null ? 0 : request.tempoEsperaMinutos());
+        entrega.setTempoEsperaMinutos(
+            request.tempoEsperaMinutos() == null ? 0 : request.tempoEsperaMinutos()
+        );
         entrega.setTaxaEsperaAplicada(calculo.taxaEspera());
-        entrega.setValorNegociado(request.valorNegociado() == null ? null
-            : request.valorNegociado().setScale(2, RoundingMode.HALF_UP));
-        entrega.setObservacaoValorManual(valorFinal.compareTo(valorCalculado) == 0
-            ? null : limpar(request.observacaoValorManual()));
+        entrega.setValorNegociado(
+            request.valorNegociado() == null
+                ? null
+                : request.valorNegociado().setScale(2, RoundingMode.HALF_UP)
+        );
+        entrega.setObservacaoValorManual(
+            valorFinal.compareTo(valorCalculado) == 0 ? null : limpar(request.observacaoValorManual())
+        );
         if (valorFinal.compareTo(valorCalculado) != 0 && entrega.getObservacaoValorManual() == null) {
             throw new IllegalArgumentException("Informe o motivo da alteracao manual do valor");
         }
@@ -280,10 +350,12 @@ public class EntregaService {
 
     private void aplicarTransicao(Entrega entrega, StatusEntrega destino, boolean acaoDoEntregador) {
         var anterior = entrega.getStatus();
-        if (anterior == StatusEntrega.SOLICITADA && destino != StatusEntrega.CANCELADA
-            && entrega.getOrigemPreco() == com.ravtec.delivery.entity.OrigemPreco.NEGOCIADO
-            && entrega.getValorNegociado() == null)
-            throw new IllegalStateException("Informe o valor negociado antes de aprovar a solicitação");
+        if (
+            anterior == StatusEntrega.SOLICITADA &&
+            destino != StatusEntrega.CANCELADA &&
+            entrega.getOrigemPreco() == com.ravtec.delivery.entity.OrigemPreco.NEGOCIADO &&
+            entrega.getValorNegociado() == null
+        ) throw new IllegalStateException("Informe o valor negociado antes de aprovar a solicitação");
         if (acaoDoEntregador) {
             entregaStatusPolicy.validarTransicaoDoEntregador(anterior, destino);
         } else {
@@ -302,18 +374,38 @@ public class EntregaService {
             entrega.setConcluidaEm(OffsetDateTime.now());
         }
         registrarHistorico(entrega, anterior, destino);
-        notificacaoService.enfileirar(entrega, destino.name(),
-            "status:" + entrega.getId() + ":" + UUID.randomUUID());
-        auditar(destino == StatusEntrega.CANCELADA ? "ENTREGA_CANCELADA" : "STATUS_ALTERADO", entrega,
-            Map.of("status", anterior.name()), Map.of("status", destino.name()), null);
-        log.info("Status da entrega alterado: entregaId={} de={} para={}", entrega.getId(), anterior, destino);
+        notificacaoService.enfileirar(
+            entrega,
+            destino.name(),
+            "status:" + entrega.getId() + ":" + UUID.randomUUID()
+        );
+        auditar(
+            destino == StatusEntrega.CANCELADA ? "ENTREGA_CANCELADA" : "STATUS_ALTERADO",
+            entrega,
+            Map.of("status", anterior.name()),
+            Map.of("status", destino.name()),
+            null
+        );
+        log.info(
+            "Status da entrega alterado: entregaId={} de={} para={}",
+            entrega.getId(),
+            anterior,
+            destino
+        );
     }
 
     private Map<String, Object> resumo(Entrega entrega) {
         return Map.of(
-            "codigo", valor(entrega.getCodigo()), "clienteId", valor(entrega.getCliente().getId()),
-            "entregadorId", valor(entrega.getEntregador() == null ? null : entrega.getEntregador().getId()),
-            "status", entrega.getStatus().name(), "valorFinal", entrega.getValorFinal()
+            "codigo",
+            valor(entrega.getCodigo()),
+            "clienteId",
+            valor(entrega.getCliente().getId()),
+            "entregadorId",
+            valor(entrega.getEntregador() == null ? null : entrega.getEntregador().getId()),
+            "status",
+            entrega.getStatus().name(),
+            "valorFinal",
+            entrega.getValorFinal()
         );
     }
 
@@ -332,22 +424,29 @@ public class EntregaService {
     }
 
     private Entrega buscarParaAtualizacao(UUID id) {
-        return entregaFinanceiraRepository.buscarParaAtualizacao(id)
+        return entregaFinanceiraRepository
+            .buscarParaAtualizacao(id)
             .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega não encontrada"));
     }
 
     private Entrega buscarEntidade(UUID id) {
-        return entregaRepository.findById(id)
+        return entregaRepository
+            .findById(id)
             .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega não encontrada"));
     }
 
     private Entrega buscarMinhaEntrega(UUID id) {
-        return entregaRepository.findByIdAndEntregadorUsuarioId(id, identidadeAtual.principal().getId())
+        return entregaRepository
+            .findByIdAndEntregadorUsuarioId(id, identidadeAtual.principal().getId())
             .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega não encontrada"));
     }
 
     private String gerarCodigo() {
-        return "JSB-" + OffsetDateTime.now().toLocalDate().toString().replace("-", "")
-            + "-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        return (
+            "JSB-" +
+            OffsetDateTime.now().toLocalDate().toString().replace("-", "") +
+            "-" +
+            UUID.randomUUID().toString().substring(0, 6).toUpperCase()
+        );
     }
 }

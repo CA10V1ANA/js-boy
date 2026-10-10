@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class EntregaAcessoService {
+
     private final EntregaRepository entregaRepository;
     private final IdentidadeAtual identidadeAtual;
 
@@ -21,7 +22,8 @@ public class EntregaAcessoService {
             return buscar(entregaId);
         }
         if (perfil == PerfilAcesso.CLIENTE) {
-            return entregaRepository.findByIdAndClienteUsuarioId(entregaId, identidadeAtual.principal().getId())
+            return entregaRepository
+                .findByIdAndClienteUsuarioId(entregaId, identidadeAtual.principal().getId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega não encontrada"));
         }
         if (perfil == PerfilAcesso.ENTREGADOR) {
@@ -32,19 +34,23 @@ public class EntregaAcessoService {
 
     public Entrega exigirDoEntregador(UUID entregaId) {
         identidadeAtual.entregadorObrigatorio();
-        return entregaRepository.findByIdAndEntregadorUsuarioId(entregaId, identidadeAtual.principal().getId())
+        return entregaRepository
+            .findByIdAndEntregadorUsuarioId(entregaId, identidadeAtual.principal().getId())
             .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega não encontrada"));
     }
 
     public Entrega exigirDoEntregadorParaAtualizacao(UUID entregaId) {
+        var entrega = entregaRepository
+            .findDoEntregadorParaAtualizacao(entregaId, identidadeAtual.principal().getId())
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega não encontrada"));
+        // Consistent lock order: delivery, then active courier; reassignment/deactivation are serialized.
         identidadeAtual.entregadorObrigatorioParaAtualizacao();
-        return entregaRepository.findDoEntregadorParaAtualizacao(
-            entregaId, identidadeAtual.principal().getId()
-        ).orElseThrow(() -> new RecursoNaoEncontradoException("Entrega não encontrada"));
+        return entrega;
     }
 
     public Entrega buscar(UUID entregaId) {
-        return entregaRepository.findById(entregaId)
+        return entregaRepository
+            .findById(entregaId)
             .orElseThrow(() -> new RecursoNaoEncontradoException("Entrega não encontrada"));
     }
 }

@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class EntregadorService {
+
     private final EntregadorRepository entregadorRepository;
     private final UsuarioRepository usuarioRepository;
     private final EntregadorMapper entregadorMapper;
@@ -33,8 +34,12 @@ public class EntregadorService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final NormalizacaoService normalizacao = new NormalizacaoService();
     private final VersionamentoService versionamento = new VersionamentoService();
+
     @Autowired(required = false)
     private AuditoriaService auditoriaService;
+
+    @Autowired(required = false)
+    private RecuperacaoSenhaService recuperacao;
 
     @Transactional(readOnly = true)
     public List<EntregadorResponse> listar(String busca) {
@@ -67,7 +72,8 @@ public class EntregadorService {
 
     @Transactional
     public EntregadorResponse atualizar(UUID id, EntregadorRequest request, Long versao) {
-        var entregador = entregadorRepository.buscarParaAtualizacao(id)
+        var entregador = entregadorRepository
+            .buscarParaAtualizacao(id)
             .orElseThrow(() -> new RecursoNaoEncontradoException("Entregador não encontrado"));
         versionamento.validar(versao, entregador.getVersion());
         var anterior = resumo(entregador);
@@ -88,17 +94,29 @@ public class EntregadorService {
 
     @Transactional
     public EntregadorResponse alterarStatus(UUID id, StatusRequest request, Long versao) {
-        var entregador = entregadorRepository.buscarParaAtualizacao(id)
+        var entregador = entregadorRepository
+            .buscarParaAtualizacao(id)
             .orElseThrow(() -> new RecursoNaoEncontradoException("Entregador não encontrado"));
         versionamento.validar(versao, entregador.getVersion());
         var anterior = entregador.isAtivo();
         entregador.setAtivo(request.ativo());
-        if (entregador.getUsuario() != null && !request.ativo()) {
+        if (
+            entregador.getUsuario() != null &&
+            !request.ativo() &&
+            entregador.getUsuario().getPerfilEfetivo() != PerfilAcesso.PROPRIETARIO
+        ) {
             entregador.getUsuario().setAtivo(false);
-            refreshTokenRepository.revogarAtivosDoUsuario(entregador.getUsuario().getId(), OffsetDateTime.now());
+            refreshTokenRepository.revogarAtivosDoUsuario(
+                entregador.getUsuario().getId(),
+                OffsetDateTime.now()
+            );
         }
-        auditar(request.ativo() ? "ENTREGADOR_ATIVADO" : "ENTREGADOR_DESATIVADO", id,
-            Map.of("ativo", anterior), Map.of("ativo", entregador.isAtivo()));
+        auditar(
+            request.ativo() ? "ENTREGADOR_ATIVADO" : "ENTREGADOR_DESATIVADO",
+            id,
+            Map.of("ativo", anterior),
+            Map.of("ativo", entregador.isAtivo())
+        );
         entregadorRepository.flush();
         return entregadorMapper.toResponse(entregador);
     }
@@ -124,10 +142,54 @@ public class EntregadorService {
         usuario.setPerfil(PerfilAcesso.ENTREGADOR);
         usuario.setAtivo(true);
         entregador.setEmail(email);
-        entregador.setUsuario(usuarioRepository.save(usuario));
-        auditar("USUARIO_ENTREGADOR_CRIADO", usuario.getId(), null,
-            Map.of("email", email, "perfil", PerfilAcesso.ENTREGADOR.name(), "entregadorId", id));
+        usuario = usuarioRepository.save(usuario);
+        entregador.setUsuario(usuario);
+        usuario.setEntregador(entregador);
+        entregadorRepository.flush();
+        auditar(
+            "USUARIO_ENTREGADOR_CRIADO",
+            usuario.getId(),
+            null,
+            Map.of("email", email, "perfil", PerfilAcesso.ENTREGADOR.name(), "entregadorId", id)
+        );
         return entregadorMapper.toResponse(entregador);
+    }
+
+    @Transactional
+    public EntregadorResponse vincularProprietario(
+        UUID id,
+        com.ravtec.delivery.security.IdentidadeAtual identidade
+    ) {
+        var usuario = usuarioRepository.findById(identidade.principal().getId()).orElseThrow();
+        if (
+            usuario.getPerfilEfetivo() != PerfilAcesso.PROPRIETARIO
+        ) throw new org.springframework.security.access.AccessDeniedException("Somente proprietário");
+        var entregador = entregadorRepository.buscarParaAtualizacao(id).orElseThrow();
+        if (!entregador.isAtivo()) throw new ConflitoException("Ative o cadastro antes de vincular");
+        if (
+            entregador.getUsuario() != null && !entregador.getUsuario().getId().equals(usuario.getId())
+        ) throw new ConflitoException("Cadastro já possui outra conta");
+        if (
+            entregadorRepository
+                .findByUsuarioId(usuario.getId())
+                .filter(e -> !e.getId().equals(id))
+                .isPresent()
+        ) throw new ConflitoException("Conta já vinculada a outro entregador");
+        entregador.setUsuario(usuario);
+        usuario.setEntregador(entregador);
+        auditar("PROPRIETARIO_VINCULADO_ENTREGADOR", id, null, Map.of("usuarioId", usuario.getId()));
+        entregadorRepository.flush();
+        return entregadorMapper.toResponse(entregador);
+    }
+
+    @Transactional
+    public EntregadorResponse convidar(UUID id, String email) {
+        var resposta = criarAcesso(
+            id,
+            new CriarAcessoEntregadorRequest(email, new TokenSeguroService().gerar())
+        );
+        recuperacao.solicitar(email, "convite-interno");
+        return resposta;
     }
 
     private String validar(EntregadorRequest request) {
@@ -137,8 +199,16 @@ public class EntregadorService {
 
     private Map<String, Object> resumo(com.ravtec.delivery.entity.Entregador item) {
         return Map.of(
-            "nome", item.getNome(), "cpf", item.getCpf(), "telefone", item.getTelefone(),
-            "ativo", item.isAtivo(), "disponivel", item.isDisponivel()
+            "nome",
+            item.getNome(),
+            "cpf",
+            item.getCpf(),
+            "telefone",
+            item.getTelefone(),
+            "ativo",
+            item.isAtivo(),
+            "disponivel",
+            item.isDisponivel()
         );
     }
 
@@ -149,7 +219,8 @@ public class EntregadorService {
     }
 
     private com.ravtec.delivery.entity.Entregador buscarEntidade(UUID id) {
-        return entregadorRepository.findById(id)
+        return entregadorRepository
+            .findById(id)
             .orElseThrow(() -> new RecursoNaoEncontradoException("Entregador não encontrado"));
     }
 }

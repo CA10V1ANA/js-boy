@@ -10,10 +10,11 @@ import com.ravtec.delivery.exception.ConflitoException;
 import com.ravtec.delivery.exception.LimiteRequisicoesException;
 import com.ravtec.delivery.exception.RecursoNaoEncontradoException;
 import com.ravtec.delivery.mapper.ClienteMapper;
-import com.ravtec.delivery.repository.ClienteRepository;
 import com.ravtec.delivery.repository.AuditoriaRepository;
+import com.ravtec.delivery.repository.ClienteRepository;
 import com.ravtec.delivery.repository.RefreshTokenRepository;
 import com.ravtec.delivery.repository.UsuarioRepository;
+import com.ravtec.delivery.security.IdentidadeAtual;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -27,12 +28,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.ravtec.delivery.security.IdentidadeAtual;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ClienteService {
+
     private final ClienteRepository clienteRepository;
     private final UsuarioRepository usuarioRepository;
     private final ClienteMapper clienteMapper;
@@ -40,14 +41,19 @@ public class ClienteService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final NormalizacaoService normalizacao = new NormalizacaoService();
     private final VersionamentoService versionamento = new VersionamentoService();
+
     @Autowired(required = false)
     private AuditoriaService auditoriaService;
+
     @Autowired(required = false)
     private AuditoriaRepository auditoriaRepository;
+
     @Autowired(required = false)
     private IdentidadeAtual identidadeAtual;
+
     @Value("${app.customers.driver-daily-create-limit:20}")
     private int limiteDiarioEntregador;
+
     @Value("${app.business-zone:America/Fortaleza}")
     private String zonaNegocio;
 
@@ -77,9 +83,12 @@ public class ClienteService {
         identidadeAtual.entregadorObrigatorioParaAtualizacao();
         var usuarioId = identidadeAtual.principal().getId();
         var inicioDia = java.time.LocalDate.now(ZoneId.of(zonaNegocio))
-            .atStartOfDay(ZoneId.of(zonaNegocio)).toOffsetDateTime();
+            .atStartOfDay(ZoneId.of(zonaNegocio))
+            .toOffsetDateTime();
         var criadosHoje = auditoriaRepository.countByUsuarioIdAndAcaoAndOcorridoEmGreaterThanEqual(
-            usuarioId, "CLIENTE_CRIADO_PELO_ENTREGADOR", inicioDia
+            usuarioId,
+            "CLIENTE_CRIADO_PELO_ENTREGADOR",
+            inicioDia
         );
         if (criadosHoje >= limiteDiarioEntregador) {
             throw new LimiteRequisicoesException("Limite diario de cadastros de clientes excedido");
@@ -133,8 +142,13 @@ public class ClienteService {
             cliente.getUsuario().setAtivo(false);
             refreshTokenRepository.revogarAtivosDoUsuario(cliente.getUsuario().getId(), OffsetDateTime.now());
         }
-        auditar(request.ativo() ? "CLIENTE_ATIVADO" : "CLIENTE_DESATIVADO", id,
-            Map.of("ativo", anterior), Map.of("ativo", cliente.isAtivo()), null);
+        auditar(
+            request.ativo() ? "CLIENTE_ATIVADO" : "CLIENTE_DESATIVADO",
+            id,
+            Map.of("ativo", anterior),
+            Map.of("ativo", cliente.isAtivo()),
+            null
+        );
         clienteRepository.flush();
         return clienteMapper.toResponse(cliente);
     }
@@ -161,9 +175,21 @@ public class ClienteService {
         usuario.setAtivo(true);
         cliente.setEmail(email);
         cliente.setUsuario(usuarioRepository.save(usuario));
-        auditar("USUARIO_CLIENTE_CRIADO", usuario.getId(), null,
-            Map.of("email", email, "perfil", PerfilAcesso.CLIENTE.name(), "clienteId", id), null);
+        auditar(
+            "USUARIO_CLIENTE_CRIADO",
+            usuario.getId(),
+            null,
+            Map.of("email", email, "perfil", PerfilAcesso.CLIENTE.name(), "clienteId", id),
+            null
+        );
         return clienteMapper.toResponse(cliente);
+    }
+
+    public void validarCadastroPublico(ClienteRequest request) {
+        var documento = validarDados(request, null);
+        if (documento != null && clienteRepository.existsByDocumento(documento)) throw new ConflitoException(
+            "CPF ou CNPJ já cadastrado"
+        );
     }
 
     private String validarDados(ClienteRequest request, UUID id) {
@@ -173,10 +199,16 @@ public class ClienteService {
         if (!request.semNumero() && (request.numero() == null || request.numero().isBlank())) {
             throw new IllegalArgumentException("Informe o numero ou marque explicitamente sem numero");
         }
-        if (request.cep() != null && !request.cep().isBlank() && normalizacao.digitos(request.cep()).length() != 8) {
+        if (
+            request.cep() != null &&
+            !request.cep().isBlank() &&
+            normalizacao.digitos(request.cep()).length() != 8
+        ) {
             throw new IllegalArgumentException("O CEP deve conter 8 dígitos");
         }
-        if (request.estado() != null && !request.estado().isBlank() && request.estado().trim().length() != 2) {
+        if (
+            request.estado() != null && !request.estado().isBlank() && request.estado().trim().length() != 2
+        ) {
             throw new IllegalArgumentException("Estado deve conter a sigla com 2 letras");
         }
         return documento;
@@ -184,9 +216,18 @@ public class ClienteService {
 
     private Map<String, Object> resumo(com.ravtec.delivery.entity.Cliente cliente) {
         return Map.of(
-            "nome", valor(cliente.getNome()), "telefone", valor(cliente.getTelefone()),
-            "documento", valor(cliente.getDocumento()), "cidade", valor(cliente.getCidade()),
-            "estado", valor(cliente.getEstado()), "ativo", cliente.isAtivo()
+            "nome",
+            valor(cliente.getNome()),
+            "telefone",
+            valor(cliente.getTelefone()),
+            "documento",
+            valor(cliente.getDocumento()),
+            "cidade",
+            valor(cliente.getCidade()),
+            "estado",
+            valor(cliente.getEstado()),
+            "ativo",
+            cliente.isAtivo()
         );
     }
 
@@ -201,7 +242,8 @@ public class ClienteService {
     }
 
     private com.ravtec.delivery.entity.Cliente buscarEntidade(UUID id) {
-        return clienteRepository.findById(id)
+        return clienteRepository
+            .findById(id)
             .orElseThrow(() -> new RecursoNaoEncontradoException("Cliente não encontrado"));
     }
 }

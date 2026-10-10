@@ -1,7 +1,9 @@
 package com.ravtec.delivery.config;
 
 import com.ravtec.delivery.security.JwtAuthenticationFilter;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,9 +22,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import org.springframework.beans.factory.annotation.Value;
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -52,15 +51,30 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authenticationProvider(authenticationProvider())
-            .exceptionHandling(exceptions -> exceptions
-                .authenticationEntryPoint((request, response, exception) ->
-                    response.setStatus(401))
-                .accessDeniedHandler((request, response, exception) ->
-                    response.setStatus(403)))
+            .exceptionHandling(exceptions ->
+                exceptions
+                    .authenticationEntryPoint((request, response, exception) -> response.setStatus(401))
+                    .accessDeniedHandler((request, response, exception) -> response.setStatus(403))
+            )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> {
-                auth.requestMatchers(org.springframework.http.HttpMethod.POST, "/api/webhooks/mercadopago").permitAll();
-                auth.requestMatchers("/auth/login", "/auth/refresh", "/auth/logout", "/auth/password/**", "/api/health", "/public/**").permitAll();
+                auth
+                    .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/webhooks/mercadopago")
+                    .permitAll();
+                auth
+                    .requestMatchers(
+                        "/auth/cadastro-cliente",
+                        "/auth/verificar-email",
+                        "/auth/reenviar-verificacao",
+                        "/auth/google",
+                        "/auth/login",
+                        "/auth/refresh",
+                        "/auth/logout",
+                        "/auth/password/**",
+                        "/api/health",
+                        "/public/**"
+                    )
+                    .permitAll();
                 if (swaggerEnabled) {
                     auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll();
                 }
@@ -68,26 +82,30 @@ public class SecurityConfig {
                     auth.requestMatchers("/h2-console/**").permitAll();
                 }
                 auth.requestMatchers("/cliente/**").hasRole("CLIENTE");
-                auth.requestMatchers("/entregas/minhas-entregas/**").hasRole("ENTREGADOR");
-                auth.requestMatchers(
-                    "/clientes/**",
-                    "/entregadores/**",
-                    "/funcionarios/**",
-                    "/configuracoes/**",
-                    "/dashboard/**",
-                    "/entregas/**",
-                    "/pagamentos/**",
-                    "/contatos/**"
-                ).hasRole("PROPRIETARIO");
+                auth.requestMatchers("/entregas/minhas-entregas/**").hasAnyRole("ENTREGADOR", "PROPRIETARIO");
+                auth
+                    .requestMatchers(
+                        "/clientes/**",
+                        "/entregadores/**",
+                        "/funcionarios/**",
+                        "/configuracoes/**",
+                        "/dashboard/**",
+                        "/entregas/**",
+                        "/pagamentos/**",
+                        "/contatos/**"
+                    )
+                    .hasRole("PROPRIETARIO");
                 auth.anyRequest().authenticated();
             })
-            .headers(headers -> headers.frameOptions(frame -> {
-                if (h2ConsoleEnabled) {
-                    frame.sameOrigin();
-                } else {
-                    frame.deny();
-                }
-            }));
+            .headers(headers ->
+                headers.frameOptions(frame -> {
+                    if (h2ConsoleEnabled) {
+                        frame.sameOrigin();
+                    } else {
+                        frame.deny();
+                    }
+                })
+            );
 
         if (requireHttps) {
             http.requiresChannel(channel -> channel.anyRequest().requiresSecure());
@@ -117,18 +135,17 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         var configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(allowedOrigins.stream()
-            .map(String::trim)
-            .filter(origin -> !origin.isBlank())
-            .toList());
+        configuration.setAllowedOrigins(
+            allowedOrigins
+                .stream()
+                .map(String::trim)
+                .filter(origin -> !origin.isBlank())
+                .toList()
+        );
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of(
-            "Authorization",
-            "Content-Type",
-            "Idempotency-Key",
-            "X-Correlation-ID",
-            "If-Match"
-        ));
+        configuration.setAllowedHeaders(
+            List.of("Authorization", "Content-Type", "Idempotency-Key", "X-Correlation-ID", "If-Match")
+        );
         configuration.setExposedHeaders(List.of("X-Correlation-ID", "Retry-After"));
         configuration.setAllowCredentials(true);
 

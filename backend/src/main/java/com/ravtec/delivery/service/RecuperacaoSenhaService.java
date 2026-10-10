@@ -1,7 +1,7 @@
 package com.ravtec.delivery.service;
 
-import com.ravtec.delivery.repository.*;
 import com.ravtec.delivery.entity.PasswordResetToken;
+import com.ravtec.delivery.repository.*;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class RecuperacaoSenhaService {
+
     private final UsuarioRepository usuarios;
     private final PasswordResetTokenRepository repository;
     private final RefreshTokenRepository refreshTokens;
@@ -22,10 +23,18 @@ public class RecuperacaoSenhaService {
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetNotifier notifier;
     private final LimiteRequisicoesPublicasService limitador;
-    @Value("${app.security.password-reset.source-max-requests:5}") private int limiteOrigem;
-    @Value("${app.security.password-reset.global-max-requests:300}") private int limiteGlobal;
-    @Value("${app.security.password-reset.window-minutes:60}") private long minutosJanela;
-    @Value("${app.security.password-reset.account-cooldown-seconds:60}") private long segundosCooldown;
+
+    @Value("${app.security.password-reset.source-max-requests:5}")
+    private int limiteOrigem;
+
+    @Value("${app.security.password-reset.global-max-requests:300}")
+    private int limiteGlobal;
+
+    @Value("${app.security.password-reset.window-minutes:60}")
+    private long minutosJanela;
+
+    @Value("${app.security.password-reset.account-cooldown-seconds:60}")
+    private long segundosCooldown;
 
     @Transactional
     public void solicitar(String email, String origem) {
@@ -34,21 +43,27 @@ public class RecuperacaoSenhaService {
         limitador.verificar("password-reset-source", origem, limiteOrigem, janela);
         var agora = OffsetDateTime.now();
         repository.deleteExpiradosOuUsados(agora);
-        usuarios.findAtivoByEmailParaAtualizacao(email.trim().toLowerCase())
-            .filter(com.ravtec.delivery.entity.Usuario::isAcessoAtivo).ifPresent(usuario -> {
-            var ultimo = repository.findTopByUsuarioIdOrderByCriadoEmDesc(usuario.getId());
-            if (ultimo.isPresent() && ultimo.get().getCriadoEm() != null
-                && ultimo.get().getCriadoEm().isAfter(agora.minusSeconds(segundosCooldown))) {
-                return;
-            }
-            repository.deleteByUsuarioId(usuario.getId());
-            String token = tokens.gerar();
-            var item = new PasswordResetToken();
-            item.setUsuario(usuario); item.setTokenHash(tokens.hash(token));
-            item.setExpiraEm(agora.plusMinutes(20));
-            repository.save(item);
-            notifier.enviar(usuario.getEmail(), token);
-        });
+        usuarios
+            .findAtivoByEmailParaAtualizacao(email.trim().toLowerCase())
+            .filter(com.ravtec.delivery.entity.Usuario::isAcessoAtivo)
+            .ifPresent(usuario -> {
+                var ultimo = repository.findTopByUsuarioIdOrderByCriadoEmDesc(usuario.getId());
+                if (
+                    ultimo.isPresent() &&
+                    ultimo.get().getCriadoEm() != null &&
+                    ultimo.get().getCriadoEm().isAfter(agora.minusSeconds(segundosCooldown))
+                ) {
+                    return;
+                }
+                repository.deleteByUsuarioId(usuario.getId());
+                String token = tokens.gerar();
+                var item = new PasswordResetToken();
+                item.setUsuario(usuario);
+                item.setTokenHash(tokens.hash(token));
+                item.setExpiraEm(agora.plusMinutes(20));
+                repository.save(item);
+                notifier.enviar(usuario.getEmail(), token);
+            });
     }
 
     @Transactional
@@ -59,11 +74,13 @@ public class RecuperacaoSenhaService {
     @Transactional
     public void redefinir(String token, String senha) {
         validarSenha(senha);
-        var item = repository.findByTokenHash(tokens.hash(token))
+        var item = repository
+            .findByTokenHash(tokens.hash(token))
             .filter(PasswordResetToken::ativo)
             .orElseThrow(() -> new BadCredentialsException("Token inválido ou expirado"));
         item.setUsadoEm(OffsetDateTime.now());
         item.getUsuario().setSenhaHash(passwordEncoder.encode(senha));
+        item.getUsuario().setSenhaLocal(true);
         refreshTokens.revogarAtivosDoUsuario(item.getUsuario().getId(), OffsetDateTime.now());
     }
 
@@ -75,9 +92,16 @@ public class RecuperacaoSenhaService {
 
     private void validarSenha(String senha) {
         com.ravtec.delivery.security.PoliticaSenha.validarTamanho(senha, 12);
-        if (senha == null || senha.length() < 12 || !senha.matches(".*[A-Z].*")
-            || !senha.matches(".*[a-z].*") || !senha.matches(".*\\d.*")) {
-            throw new IllegalArgumentException("A senha deve ter 12 caracteres, maiuscula, minuscula e numero");
+        if (
+            senha == null ||
+            senha.length() < 12 ||
+            !senha.matches(".*[A-Z].*") ||
+            !senha.matches(".*[a-z].*") ||
+            !senha.matches(".*\\d.*")
+        ) {
+            throw new IllegalArgumentException(
+                "A senha deve ter 12 caracteres, maiuscula, minuscula e numero"
+            );
         }
     }
 }

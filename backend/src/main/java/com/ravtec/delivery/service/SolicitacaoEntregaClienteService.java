@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class SolicitacaoEntregaClienteService {
+
     private final IdentidadeAtual identidadeAtual;
     private final EntregaService entregaService;
     private final EntregaRepository entregaRepository;
@@ -25,18 +26,39 @@ public class SolicitacaoEntregaClienteService {
         var cliente = identidadeAtual.clienteObrigatorio();
         validarAgendamento(request);
         var calculo = tabelaPrecoService.calcular(
-            request.bairroDestino(), com.ravtec.delivery.entity.TipoVeiculo.MOTO, 0,
-            false, null, request.distanciaKm()
+            request.bairroDestino(),
+            com.ravtec.delivery.entity.TipoVeiculo.MOTO,
+            0,
+            false,
+            null,
+            request.distanciaKm()
         );
-        var valorNegociadoPendente = calculo.valorNegociadoObrigatorio()
-            ? java.math.BigDecimal.ZERO : null;
-        var criada = entregaService.criar(new EntregaRequest(
-            cliente.getId(), null, request.enderecoOrigem(), request.bairroOrigem(),
-            request.enderecoDestino(), request.bairroDestino(), request.destinatarioNome(),
-            request.destinatarioTelefone(), request.descricaoMercadoria(), request.observacoes(),
-            request.distanciaKm(), null, null, com.ravtec.delivery.entity.TipoVeiculo.MOTO,
-            0, false, valorNegociadoPendente, request.formaPagamento(), request.paradas()
-        ), request.paradas(), StatusEntrega.SOLICITADA);
+        var valorNegociadoPendente = calculo.valorNegociadoObrigatorio() ? java.math.BigDecimal.ZERO : null;
+        var criada = entregaService.criar(
+            new EntregaRequest(
+                cliente.getId(),
+                null,
+                request.enderecoOrigem(),
+                request.bairroOrigem(),
+                request.enderecoDestino(),
+                request.bairroDestino(),
+                request.destinatarioNome(),
+                request.destinatarioTelefone(),
+                request.descricaoMercadoria(),
+                request.observacoes(),
+                request.distanciaKm(),
+                null,
+                null,
+                com.ravtec.delivery.entity.TipoVeiculo.MOTO,
+                0,
+                false,
+                valorNegociadoPendente,
+                request.formaPagamento(),
+                request.paradas()
+            ),
+            request.paradas(),
+            StatusEntrega.SOLICITADA
+        );
         var entrega = entregaRepository.findById(criada.id()).orElseThrow();
         // Zero is only the initial quote placeholder, never the owner's agreement to a free service.
         if (calculo.valorNegociadoObrigatorio()) entrega.setValorNegociado(null);
@@ -44,21 +66,35 @@ public class SolicitacaoEntregaClienteService {
         entrega.setAgendadaFim(request.agendadaFim());
         entrega.setFusoHorario(request.fusoHorario());
         entrega.setStatus(StatusEntrega.SOLICITADA);
-        notificacaoService.enfileirar(entrega, "SOLICITACAO_RECEBIDA",
-            "solicitacao:" + entrega.getId());
+        notificacaoService.enfileirar(entrega, "SOLICITACAO_RECEBIDA", "solicitacao:" + entrega.getId());
         return new EntregaClienteResponse(
-            entrega.getId(), entrega.getCodigo(), entrega.getEnderecoOrigem(), entrega.getBairroOrigem(),
-            entrega.getEnderecoDestino(), entrega.getBairroDestino(), entrega.getDestinatarioNome(),
-            entrega.getDescricaoMercadoria(), entrega.getValorFinal(), entrega.getStatus(), entrega.getConcluidaEm(),
-            entrega.getCriadoEm(), criada.historico().stream()
-                .map(h -> new HistoricoClienteResponse(h.statusAnterior(), h.novoStatus(), h.alteradoEm())).toList()
+            entrega.getId(),
+            entrega.getCodigo(),
+            entrega.getEnderecoOrigem(),
+            entrega.getBairroOrigem(),
+            entrega.getEnderecoDestino(),
+            entrega.getBairroDestino(),
+            entrega.getDestinatarioNome(),
+            entrega.getDescricaoMercadoria(),
+            entrega.getValorFinal(),
+            entrega.getStatus(),
+            entrega.getConcluidaEm(),
+            entrega.getCriadoEm(),
+            criada
+                .historico()
+                .stream()
+                .map(h -> new HistoricoClienteResponse(h.statusAnterior(), h.novoStatus(), h.alteradoEm()))
+                .toList()
         );
     }
 
-    private void validarAgendamento(SolicitacaoEntregaClienteRequest request) {
+    static void validarAgendamento(SolicitacaoEntregaClienteRequest request) {
         if (request.agendadaInicio() == null && request.agendadaFim() == null) return;
-        if (request.agendadaInicio() == null || request.agendadaFim() == null
-            || !request.agendadaFim().isAfter(request.agendadaInicio())) {
+        if (
+            request.agendadaInicio() == null ||
+            request.agendadaFim() == null ||
+            !request.agendadaFim().isAfter(request.agendadaInicio())
+        ) {
             throw new IllegalArgumentException("Informe uma janela de agendamento valida");
         }
         if (!request.agendadaInicio().isAfter(OffsetDateTime.now())) {

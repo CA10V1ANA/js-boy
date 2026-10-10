@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
+    Optional<Usuario> findByGoogleSub(String sub);
     Optional<Usuario> findByEmail(String email);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

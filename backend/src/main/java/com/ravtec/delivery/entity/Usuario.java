@@ -15,7 +15,7 @@ import lombok.Setter;
 @Table(name = "usuarios")
 public class Usuario extends BaseEntity {
 
-    @Column(nullable = false, length = 120)
+    @Column(nullable = false, length = 140)
     private String nome;
 
     @Column(nullable = false, unique = true, length = 180)
@@ -30,6 +30,15 @@ public class Usuario extends BaseEntity {
 
     @Column(nullable = false)
     private boolean ativo = true;
+
+    @Column(nullable = false)
+    private boolean emailVerificado = true;
+
+    @Column(unique = true, length = 255)
+    private String googleSub;
+
+    @Column(nullable = false)
+    private boolean senhaLocal = true;
 
     @OneToOne(mappedBy = "usuario")
     private Entregador entregador;
@@ -48,7 +57,7 @@ public class Usuario extends BaseEntity {
         if (!ativo) return false;
         var efetivo = getPerfilEfetivo();
         if (efetivo == PerfilAcesso.CLIENTE) {
-            return cliente != null && cliente.isAtivo();
+            return emailVerificado && cliente != null && cliente.isAtivo();
         }
         if (efetivo == PerfilAcesso.ENTREGADOR) {
             return entregador != null && entregador.isAtivo();

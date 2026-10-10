@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/entregas")
 @RequiredArgsConstructor
 public class EntregaController {
+
     private final EntregaService entregaService;
 
     @GetMapping
@@ -24,26 +25,31 @@ public class EntregaController {
     public List<EntregaResponse> listar(@RequestParam(required = false) String busca) {
         return entregaService.listar(busca);
     }
+
     @GetMapping("/minhas-entregas")
-    @PreAuthorize("hasRole('ENTREGADOR')")
+    @PreAuthorize("hasAnyRole('ENTREGADOR', 'PROPRIETARIO')")
     public List<EntregaOperacionalResponse> listarMinhasEntregas() {
         return entregaService.listarMinhasEntregas();
     }
+
     @GetMapping("/minhas-entregas/{id}")
-    @PreAuthorize("hasRole('ENTREGADOR')")
+    @PreAuthorize("hasAnyRole('ENTREGADOR', 'PROPRIETARIO')")
     public EntregaOperacionalResponse consultarMinhaEntrega(@PathVariable UUID id) {
         return entregaService.consultarMinhaEntrega(id);
     }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('PROPRIETARIO')")
     public EntregaResponse consultar(@PathVariable UUID id) {
         return entregaService.consultar(id);
     }
+
     @PostMapping
     @PreAuthorize("hasRole('PROPRIETARIO')")
     public EntregaResponse criar(@Valid @RequestBody EntregaRequest request) {
         return entregaService.criar(request);
     }
+
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('PROPRIETARIO')")
     public EntregaResponse atualizar(
@@ -53,6 +59,7 @@ public class EntregaController {
     ) {
         return entregaService.atualizar(id, request, versao);
     }
+
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasRole('PROPRIETARIO')")
     public EntregaResponse alterarStatus(
@@ -62,8 +69,9 @@ public class EntregaController {
     ) {
         return entregaService.alterarStatus(id, request, versao);
     }
+
     @PatchMapping("/minhas-entregas/{id}/status")
-    @PreAuthorize("hasRole('ENTREGADOR')")
+    @PreAuthorize("hasAnyRole('ENTREGADOR', 'PROPRIETARIO')")
     public EntregaOperacionalResponse alterarStatusMinhaEntrega(
         @PathVariable UUID id,
         @RequestHeader(value = "If-Match", required = false) Long versao,
@@ -71,6 +79,7 @@ public class EntregaController {
     ) {
         return entregaService.alterarStatusMinhaEntrega(id, request, versao);
     }
+
     @PatchMapping("/{id}/entregador")
     @PreAuthorize("hasRole('PROPRIETARIO')")
     public EntregaResponse designarEntregador(
