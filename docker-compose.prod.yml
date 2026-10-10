@@ -26,6 +26,10 @@ services:
       context: ./backend
     restart: always
     environment:
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      CHAT_POST_COMPLETION_HOURS: ${CHAT_POST_COMPLETION_HOURS:-48}
+      CHAT_MAX_CHARS: ${CHAT_MAX_CHARS:-2000}
+      CHAT_SENDS_PER_MINUTE: ${CHAT_SENDS_PER_MINUTE:-20}
       SPRING_PROFILES_ACTIVE: prod
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:?required}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:?required}
@@ -63,6 +67,7 @@ services:
     build:
       context: ./frontend
       args:
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
         VITE_API_URL: ${PUBLIC_API_URL:?required}
         VITE_BUSINESS_PHONE: ${VITE_BUSINESS_PHONE:-}
         VITE_BUSINESS_WHATSAPP: ${VITE_BUSINESS_WHATSAPP:-}
