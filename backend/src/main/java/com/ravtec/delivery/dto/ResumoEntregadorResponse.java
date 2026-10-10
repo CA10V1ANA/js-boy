@@ -7,6 +7,7 @@ public record ResumoEntregadorResponse(
     long emRota,
     long concluidasHoje,
     BigDecimal valorMovimentadoHoje,
-    long documentacaoPendente
+    long documentacaoPendente,
+    BigDecimal valorRecebidoHoje
 ) {
 }

@@ -18,6 +18,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 
 class RecebimentoDiretoIT extends AbstractIntegrationTest {
+    @Autowired PainelEntregadorService painel;
     @Autowired RecebimentoService recebimentos;
     @Autowired PagamentoService financeiro;
     @Autowired EntregaService operacao;
@@ -108,8 +109,10 @@ class RecebimentoDiretoIT extends AbstractIntegrationTest {
         assertThatThrownBy(() -> offline.alterarStatus(entrega.getId(), new EntregaStatusRequest(StatusEntrega.ENTREGUE), "offline-pendente"))
             .isInstanceOf(ConflitoException.class).hasMessageContaining("Pix");
         var parcial = confirmar("30.00", "parcial-1");
+        assertThat(painel.resumoHoje().valorRecebidoHoje()).isEqualByComparingTo("30.00");
         assertThat(recebimentos.consultar(entrega.getId()).podeFinalizar()).isFalse();
         var finalizado = confirmar("70.00", "saldo-final");
+        assertThat(painel.resumoHoje().valorRecebidoHoje()).isEqualByComparingTo("100.00");
         assertThat(parcial.recebedorId()).isEqualTo(entrega.getEntregador().getId());
         assertThat(finalizado.usuarioResponsavelNome()).isEqualTo(courier.getNome());
         assertThat(recebimentos.consultar(entrega.getId()).podeFinalizar()).isTrue();
@@ -170,6 +173,8 @@ class RecebimentoDiretoIT extends AbstractIntegrationTest {
         assertThat(recebimentos.consultar(entrega.getId()).recebidoConfirmado()).isFalse();
         assertThat(recebimentos.consultar(entrega.getId()).saldo()).isEqualByComparingTo("20.00");
         assertThat(recebimentos.consultar(entrega.getId()).podeFinalizar()).isFalse();
+        autenticar(courier);
+        assertThat(painel.resumoHoje().valorRecebidoHoje()).isEqualByComparingTo("80.00");
     }
 
     @Test void futurasNaoIgnoramOrdemEConclusaoRepetidaNaoDuplicaAuditoriaOuHorario() {
@@ -260,6 +265,32 @@ class RecebimentoDiretoIT extends AbstractIntegrationTest {
         assertThat(recebimentos.consultar(entrega.getId()).podeConfirmar()).isFalse();
         assertThatThrownBy(() -> confirmar("100.00", "legado-pendente")).isInstanceOf(ConflitoException.class).hasMessageContaining("pendente");
         assertThat(cobrancas.findByEntregaId(entrega.getId()).orElseThrow().getStatus()).isEqualTo("PENDENTE");
+    }
+
+    @Test void resumoRecebidoRespeitaFusoPeriodoERecebedorPersistido() {
+        var inicio = java.time.LocalDate.now(java.time.ZoneId.of("America/Fortaleza"))
+            .atStartOfDay(java.time.ZoneId.of("America/Fortaleza")).toOffsetDateTime();
+        var fim = inicio.plusDays(1);
+        lancamentoDeTeste(entrega.getEntregador(), inicio, "10.00");
+        lancamentoDeTeste(entrega.getEntregador(), fim.minusSeconds(1), "20.00");
+        lancamentoDeTeste(entrega.getEntregador(), inicio.minusSeconds(1), "100.00");
+        lancamentoDeTeste(entrega.getEntregador(), fim, "100.00");
+        var outro = new Entregador(); outro.setNome("Outro recebedor");
+        outro.setCpf(UUID.randomUUID().toString().substring(0, 20)); outro.setTelefone("85999990009");
+        outro.setUsuario(usuario(PerfilAcesso.ENTREGADOR)); outro = entregadores.saveAndFlush(outro);
+        lancamentoDeTeste(outro, inicio, "100.00");
+        lancamentoDeTeste(null, inicio, "100.00");
+        // A atribuição atual não muda o recebedor histórico dos lançamentos.
+        entrega.setEntregador(outro); entregas.saveAndFlush(entrega);
+        autenticar(courier);
+        assertThat(painel.resumoHoje().valorRecebidoHoje()).isEqualByComparingTo("30.00");
+    }
+
+    private void lancamentoDeTeste(Entregador recebedor, java.time.OffsetDateTime quando, String valor) {
+        var p = new Pagamento(); p.setEntrega(entrega); p.setRecebedor(recebedor);
+        p.setValor(new BigDecimal(valor)); p.setFormaPagamento(FormaPagamento.DINHEIRO);
+        p.setUsuarioResponsavel(dono); p.setIdempotencyKey(UUID.randomUUID().toString());
+        p.setPayloadHash("hash-apenas-teste"); p.setPagoEm(quando); pagamentos.saveAndFlush(p);
     }
 
     private PagamentoResponse confirmar(String valor, String chave) {

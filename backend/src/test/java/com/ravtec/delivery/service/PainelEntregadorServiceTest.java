@@ -3,12 +3,13 @@ package com.ravtec.delivery.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 
 import com.ravtec.delivery.entity.Entrega;
 import com.ravtec.delivery.entity.Entregador;
 import com.ravtec.delivery.entity.StatusEntrega;
-import com.ravtec.delivery.entity.TipoComprovante;
-import com.ravtec.delivery.repository.ComprovanteEntregaRepository;
+import com.ravtec.delivery.repository.PagamentoRepository;
 import com.ravtec.delivery.repository.EntregaRepository;
 import com.ravtec.delivery.security.IdentidadeAtual;
 import com.ravtec.delivery.security.UsuarioPrincipal;
@@ -28,7 +29,7 @@ class PainelEntregadorServiceTest {
     @Mock
     private EntregaRepository entregaRepository;
     @Mock
-    private ComprovanteEntregaRepository comprovanteRepository;
+    private PagamentoRepository pagamentoRepository;
     @Mock
     private IdentidadeAtual identidadeAtual;
 
@@ -37,7 +38,7 @@ class PainelEntregadorServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new PainelEntregadorService(entregaRepository, comprovanteRepository, identidadeAtual);
+        service = new PainelEntregadorService(entregaRepository, pagamentoRepository, identidadeAtual);
         usuarioId = UUID.randomUUID();
         var principal = mock(UsuarioPrincipal.class);
         when(principal.getId()).thenReturn(usuarioId);
@@ -54,6 +55,8 @@ class PainelEntregadorServiceTest {
             OffsetDateTime.now(ZoneOffset.ofHours(-3)).minusDays(1));
         when(entregaRepository.findByEntregadorUsuarioIdOrderByCriadoEmDesc(usuarioId))
             .thenReturn(List.of(emRota, concluidaHoje, antiga));
+        when(pagamentoRepository.somarRecebidoDoEntregadorNoPeriodo(eq(usuarioId), any(), any()))
+            .thenReturn(new BigDecimal("37.00"));
 
         var resumo = service.resumoHoje();
 
@@ -61,6 +64,7 @@ class PainelEntregadorServiceTest {
         assertThat(resumo.emRota()).isEqualTo(1);
         assertThat(resumo.concluidasHoje()).isEqualTo(1);
         assertThat(resumo.valorMovimentadoHoje()).isEqualByComparingTo("58.00");
+        assertThat(resumo.valorRecebidoHoje()).isEqualByComparingTo("37.00");
         assertThat(resumo.documentacaoPendente()).isZero();
     }
 

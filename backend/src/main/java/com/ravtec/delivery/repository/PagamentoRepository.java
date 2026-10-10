@@ -13,6 +13,14 @@ import org.springframework.data.repository.query.Param;
 
 public interface PagamentoRepository extends JpaRepository<Pagamento, UUID> {
     @Query("""
+        select coalesce(sum(case when p.tipo = com.ravtec.delivery.entity.TipoLancamentoFinanceiro.RECEBIMENTO
+            then p.valor else -p.valor end), 0) from Pagamento p
+        where p.recebedor.usuario.id = :usuarioId and p.pagoEm >= :inicio and p.pagoEm < :fim
+        """)
+    BigDecimal somarRecebidoDoEntregadorNoPeriodo(@Param("usuarioId") UUID usuarioId,
+        @Param("inicio") OffsetDateTime inicio, @Param("fim") OffsetDateTime fim);
+
+    @Query("""
         select new com.ravtec.delivery.dto.PendenciaFinanceiraResponse(
             e.id, e.codigo, e.cliente.nome, e.valorFinal,
             coalesce(sum(case when p.tipo = com.ravtec.delivery.entity.TipoLancamentoFinanceiro.RECEBIMENTO

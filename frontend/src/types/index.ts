@@ -57,6 +57,7 @@ export type EntregaCliente = {
 export type ResumoEntregador = {
   entregasAtivas: number; emRota: number; concluidasHoje: number;
   valorMovimentadoHoje: number; documentacaoPendente: number;
+  valorRecebidoHoje?: number;
 };
 export type EntregaForm = {
   clienteId: string; entregadorId: string; enderecoOrigem: string; bairroOrigem: string;

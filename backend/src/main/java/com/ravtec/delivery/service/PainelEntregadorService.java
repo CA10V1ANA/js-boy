@@ -2,9 +2,8 @@ package com.ravtec.delivery.service;
 
 import com.ravtec.delivery.dto.ResumoEntregadorResponse;
 import com.ravtec.delivery.entity.StatusEntrega;
-import com.ravtec.delivery.entity.TipoComprovante;
-import com.ravtec.delivery.repository.ComprovanteEntregaRepository;
 import com.ravtec.delivery.repository.EntregaRepository;
+import com.ravtec.delivery.repository.PagamentoRepository;
 import com.ravtec.delivery.security.IdentidadeAtual;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -26,7 +25,7 @@ public class PainelEntregadorService {
     );
 
     private final EntregaRepository entregaRepository;
-    private final ComprovanteEntregaRepository comprovanteRepository;
+    private final PagamentoRepository pagamentoRepository;
     private final IdentidadeAtual identidadeAtual;
 
     @Transactional(readOnly = true)
@@ -35,6 +34,10 @@ public class PainelEntregadorService {
         var entregas = entregaRepository.findByEntregadorUsuarioIdOrderByCriadoEmDesc(
             identidadeAtual.principal().getId());
         var hoje = LocalDate.now(FUSO_OPERACAO);
+        var inicio = hoje.atStartOfDay(FUSO_OPERACAO).toOffsetDateTime();
+        var fim = hoje.plusDays(1).atStartOfDay(FUSO_OPERACAO).toOffsetDateTime();
+        var recebidoHoje = pagamentoRepository.somarRecebidoDoEntregadorNoPeriodo(
+            identidadeAtual.principal().getId(), inicio, fim);
 
         long ativas = entregas.stream().filter(entrega -> !STATUS_FINAIS.contains(entrega.getStatus())).count();
         long emRota = entregas.stream().filter(entrega -> EnumSet.of(
@@ -51,7 +54,7 @@ public class PainelEntregadorService {
         long documentacaoPendente = 0; // Campo legado, sem exigência de comprovação.
 
         return new ResumoEntregadorResponse(
-            ativas, emRota, concluidasHoje.size(), valorHoje, documentacaoPendente
+            ativas, emRota, concluidasHoje.size(), valorHoje, documentacaoPendente, recebidoHoje
         );
     }
 }
