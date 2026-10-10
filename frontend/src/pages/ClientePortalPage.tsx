@@ -1,3 +1,9 @@
+import {
+  AcompanhamentoResumo,
+  PortalMetric,
+  PortalStatus,
+  operationalDay,
+} from "../components/PortalOverview";
 import { ContaClienteEdicao } from "../components/ContaClienteEdicao";
 import { AvisosResumo } from "../components/AvisosResumo";
 import { EnderecosResumo } from "../components/EnderecosResumo";
@@ -10,21 +16,23 @@ import {
 import { SegurancaConta } from "../components/SegurancaConta";
 import { Endereco } from "./EnderecosPage";
 import {
+  CheckCircle2,
+  ChevronRight,
+  DollarSign,
+  FileText,
+  RotateCcw,
   ArrowLeft,
   ArrowRight,
   Building2,
   CalendarClock,
   Check,
-  CreditCard,
   FileCheck2,
   Headphones,
   Mail,
   MapPin,
   Package,
   Phone,
-  Plus,
   Route,
-  Truck,
   User,
 } from "lucide-react";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
@@ -244,6 +252,32 @@ export function ClientePortalPage() {
       active = false;
     };
   }, [requestOpen]);
+  useEffect(() => {
+    if (params.get("solicitar") !== "1") return;
+    openRequest();
+    const updated = new URLSearchParams(params);
+    updated.delete("solicitar");
+    navigate(
+      { pathname: location.pathname, search: updated.toString() },
+      { replace: true },
+    );
+  }, [params, navigate, location.pathname]);
+
+  function repetirPedido(delivery: EntregaCliente) {
+    setEditing(null);
+    setRequest({
+      ...emptyRequest,
+      enderecoOrigem: delivery.enderecoOrigem,
+      bairroOrigem: delivery.bairroOrigem,
+      enderecoDestino: delivery.enderecoDestino,
+      bairroDestino: delivery.bairroDestino,
+      destinatarioNome: delivery.destinatarioNome,
+      descricaoMercadoria: delivery.descricaoMercadoria,
+    });
+    setRequestStep(1);
+    setRequestOpen(true);
+  }
+
   function advanceRequest() {
     if (
       requestStep === 1 &&
@@ -351,34 +385,39 @@ export function ClientePortalPage() {
   const summary = useMemo(() => {
     const deliveries = data?.entregas || [];
     const payments = data?.pagamentos || [];
-    return {
-      total: deliveries.length,
-      active: deliveries.filter((item) => !finalStatuses.includes(item.status))
-        .length,
-      route: deliveries.filter((item) => item.status === "SOLICITADA").length,
-      delivered: deliveries.filter((item) => item.status === "ENTREGUE").length,
-      pending: deliveries
-        .filter((e) => e.status !== "CANCELADA")
-        .reduce(
-          (sum, e) =>
-            sum +
-            Math.max(
-              0,
-              e.valorFinal -
-                payments
-                  .filter((p) => p.entregaId === e.id)
-                  .reduce(
-                    (s, p) => s + (p.tipo === "ESTORNO" ? -p.valor : p.valor),
-                    0,
-                  ),
-            ),
+    const month = operationalDay(new Date()).slice(0, 7);
+    const balances = deliveries
+      .filter((e) => e.status !== "CANCELADA")
+      .map((e) =>
+        Math.max(
           0,
+          e.valorFinal -
+            payments
+              .filter((p) => p.entregaId === e.id)
+              .reduce(
+                (sum, p) => sum + (p.tipo === "ESTORNO" ? -p.valor : p.valor),
+                0,
+              ),
         ),
-      paid: payments.reduce(
-        (sum, item) =>
-          sum + (item.tipo === "ESTORNO" ? -item.valor : item.valor),
-        0,
-      ),
+      );
+    return {
+      active: deliveries.filter(
+        (e) => !finalStatuses.includes(e.status) && e.status !== "SOLICITADA",
+      ).length,
+      route: deliveries.filter((e) => e.status === "SOLICITADA").length,
+      delivered: deliveries.filter((e) => {
+        const finished =
+          e.concluidaEm ||
+          [...e.historico].reverse().find((h) => h.novoStatus === "ENTREGUE")
+            ?.alteradoEm;
+        return (
+          e.status === "ENTREGUE" &&
+          !!finished &&
+          operationalDay(finished).startsWith(month)
+        );
+      }).length,
+      pending: balances.reduce((sum, saldo) => sum + saldo, 0),
+      pendingCount: balances.filter((saldo) => saldo > 0).length,
     };
   }, [data]);
 
@@ -560,7 +599,7 @@ export function ClientePortalPage() {
     );
 
   return (
-    <main className="page rolePortal clientPortalV2">
+    <main className="page rolePortal clientPortalV2 portalOverview">
       {feedback ? (
         <FeedbackMessage
           tone={feedback.startsWith("Solicitação") ? "success" : "error"}
@@ -568,80 +607,119 @@ export function ClientePortalPage() {
           {feedback}
         </FeedbackMessage>
       ) : null}
-      {tab !== "CONTA" ? (
-        <section className="roleHero clientRoleHero">
-          <div>
-            <h1>Olá, {titleCase(data.cliente.nome).split(" ")[0]}</h1>
-            <p>Solicite e acompanhe a rota e o pagamento das suas entregas.</p>
-          </div>
-          <button className="primaryButton" type="button" onClick={openRequest}>
-            <Plus size={17} /> Solicitar entrega
-          </button>
-        </section>
-      ) : null}
       {tab === "RESUMO" ? (
         <>
-          <section className="metricGrid roleMetricGrid">
-            <article className="metricCard">
-              <span className="metricIcon tone-yellow">
-                <Package size={19} />
-              </span>
-              <span>Solicitações ativas</span>
-              <strong>{String(summary.active).padStart(2, "0")}</strong>
-              <div className="metricDelta">
-                <span className="vs">em análise ou operação</span>
-              </div>
-            </article>
-            <article className="metricCard">
-              <span className="metricIcon tone-green">
-                <Truck size={19} />
-              </span>
-              <span>Aguardando orçamento</span>
-              <strong>{String(summary.route).padStart(2, "0")}</strong>
-              <div className="metricDelta">
-                <span className="vs">aguardando análise e confirmação</span>
-              </div>
-            </article>
-            <article className="metricCard">
-              <span className="metricIcon tone-navy">
-                <Check size={19} />
-              </span>
-              <span>Entregues no histórico</span>
-              <strong>{String(summary.delivered).padStart(2, "0")}</strong>
-              <div className="metricDelta">
-                <span className="vs">todo o período disponível</span>
-              </div>
-            </article>
-            <article className="metricCard">
-              <span className="metricIcon tone-blue">
-                <CreditCard size={19} />
-              </span>
-              <span>Pagamentos pendentes</span>
-              <strong className="smaller">{money(summary.pending)}</strong>
-              <div className="metricDelta">
-                <span className="vs">saldo a regularizar</span>
-              </div>
-            </article>
+          <section
+            className="portalMetrics"
+            aria-label="Resumo das suas entregas"
+          >
+            <PortalMetric
+              icon={Package}
+              tone="amber"
+              label="Em andamento"
+              value={summary.active}
+              hint="em rota ou em coleta"
+            />
+            <PortalMetric
+              icon={FileText}
+              tone="green"
+              label="Aguardando orçamento"
+              value={summary.route}
+              hint="aguardando confirmação"
+            />
+            <PortalMetric
+              icon={CheckCircle2}
+              tone="blue"
+              label="Concluídas no mês"
+              value={summary.delivered}
+              hint="entregas finalizadas neste mês"
+            />
+            <PortalMetric
+              icon={DollarSign}
+              tone="violet"
+              label="Pagamentos pendentes"
+              value={money(summary.pending)}
+              hint={
+                "em " +
+                summary.pendingCount +
+                (summary.pendingCount === 1 ? " entrega" : " entregas")
+              }
+            />
           </section>
-          <section className="panelCard">
-            <div className="panelCardHeader roleListHeader">
-              <div>
-                <h2>Entregas recentes</h2>
-                <p>Veja rapidamente o andamento das últimas solicitações.</p>
-              </div>
-              <button
-                className="smallButton"
-                type="button"
-                onClick={() => setTab("ENTREGAS")}
-              >
-                Ver todas
-              </button>
+          <div className="portalOverviewColumns clientColumns">
+            <div className="portalOverviewMain">
+              <AcompanhamentoResumo
+                entrega={
+                  data.entregas.find((e) => e.status === "EM_ROTA") ||
+                  data.entregas.find(
+                    (e) =>
+                      !finalStatuses.includes(e.status) &&
+                      e.status !== "SOLICITADA",
+                  ) ||
+                  data.entregas.find((e) => e.status === "SOLICITADA")
+                }
+              />
+              <section className="portalPanel recentHistoryPanel">
+                <div className="portalPanelHeading">
+                  <h2>Histórico recente</h2>
+                  <Link className="portalTextLink" to="/portal/entregas">
+                    Ver todas <ChevronRight size={18} />
+                  </Link>
+                </div>
+                <div className="portalHistoryRows">
+                  {data.entregas
+                    .filter((e) => finalStatuses.includes(e.status))
+                    .slice(0, 3)
+                    .map((delivery) => (
+                      <div className="portalHistoryRow" key={delivery.id}>
+                        <span
+                          className={
+                            "historyCheck" +
+                            (delivery.status !== "ENTREGUE" ? " other" : "")
+                          }
+                        >
+                          <CheckCircle2 size={23} />
+                        </span>
+                        <Link
+                          className="portalHistoryCode"
+                          to={"/portal/entregas?entrega=" + delivery.id}
+                        >
+                          <strong>{delivery.codigo}</strong>
+                          <small>
+                            {date(delivery.concluidaEm || delivery.criadoEm)}
+                          </small>
+                        </Link>
+                        <div className="portalHistoryRoute">
+                          <span>
+                            {delivery.bairroOrigem} → {delivery.bairroDestino}
+                          </span>
+                        </div>
+                        <PortalStatus status={delivery.status} />
+                        <button
+                          className="portalOutlineButton"
+                          type="button"
+                          onClick={() => repetirPedido(delivery)}
+                        >
+                          <RotateCcw size={17} />
+                          Repetir solicitação
+                        </button>
+                      </div>
+                    ))}
+                  {!data.entregas.some((e) =>
+                    finalStatuses.includes(e.status),
+                  ) ? (
+                    <p className="portalEmpty">
+                      Seu histórico aparecerá aqui após a conclusão das
+                      entregas.
+                    </p>
+                  ) : null}
+                </div>
+              </section>
             </div>
-            {deliveryList(data.entregas.slice(0, 3))}
-          </section>
-          <div className="portalSummaryExtras">
-            <EnderecosResumo />
-            <AvisosResumo />
+            <aside className="portalOverviewAside">
+              <EnderecosResumo />
+              <AvisosResumo />
+            </aside>
           </div>
         </>
       ) : null}

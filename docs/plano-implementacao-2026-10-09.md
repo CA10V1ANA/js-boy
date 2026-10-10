@@ -1,5 +1,8 @@
 # Implementação do plano JS BOY — 09/10/2026
 
+Correção posterior da estrutura visual do entregador e do cliente:
+[relatório e novas capturas](correcao-visual-portais-2026-10-09.md).
+
 Implementação local do documento `JS_BOY_PLANO_IMPLEMENTACAO_CODEX.md`, usando as
 capturas fornecidas como referências visuais. Trabalho na `main`, sem publicação
 ou alterações manuais em dados reais. As capturas deste relatório usam uma API

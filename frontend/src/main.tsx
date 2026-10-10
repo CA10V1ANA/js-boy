@@ -9,6 +9,7 @@ import './p1.css';
 import './p2.css';
 import './price.css';
 import './portal.css';
+import './overview.css';
 import './services/authToken';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';

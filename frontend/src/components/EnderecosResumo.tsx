@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ChevronRight, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Endereco } from "../pages/EnderecosPage";
 import { api } from "../services/api";
@@ -23,31 +24,45 @@ export function EnderecosResumo() {
     };
   }, []);
   return (
-    <section className="panelCard">
-      <div className="panelCardHeader">
+    <section className="portalPanel overviewAddresses">
+      <div className="portalPanelHeading">
         <h2>Endereços frequentes</h2>
-        <Link to="/portal/enderecos">Gerenciar</Link>
+        <Link className="portalTextLink" to="/portal/enderecos">
+          Gerenciar endereços <ChevronRight size={17} />
+        </Link>
       </div>
       {error ? (
-        <p role="alert">{error}</p>
+        <p role="alert" className="portalEmpty">
+          {error}
+        </p>
       ) : !items ? (
-        <p role="status">Carregando endereços...</p>
+        <p role="status" className="portalEmpty">
+          Carregando endereços...
+        </p>
       ) : items.length ? (
-        items.slice(0, 3).map((e) => (
-          <Link
-            className="deliveryOverviewRow"
-            key={e.id}
-            to="/portal/enderecos"
-          >
-            <strong>{e.apelido}</strong>
-            <span>{e.endereco}</span>
-            <small>
-              {e.bairro} · {e.cidade}/{e.estado}
-            </small>
-          </Link>
-        ))
+        <div className="portalAddressList">
+          {items.slice(0, 2).map((e, index) => (
+            <Link className="portalAddress" key={e.id} to="/portal/enderecos">
+              <span
+                className={"portalIcon " + (index === 0 ? "amber" : "green")}
+              >
+                <MapPin size={27} />
+              </span>
+              <div>
+                <strong>{e.apelido}</strong>
+                <p>
+                  {e.endereco}, {e.cidade} - {e.estado}
+                </p>
+                <small>{e.bairro}</small>
+              </div>
+              <ChevronRight size={19} />
+            </Link>
+          ))}
+        </div>
       ) : (
-        <p className="emptyNote">Cadastre os locais que usa com frequência.</p>
+        <p className="portalEmpty">
+          Cadastre os locais que usa com frequência.
+        </p>
       )}
     </section>
   );

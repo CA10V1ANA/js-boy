@@ -1,40 +1,44 @@
-import { CheckCircle2, DollarSign, MapPin, Package, Truck } from "lucide-react";
+import {
+  BarChart3,
+  CheckCircle2,
+  ChevronRight,
+  DollarSign,
+  Map,
+  Package,
+  Truck,
+  User,
+  Zap,
+} from "lucide-react";
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
 import { ErrorState, LoadingState } from "../components/AsyncState";
-import { useOperacao } from "../hooks/useOperacao";
-import { api } from "../services/api";
 import { AvisosResumo } from "../components/AvisosResumo";
+import {
+  PortalMetric,
+  PortalRoute,
+  PortalStatus,
+  operationalDay,
+  portalMoney,
+  useOverviewRoute,
+} from "../components/PortalOverview";
+import { useOperacao } from "../hooks/useOperacao";
 
 const finais = ["ENTREGUE", "CANCELADA", "DEVOLVIDA", "FALHA_OPERACIONAL"];
 export function EntregadorOverviewPage() {
   const { items, summary, loading, error, load } = useOperacao();
   const proxima = items.find((e) => !finais.includes(e.status));
-  const [proximaParada, setProximaParada] = useState<{
-    entregaId: string;
-    endereco: string;
-  } | null>(null);
-  useEffect(() => {
-    let active = true;
-    setProximaParada(null);
-    if (proxima)
-      void api
-        .get<{ status: string; endereco: string }[]>(
-          `/operacao-entregador/entregas/${proxima.id}/paradas`,
-        )
-        .then(({ data }) => {
-          const parada = data.find((p) => p.status !== "CONCLUIDA");
-          if (active && parada)
-            setProximaParada({
-              entregaId: proxima.id,
-              endereco: parada.endereco,
-            });
-        })
-        .catch(() => undefined);
-    return () => {
-      active = false;
-    };
-  }, [proxima?.id, proxima?.status]);
+  const { paradas, error: routeError } = useOverviewRoute(proxima?.id, true);
+  const hoje = operationalDay(new Date());
+  const doDia = items.filter(
+    (e) =>
+      operationalDay(e.criadoEm) === hoje ||
+      (e.concluidaEm && operationalDay(e.concluidaEm) === hoje) ||
+      e.historico.some(
+        (h) =>
+          h.novoStatus === "ENTREGADOR_DESIGNADO" &&
+          operationalDay(h.alteradoEm) === hoje,
+      ),
+  );
+  const proximaParada = paradas?.find((p) => p.status !== "CONCLUIDA");
   if (loading)
     return (
       <main className="page">
@@ -47,111 +51,181 @@ export function EntregadorOverviewPage() {
         <ErrorState message={error} onRetry={() => void load()} />
       </main>
     );
-  // Preserve the order supplied by the existing operational endpoint.
-  const metrics = [
-    [
-      "Entregas ativas",
-      summary.entregasAtivas,
-      "sob sua responsabilidade",
-      Package,
-    ],
-    ["Em rota", summary.emRota, "em deslocamento agora", Truck],
-    [
-      "Concluídas hoje",
-      summary.concluidasHoje,
-      "dia da operação",
-      CheckCircle2,
-    ],
-    [
-      "Valor movimentado hoje",
-      new Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      }).format(summary.valorMovimentadoHoje),
-      "não representa comissão",
-      DollarSign,
-    ],
-  ] as const;
   return (
-    <main className="page rolePortal">
-      <section className="metricGrid roleMetricGrid">
-        {metrics.map(([label, value, hint, Icon]) => (
-          <article className="metricCard" key={label}>
-            <span className="metricIcon tone-yellow">
-              <Icon size={21} />
-            </span>
-            <span>{label}</span>
-            <strong>{value}</strong>
-            <small>{hint}</small>
-          </article>
-        ))}
+    <main className="page portalOverview courierOverview">
+      <section className="portalMetrics" aria-label="Resumo das entregas">
+        <PortalMetric
+          icon={Package}
+          tone="amber"
+          label="Entregas hoje"
+          value={doDia.length}
+          hint="atribuídas ou concluídas hoje"
+        />
+        <PortalMetric
+          icon={Truck}
+          tone="green"
+          label="Em andamento"
+          value={summary.emRota}
+          hint="em deslocamento agora"
+        />
+        <PortalMetric
+          icon={CheckCircle2}
+          tone="blue"
+          label="Concluídas"
+          value={summary.concluidasHoje}
+          hint="finalizadas hoje"
+        />
+        <PortalMetric
+          icon={DollarSign}
+          tone="violet"
+          label={
+            summary.valorRecebidoHoje === undefined
+              ? "Valor movimentado hoje"
+              : "Recebido hoje"
+          }
+          value={portalMoney(
+            summary.valorRecebidoHoje ?? summary.valorMovimentadoHoje,
+          )}
+          hint={
+            summary.valorRecebidoHoje === undefined
+              ? "valor dos serviços; não é comissão"
+              : "recebimentos líquidos do dia"
+          }
+        />
       </section>
-      <section className="panelCard">
-        <div className="panelCardHeader">
-          <h2>Próxima entrega</h2>
-        </div>
-        {proxima ? (
-          <div className="nextDelivery">
-            <div>
-              <h3>{proxima.codigo}</h3>
-              <p>
-                {proxima.clienteNome} · {proxima.status.replace(/_/g, " ")}
-              </p>
-              <p>
-                {proxima.enderecoOrigem} → {proxima.enderecoDestino}
-              </p>
+      <div className="portalOverviewColumns courierColumns">
+        <div className="portalOverviewMain">
+          <section className="portalPanel nextDeliveryPanel">
+            <div className="portalPanelHeading">
+              <div>
+                <h2>Próxima entrega</h2>
+                <p>Sua próxima parada na rota.</p>
+              </div>
+              {proxima ? <PortalStatus status={proxima.status} /> : null}
             </div>
-            <Link
-              className="primaryButton"
-              to={`/minhas-entregas?entrega=${proxima.id}`}
-            >
-              Ver entrega
-            </Link>
-            {proximaParada?.entregaId === proxima.id ? (
-              <a
-                className="secondaryButton"
-                target="_blank"
-                rel="noopener noreferrer"
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(proximaParada.endereco)}`}
-              >
-                <MapPin size={18} /> Abrir endereço
-              </a>
+            {proxima ? (
+              <div className="nextDeliveryColumns">
+                <div>
+                  {routeError ? (
+                    <p role="alert" className="errorMessage">
+                      {routeError}
+                    </p>
+                  ) : paradas === null ? (
+                    <p role="status">Carregando rota...</p>
+                  ) : paradas.length ? (
+                    <PortalRoute
+                      paradas={paradas}
+                      bairros={{
+                        origem: proxima.bairroOrigem,
+                        destino: proxima.bairroDestino,
+                      }}
+                    />
+                  ) : (
+                    <p className="portalEmpty">Rota ainda não cadastrada.</p>
+                  )}
+                </div>
+                <div className="nextDeliveryMeta">
+                  <span>Cliente</span>
+                  <strong>{proxima.clienteNome}</strong>
+                  <span>Valor da entrega</span>
+                  <strong>{portalMoney(proxima.valorFinal)}</strong>
+                </div>
+                <div className="nextDeliveryActions">
+                  <Link
+                    className="portalPrimaryButton"
+                    to={"/minhas-entregas?entrega=" + proxima.id}
+                  >
+                    <Truck size={22} />
+                    Ver entrega
+                  </Link>
+                  {proximaParada ? (
+                    <a
+                      className="portalOutlineButton"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href={
+                        "https://www.google.com/maps/search/?api=1&query=" +
+                        encodeURIComponent(proximaParada.endereco)
+                      }
+                    >
+                      <Map size={22} />
+                      Abrir endereço
+                    </a>
+                  ) : (
+                    <p className="portalMuted">
+                      Confira as paradas no detalhe.
+                    </p>
+                  )}
+                </div>
+              </div>
             ) : (
-              <span className="emptyNote">
-                Abra a entrega para conferir a próxima parada.
-              </span>
+              <p className="portalEmpty">
+                Nenhuma entrega pendente. Consulte seu histórico em Minhas
+                entregas.
+              </p>
             )}
-          </div>
-        ) : (
-          <p className="emptyNote">Nenhuma entrega pendente.</p>
-        )}
-      </section>
-      <section className="panelCard">
-        <div className="panelCardHeader">
-          <h2>Entregas recentes</h2>
-          <Link to="/minhas-entregas">Ver todas</Link>
+          </section>
+          <section className="portalPanel">
+            <div className="portalPanelHeading">
+              <div>
+                <h2>Entregas de hoje</h2>
+                <p>Acompanhe o andamento das suas entregas.</p>
+              </div>
+              <Link className="portalTextLink" to="/minhas-entregas">
+                Ver todas <ChevronRight size={18} />
+              </Link>
+            </div>
+            <div className="portalDeliveryRows">
+              {doDia.length ? (
+                doDia.slice(0, 3).map((e, i) => (
+                  <Link
+                    className="portalDeliveryRow"
+                    key={e.id}
+                    to={"/minhas-entregas?entrega=" + e.id}
+                  >
+                    <span className="deliveryRowNumber">{i + 1}</span>
+                    <div className="portalRowRoute">
+                      <strong>{e.enderecoOrigem}</strong>
+                      <small>
+                        {e.bairroOrigem} → {e.bairroDestino}
+                      </small>
+                    </div>
+                    <span className="portalRowClient">{e.clienteNome}</span>
+                    <strong className="portalRowMoney">
+                      {portalMoney(e.valorFinal)}
+                    </strong>
+                    <PortalStatus status={e.status} />
+                    <ChevronRight size={18} />
+                  </Link>
+                ))
+              ) : (
+                <p className="portalEmpty">
+                  Nenhuma entrega atribuída ou concluída hoje.
+                </p>
+              )}
+            </div>
+          </section>
         </div>
-        {items.slice(0, 5).map((e) => (
-          <Link
-            className="deliveryOverviewRow"
-            key={e.id}
-            to={`/minhas-entregas?entrega=${e.id}`}
-          >
-            <strong>{e.codigo}</strong>
-            <span>{e.clienteNome}</span>
-            <span>{e.status.replace(/_/g, " ")}</span>
-          </Link>
-        ))}
-      </section>
-      <div className="quickLinks">
-        <Link className="secondaryButton" to="/meu-faturamento">
-          Ver meu faturamento
-        </Link>
-        <Link className="secondaryButton" to="/operacional/notificacoes">
-          Consultar avisos
-        </Link>
+        <aside className="portalOverviewAside">
+          <AvisosResumo />
+          <section className="portalPanel quickActionsPanel">
+            <h2>
+              <Zap size={28} />
+              Ações rápidas
+            </h2>
+            <Link className="portalQuickAction" to="/meu-faturamento">
+              <BarChart3 size={25} />
+              <strong>Ver meu faturamento</strong>
+              <ChevronRight size={20} />
+            </Link>
+            <Link className="portalQuickAction" to="/meu-perfil">
+              <User size={25} />
+              <strong>Atualizar meu contato</strong>
+              <ChevronRight size={20} />
+            </Link>
+          </section>
+        </aside>
       </div>
-      <AvisosResumo />
     </main>
   );
 }

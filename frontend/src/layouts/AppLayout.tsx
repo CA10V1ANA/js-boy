@@ -8,7 +8,6 @@ import {
   FileClock,
   Home,
   LogOut,
-  MapPinned,
   Menu,
   Settings,
   ShieldCheck,
@@ -19,10 +18,21 @@ import {
   UserCog,
   Users,
   X,
+  ChevronDown,
+  ChevronRight,
+  Plus,
+  Package,
+  MapPin,
 } from "lucide-react";
 import { api } from "../services/api";
-import { useEffect, useState } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import {
+  Link,
+  NavLink,
+  Outlet,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { useAreaOperacional } from "../hooks/useAreaOperacional";
 import { useAuth } from "../contexts/AuthContext";
 import { normalizePerfil } from "../routes/roleHome";
@@ -117,7 +127,7 @@ const items: Array<{
   {
     to: "/minhas-entregas",
     label: "Minhas entregas",
-    icon: MapPinned,
+    icon: Truck,
     perfis: ["ENTREGADOR", "FUNCIONARIO"],
   },
   {
@@ -129,7 +139,7 @@ const items: Array<{
   {
     to: "/meu-faturamento",
     label: "Meu faturamento",
-    icon: Landmark,
+    icon: BarChart3,
     perfis: ["ENTREGADOR", "FUNCIONARIO"],
   },
   {
@@ -148,7 +158,7 @@ const items: Array<{
   {
     to: "/portal/entregas",
     label: "Minhas entregas",
-    icon: Truck,
+    icon: Package,
     perfis: ["CLIENTE"],
   },
   {
@@ -160,7 +170,7 @@ const items: Array<{
   {
     to: "/portal/enderecos",
     label: "Endereços e contatos",
-    icon: MapPinned,
+    icon: MapPin,
     perfis: ["CLIENTE"],
   },
   {
@@ -203,6 +213,11 @@ export function AppLayout() {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const operacional = useAreaOperacional();
+  const roleShell = operacional || usuario?.perfil === "CLIENTE";
+  const profileMenu = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    if (profileMenu.current) profileMenu.current.open = false;
+  }, [location.pathname]);
   const perfilMenu = operacional ? "ENTREGADOR" : usuario?.perfil;
   const visibleItems = items
     .filter(
@@ -247,18 +262,34 @@ export function AppLayout() {
   const isDashboard = location.pathname.startsWith("/dashboard");
   const isCourierPortal = location.pathname === "/operacional";
   const isClientPortal = location.pathname.startsWith("/portal");
+  const isClientOverview = location.pathname === "/portal";
+  const canRequest =
+    usuario?.perfil === "CLIENTE" &&
+    ["/portal", "/portal/entregas"].includes(location.pathname);
+  const accountPath = operacional
+    ? "/meu-perfil"
+    : usuario?.perfil === "CLIENTE"
+      ? "/portal/conta"
+      : "/usuarios";
+  const noticesPath = operacional
+    ? "/operacional/notificacoes"
+    : "/notificacoes";
   const current = visibleItems.find((item) => location.pathname === item.to);
   const title =
     isDashboard || isCourierPortal
       ? `${saudacao()}, ${(usuario?.nome || "").split(" ")[0]}.`
-      : current?.label || "JS BOY";
+      : isClientOverview
+        ? `Olá, ${(usuario?.nome || "").split(" ")[0]}.`
+        : current?.label || "JS BOY";
   const subtitle = isDashboard
     ? "Visão geral da operação."
     : isCourierPortal
-      ? "Rotas, clientes e recebimentos."
-      : isClientPortal
-        ? "Solicitações, acompanhamento e conta."
-        : "Painel de entregas";
+      ? "Seu trabalho de hoje, em um só lugar."
+      : isClientOverview
+        ? "Solicite e acompanhe os serviços da sua empresa."
+        : isClientPortal
+          ? "Solicitações, acompanhamento e conta."
+          : "Painel de entregas";
 
   function handleLogout() {
     logout();
@@ -266,7 +297,7 @@ export function AppLayout() {
   }
 
   return (
-    <div className="appShell">
+    <div className={roleShell ? "appShell roleShell" : "appShell"}>
       {menuOpen ? (
         <button
           className="sidebarBackdrop"
@@ -305,7 +336,7 @@ export function AppLayout() {
               to={item.to}
               onClick={() => setMenuOpen(false)}
             >
-              <item.icon size={19} aria-hidden="true" />
+              <item.icon size={roleShell ? 24 : 19} aria-hidden="true" />
               <span>{item.label}</span>
               {item.label === "Conversas" && counts.conversas > 0 ? (
                 <b className="navBadge">{counts.conversas}</b>
@@ -330,22 +361,47 @@ export function AppLayout() {
             {operacional ? "Voltar ao modo proprietário" : "Modo entregador"}
           </NavLink>
         ) : null}
-        <div className="sideUser">
-          <span className="sideUserAvatar">{iniciais(usuario?.nome)}</span>
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <strong>{usuario?.nome}</strong>
-            <span>{profileLabel(perfilMenu)}</span>
+        {roleShell ? (
+          <>
+            <Link
+              className="sideUser roleSideUser"
+              to={accountPath}
+              onClick={() => setMenuOpen(false)}
+            >
+              <span className="sideUserAvatar">{iniciais(usuario?.nome)}</span>
+              <div>
+                <strong>{(usuario?.nome || "").split(" ")[0]}</strong>
+                <span>{profileLabel(perfilMenu)}</span>
+              </div>
+              <ChevronRight size={20} />
+            </Link>
+            <button
+              className="roleSideLogout"
+              type="button"
+              onClick={handleLogout}
+            >
+              <LogOut size={25} />
+              Sair
+            </button>
+          </>
+        ) : (
+          <div className="sideUser">
+            <span className="sideUserAvatar">{iniciais(usuario?.nome)}</span>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <strong>{usuario?.nome}</strong>
+              <span>{profileLabel(perfilMenu)}</span>
+            </div>
+            <button
+              className="sideLogout"
+              onClick={handleLogout}
+              aria-label="Sair"
+              title="Sair"
+              type="button"
+            >
+              <LogOut size={16} />
+            </button>
           </div>
-          <button
-            className="sideLogout"
-            onClick={handleLogout}
-            aria-label="Sair"
-            title="Sair"
-            type="button"
-          >
-            <LogOut size={16} />
-          </button>
-        </div>
+        )}
       </aside>
       <div className="contentArea">
         <header className="appHeader">
@@ -358,28 +414,78 @@ export function AppLayout() {
             <Menu size={22} />
           </button>
           <div className="appHeaderLeft">
-            {isDashboard ? (
+            {isDashboard || isCourierPortal || isClientOverview ? (
               <span className="appHeaderSun">
-                <Sun size={20} />
+                <Sun size={roleShell ? 31 : 20} />
               </span>
             ) : null}
             <div style={{ minWidth: 0 }}>
-              <strong>{title}</strong>
+              {roleShell ? <h1>{title}</h1> : <strong>{title}</strong>}
               <span>{subtitle}</span>
             </div>
           </div>
-          <div className="headerAvatarPill">
-            <span className="headerAvatar">{iniciais(usuario?.nome)}</span>
-            <button
-              aria-label="Sair"
-              className="headerLogoutButton"
-              type="button"
-              onClick={handleLogout}
-            >
-              <LogOut size={16} />
-              <span>Sair</span>
-            </button>
-          </div>
+          {roleShell ? (
+            <div className="roleHeaderActions">
+              {canRequest ? (
+                <Link
+                  className="portalPrimaryButton"
+                  to={location.pathname + "?solicitar=1"}
+                >
+                  <Plus size={22} />
+                  Solicitar entrega
+                </Link>
+              ) : null}
+              {!isClientOverview ? (
+                <>
+                  <Link
+                    className="headerNotification"
+                    to={noticesPath}
+                    aria-label={
+                      "Notificações" +
+                      (counts.notificacoes
+                        ? ": " + counts.notificacoes + " não lidas"
+                        : "")
+                    }
+                  >
+                    <Bell size={24} />
+                    {counts.notificacoes > 0 ? (
+                      <b>{counts.notificacoes}</b>
+                    ) : null}
+                  </Link>
+                  <details className="roleProfileMenu" ref={profileMenu}>
+                    <summary aria-label="Menu da conta">
+                      <span className="roleHeaderAvatar">
+                        {iniciais(usuario?.nome)}
+                      </span>
+                      <ChevronDown size={18} />
+                    </summary>
+                    <div>
+                      <Link to={accountPath}>
+                        {operacional ? "Meu perfil" : "Minha conta"}
+                      </Link>
+                      <button type="button" onClick={handleLogout}>
+                        <LogOut size={17} />
+                        Sair
+                      </button>
+                    </div>
+                  </details>
+                </>
+              ) : null}
+            </div>
+          ) : (
+            <div className="headerAvatarPill">
+              <span className="headerAvatar">{iniciais(usuario?.nome)}</span>
+              <button
+                aria-label="Sair"
+                className="headerLogoutButton"
+                type="button"
+                onClick={handleLogout}
+              >
+                <LogOut size={16} />
+                <span>Sair</span>
+              </button>
+            </div>
+          )}
         </header>
         <Outlet />
       </div>
