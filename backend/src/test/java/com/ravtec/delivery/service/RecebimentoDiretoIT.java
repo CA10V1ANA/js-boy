@@ -6,6 +6,7 @@ import com.ravtec.delivery.AbstractIntegrationTest;
 import com.ravtec.delivery.dto.*;
 import com.ravtec.delivery.entity.*;
 import com.ravtec.delivery.exception.ConflitoException;
+import com.ravtec.delivery.exception.RecursoNaoEncontradoException;
 import com.ravtec.delivery.repository.*;
 import com.ravtec.delivery.security.UsuarioPrincipal;
 import java.math.BigDecimal;
@@ -119,6 +120,53 @@ class RecebimentoDiretoIT extends AbstractIntegrationTest {
         assertThat(offline.alterarStatus(entrega.getId(), new EntregaStatusRequest(StatusEntrega.ENTREGUE), "offline-final").status())
             .isEqualTo(StatusEntrega.ENTREGUE);
         assertThat(comprovantes.countByEntregaIdAndSubstituidoPorIsNull(entrega.getId())).isZero();
+    }
+
+    @Test void entregadorDesignadoEscolheFormaConfirmaRecebimentoEFinalizaSemAcaoDoDono() {
+        entrega.setFormaPagamento(FormaPagamento.OUTRO);
+        entrega = entregas.saveAndFlush(entrega);
+        autenticar(courier);
+
+        var configurado = recebimentos.definirFormaPagamentoOperacional(
+            entrega.getId(),
+            new FormaPagamentoOperacionalRequest(FormaPagamento.DINHEIRO)
+        );
+        assertThat(configurado.formaPagamento()).isEqualTo(FormaPagamento.DINHEIRO);
+        assertThat(configurado.podeConfirmar()).isTrue();
+
+        recebimentos.confirmarOperacional(
+            entrega.getId(),
+            "autonomia-entregador:" + entrega.getId(),
+            new ConfirmarRecebimentoRequest(
+                new BigDecimal("100.00"),
+                FormaPagamento.DINHEIRO,
+                configurado.referenciaRecebedor()
+            )
+        );
+        assertThatThrownBy(() -> recebimentos.definirFormaPagamentoOperacional(
+            entrega.getId(),
+            new FormaPagamentoOperacionalRequest(FormaPagamento.PIX)
+        )).isInstanceOf(ConflitoException.class).hasMessageContaining("recebimento registrado");
+
+        concluirRota();
+        assertThat(recebimentos.consultarOperacional(entrega.getId()).podeFinalizar()).isTrue();
+        assertThat(operacao.alterarStatusMinhaEntrega(
+            entrega.getId(),
+            new EntregaStatusRequest(StatusEntrega.ENTREGUE)
+        ).status()).isEqualTo(StatusEntrega.ENTREGUE);
+    }
+
+    @Test void outroEntregadorNaoPodeEscolherFormaDePagamentoDaEntrega() {
+        entrega.setFormaPagamento(FormaPagamento.OUTRO);
+        entrega = entregas.saveAndFlush(entrega);
+        autenticar(usuario(PerfilAcesso.ENTREGADOR));
+
+        assertThatThrownBy(() -> recebimentos.definirFormaPagamentoOperacional(
+            entrega.getId(),
+            new FormaPagamentoOperacionalRequest(FormaPagamento.DINHEIRO)
+        )).isInstanceOf(RecursoNaoEncontradoException.class);
+        assertThat(entregas.findById(entrega.getId()).orElseThrow().getFormaPagamento())
+            .isEqualTo(FormaPagamento.OUTRO);
     }
 
     @Test void dinheiroTemConfirmacaoPropriaEPaiPodeConfirmarComContaDeProprietario() {

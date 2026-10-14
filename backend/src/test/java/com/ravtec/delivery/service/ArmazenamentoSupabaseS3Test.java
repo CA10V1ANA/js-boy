@@ -47,7 +47,6 @@ class ArmazenamentoSupabaseS3Test {
             assertThat(stream.readAllBytes()).isEqualTo(bytes);
         }
     }
-
     @Test
     void leArquivoPeloBackendSemCriarUrlPublica() throws Exception {
         var bytes = "evidencia".getBytes(StandardCharsets.UTF_8);

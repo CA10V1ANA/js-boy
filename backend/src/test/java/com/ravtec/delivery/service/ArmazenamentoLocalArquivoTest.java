@@ -9,7 +9,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 class ArmazenamentoLocalArquivoTest {
     @TempDir Path diretorio;
-
+    
     @Test
     void arquivoPermaneceDisponivelAposRecriarProvider() throws Exception {
         var primeiro = new ArmazenamentoLocalArquivo(diretorio.toString());

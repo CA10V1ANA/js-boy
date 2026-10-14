@@ -21,6 +21,14 @@ public class RecebimentoOperacionalController {
         return service.consultarOperacional(id);
     }
 
+    @PatchMapping("/{id}/forma-pagamento")
+    public RecebimentoResponse definirFormaPagamento(
+        @PathVariable UUID id,
+        @Valid @RequestBody FormaPagamentoOperacionalRequest request
+    ) {
+        return service.definirFormaPagamentoOperacional(id, request);
+    }
+
     @PostMapping("/{id}/confirmar")
     public PagamentoResponse confirmar(
         @PathVariable UUID id,

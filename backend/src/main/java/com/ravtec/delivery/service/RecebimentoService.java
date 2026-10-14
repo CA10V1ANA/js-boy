@@ -41,6 +41,34 @@ public class RecebimentoService {
     }
 
     @Transactional
+    public RecebimentoResponse definirFormaPagamentoOperacional(
+        UUID id,
+        FormaPagamentoOperacionalRequest request
+    ) {
+        var entrega = acesso.exigirDoEntregadorParaAtualizacao(id);
+        if (terminal(entrega)) throw new ConflitoException(
+            "Entrega encerrada não permite alterar a forma de pagamento"
+        );
+        if (!formaDireta(request.formaPagamento())) throw new IllegalArgumentException(
+            "Escolha Pix ou Dinheiro"
+        );
+        exigirSemRecebimento(entrega);
+        var anterior = entrega.getFormaPagamento();
+        if (anterior == request.formaPagamento()) return resumo(entrega);
+        entrega.setFormaPagamento(request.formaPagamento());
+        entregas.saveAndFlush(entrega);
+        if (auditoria != null) auditoria.registrar(
+            "FORMA_PAGAMENTO_OPERACIONAL_ALTERADA",
+            "ENTREGA",
+            entrega.getId(),
+            Map.of("formaPagamento", anterior == null ? "NAO_DEFINIDA" : anterior.name()),
+            Map.of("formaPagamento", request.formaPagamento().name()),
+            "Definida pelo entregador designado"
+        );
+        return resumo(entrega);
+    }
+
+    @Transactional
     public PagamentoResponse confirmarOperacional(
         UUID id,
         String chave,
