@@ -463,6 +463,20 @@
 .nextDeliveryPanel .portalPanelHeading h2 {
   font-size: 24px;
 }
+
+.dailyPriorityPanel {
+  border-color: #e7c764;
+  background: linear-gradient(135deg, #fffdf6 0%, #fff8df 100%);
+}
+
+.dailyPriorityEyebrow {
+  display: block;
+  margin-bottom: 5px;
+  color: #9a6a00;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
 .nextDeliveryColumns {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(140px, 0.35fr) minmax(

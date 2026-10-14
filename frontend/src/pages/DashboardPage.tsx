@@ -1,5 +1,7 @@
 import {
   BarChart3,
+  CheckCircle2,
+  ChevronRight,
   Clock,
   DollarSign,
   MapPin,
@@ -236,6 +238,43 @@ export function DashboardPage() {
     { label: 'Relatórios', sub: 'Visualizar', icon: BarChart3, tone: 'navy', to: '/relatorios', perfil: 'PROPRIETARIO' },
   ].filter((acao) => acao.perfil === 'TODOS' || ehProprietario);
 
+  const prioridade = resumo.solicitadas > 0
+    ? {
+        icon: Clock,
+        tone: 'warning',
+        title: `${resumo.solicitadas} ${resumo.solicitadas === 1 ? 'solicitação precisa' : 'solicitações precisam'} de atenção`,
+        description: 'Revise o pedido, confirme os dados e designe o entregador quando estiver pronto.',
+        action: 'Revisar entregas',
+        to: '/entregas',
+      }
+    : relatorio.valorPendente > 0
+      ? {
+          icon: DollarSign,
+          tone: 'warning',
+          title: `${money(relatorio.valorPendente)} ainda pendente`,
+          description: 'Acompanhe os recebimentos. O entregador designado pode confirmar a própria entrega.',
+          action: 'Ver pagamentos',
+          to: '/pagamentos',
+        }
+      : resumo.emAndamento > 0
+        ? {
+            icon: Truck,
+            tone: 'active',
+            title: `${resumo.emAndamento} ${resumo.emAndamento === 1 ? 'entrega em andamento' : 'entregas em andamento'}`,
+            description: 'A operação está seguindo. Entre apenas se houver atraso, ocorrência ou pedido de ajuda.',
+            action: 'Acompanhar entregas',
+            to: '/entregas',
+          }
+        : {
+            icon: CheckCircle2,
+            tone: 'done',
+            title: 'Operação em dia',
+            description: 'Nenhuma pendência exige sua ação agora.',
+            action: 'Ver entregas',
+            to: '/entregas',
+          };
+  const PrioridadeIcon = prioridade.icon;
+
   return (
     <main className="page">
       <div className="statusRibbon">
@@ -277,6 +316,20 @@ export function DashboardPage() {
           <strong>{agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</strong>
         </div>
       </div>
+
+      {ehProprietario ? (
+        <section className={`ownerDailyFocus ${prioridade.tone}`} aria-labelledby="owner-daily-focus-title">
+          <span className="ownerDailyFocusIcon"><PrioridadeIcon size={22} /></span>
+          <div>
+            <small>PRIORIDADE AGORA</small>
+            <h2 id="owner-daily-focus-title">{prioridade.title}</h2>
+            <p>{prioridade.description}</p>
+          </div>
+          <button type="button" onClick={() => navigate(prioridade.to)}>
+            {prioridade.action} <ChevronRight size={18} />
+          </button>
+        </section>
+      ) : null}
 
       <div className={ehProprietario ? 'dashGrid' : undefined}>
         <div>

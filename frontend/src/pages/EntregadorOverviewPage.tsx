@@ -39,6 +39,26 @@ export function EntregadorOverviewPage() {
       ),
   );
   const proximaParada = paradas?.find((p) => p.status !== "CONCLUIDA");
+  const proximaAcao = !proxima
+    ? null
+    : proxima.status === "ENTREGADOR_DESIGNADO"
+      ? "Abra a entrega e confirme a coleta quando chegar ao endereço."
+      : proxima.status === "COLETADA"
+        ? "Abra a entrega e inicie a rota para seguir ao destino."
+        : proxima.status === "TENTATIVA_FALHOU"
+          ? "Abra a entrega e retome a rota quando puder continuar."
+          : proximaParada
+            ? `Siga para ${proximaParada.endereco} e conclua esta parada.`
+            : "A rota terminou. Confirme o recebimento e finalize a entrega.";
+  const textoAcao = !proxima
+    ? "Ver histórico"
+    : !proximaParada && proxima.status === "EM_ROTA"
+      ? "Receber e finalizar"
+      : proxima.status === "ENTREGADOR_DESIGNADO"
+        ? "Ir para coleta"
+        : proxima.status === "COLETADA"
+          ? "Iniciar rota"
+          : "Abrir entrega";
   if (loading)
     return (
       <main className="page">
@@ -53,6 +73,74 @@ export function EntregadorOverviewPage() {
     );
   return (
     <main className="page portalOverview courierOverview">
+      <section className="portalPanel nextDeliveryPanel dailyPriorityPanel">
+        <div className="portalPanelHeading">
+          <div>
+            <span className="dailyPriorityEyebrow">AGORA</span>
+            <h2>{proxima ? "Próxima ação" : "Trabalho em dia"}</h2>
+            <p>{proximaAcao || "Não há nenhuma entrega pendente."}</p>
+          </div>
+          {proxima ? <PortalStatus status={proxima.status} /> : null}
+        </div>
+        {proxima ? (
+          <div className="nextDeliveryColumns">
+            <div>
+              {routeError ? (
+                <p role="alert" className="errorMessage">
+                  {routeError}
+                </p>
+              ) : paradas === null ? (
+                <p role="status">Carregando rota...</p>
+              ) : paradas.length ? (
+                <PortalRoute
+                  paradas={paradas}
+                  bairros={{
+                    origem: proxima.bairroOrigem,
+                    destino: proxima.bairroDestino,
+                  }}
+                />
+              ) : (
+                <p className="portalEmpty">Rota ainda não cadastrada.</p>
+              )}
+            </div>
+            <div className="nextDeliveryMeta">
+              <span>Cliente</span>
+              <strong>{proxima.clienteNome}</strong>
+              <span>Valor da entrega</span>
+              <strong>{portalMoney(proxima.valorFinal)}</strong>
+            </div>
+            <div className="nextDeliveryActions">
+              <Link
+                className="portalPrimaryButton"
+                to={"/minhas-entregas?entrega=" + proxima.id}
+              >
+                <Truck size={22} />
+                {textoAcao}
+              </Link>
+              {proximaParada ? (
+                <a
+                  className="portalOutlineButton"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href={
+                    "https://www.google.com/maps/search/?api=1&query=" +
+                    encodeURIComponent(proximaParada.endereco)
+                  }
+                >
+                  <Map size={22} />
+                  Abrir endereço
+                </a>
+              ) : (
+                <p className="portalMuted">Confira as paradas no detalhe.</p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <Link className="portalOutlineButton" to="/minhas-entregas">
+            Ver histórico <ChevronRight size={18} />
+          </Link>
+        )}
+      </section>
       <section className="portalMetrics" aria-label="Resumo das entregas">
         <PortalMetric
           icon={Package}
@@ -95,76 +183,6 @@ export function EntregadorOverviewPage() {
       </section>
       <div className="portalOverviewColumns courierColumns">
         <div className="portalOverviewMain">
-          <section className="portalPanel nextDeliveryPanel">
-            <div className="portalPanelHeading">
-              <div>
-                <h2>Próxima entrega</h2>
-                <p>Sua próxima parada na rota.</p>
-              </div>
-              {proxima ? <PortalStatus status={proxima.status} /> : null}
-            </div>
-            {proxima ? (
-              <div className="nextDeliveryColumns">
-                <div>
-                  {routeError ? (
-                    <p role="alert" className="errorMessage">
-                      {routeError}
-                    </p>
-                  ) : paradas === null ? (
-                    <p role="status">Carregando rota...</p>
-                  ) : paradas.length ? (
-                    <PortalRoute
-                      paradas={paradas}
-                      bairros={{
-                        origem: proxima.bairroOrigem,
-                        destino: proxima.bairroDestino,
-                      }}
-                    />
-                  ) : (
-                    <p className="portalEmpty">Rota ainda não cadastrada.</p>
-                  )}
-                </div>
-                <div className="nextDeliveryMeta">
-                  <span>Cliente</span>
-                  <strong>{proxima.clienteNome}</strong>
-                  <span>Valor da entrega</span>
-                  <strong>{portalMoney(proxima.valorFinal)}</strong>
-                </div>
-                <div className="nextDeliveryActions">
-                  <Link
-                    className="portalPrimaryButton"
-                    to={"/minhas-entregas?entrega=" + proxima.id}
-                  >
-                    <Truck size={22} />
-                    Ver entrega
-                  </Link>
-                  {proximaParada ? (
-                    <a
-                      className="portalOutlineButton"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      href={
-                        "https://www.google.com/maps/search/?api=1&query=" +
-                        encodeURIComponent(proximaParada.endereco)
-                      }
-                    >
-                      <Map size={22} />
-                      Abrir endereço
-                    </a>
-                  ) : (
-                    <p className="portalMuted">
-                      Confira as paradas no detalhe.
-                    </p>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <p className="portalEmpty">
-                Nenhuma entrega pendente. Consulte seu histórico em Minhas
-                entregas.
-              </p>
-            )}
-          </section>
           <section className="portalPanel">
             <div className="portalPanelHeading">
               <div>

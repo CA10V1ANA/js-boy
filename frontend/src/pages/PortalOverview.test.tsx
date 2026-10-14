@@ -74,10 +74,14 @@ describe("Visões gerais por perfil", () => {
     );
     const metric = screen.getByText("Recebido hoje").closest("article")!;
     expect(within(metric).getByText(/R\$\s*0,00/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Ver entrega" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Abrir entrega" })).toHaveAttribute(
       "href",
       "/minhas-entregas?entrega=delivery-1",
     );
+    const priority = screen.getByRole("heading", { name: "Próxima ação" }).closest("section")!;
+    const metrics = screen.getByLabelText("Resumo das entregas");
+    expect(priority.compareDocumentPosition(metrics) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByText("Siga para Rua B e conclua esta parada.")).toBeInTheDocument();
   });
 
   it("conta conclusões somente no mês atual e abre a solicitação pelo cabeçalho", async () => {
@@ -134,6 +138,9 @@ describe("Visões gerais por perfil", () => {
       .getByText("Pagamentos pendentes")
       .closest("article")!;
     expect(within(pending).getByText(/R\$\s*41,00/)).toBeInTheDocument();
+    const tracking = screen.getByRole("heading", { name: "Acompanhe sua entrega" }).closest("section")!;
+    const clientMetrics = screen.getByLabelText("Resumo das suas entregas");
+    expect(tracking.compareDocumentPosition(clientMetrics) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     await userEvent
       .setup()
       .click(screen.getByRole("link", { name: "Solicitar entrega" }));

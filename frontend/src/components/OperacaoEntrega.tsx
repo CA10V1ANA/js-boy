@@ -379,6 +379,15 @@ export function OperacaoEntrega({
       financeiro.formaPagamento !== "PIX" &&
       financeiro.formaPagamento !== "DINHEIRO",
   );
+  const podeEscolherForma = Boolean(
+    perfil === "ENTREGADOR" &&
+      financeiro &&
+      financeiro.saldo > 0 &&
+      financeiro.valorRecebido === 0 &&
+      !financeiro.recebidoConfirmado &&
+      !financeiro.cobrancaLegadaId &&
+      !intent.current,
+  );
   return (
     <section className="deliveryOperation" aria-label="Rota e recebimento">
       {loading ? <p role="status">Conferindo rota e pagamento...</p> : null}
@@ -499,35 +508,46 @@ export function OperacaoEntrega({
                   </dd>
                 </div>
               </dl>
-              {pagamentoLegado && perfil === "ENTREGADOR" ? (
+              {podeEscolherForma ? (
                 <div
                   className="paymentMethodChoice"
                   role="group"
                   aria-label="Escolher forma de pagamento"
                 >
                   <div>
-                    <strong>Como você recebeu?</strong>
+                    <strong>
+                      {pagamentoLegado
+                        ? "Como você recebeu?"
+                        : "Forma do recebimento"}
+                    </strong>
                     <small>
-                      Escolha a forma usada nesta entrega. Depois, confirme o valor
-                      recebido.
+                      {pagamentoLegado
+                        ? "Escolha a forma usada nesta entrega. Depois, confirme o valor recebido."
+                        : "Você pode ajustar a forma antes de confirmar qualquer valor."}
                     </small>
                   </div>
                   <div className="paymentMethodActions">
                     <button
-                      className="secondaryButton"
+                      className={`secondaryButton ${financeiro.formaPagamento === "PIX" ? "selected" : ""}`}
                       type="button"
-                      disabled={busy}
+                      disabled={busy || financeiro.formaPagamento === "PIX"}
+                      aria-pressed={financeiro.formaPagamento === "PIX"}
                       onClick={() => void definirFormaPagamento("PIX")}
                     >
-                      Usar Pix
+                      {financeiro.formaPagamento === "PIX"
+                        ? "Pix selecionado"
+                        : "Usar Pix"}
                     </button>
                     <button
-                      className="secondaryButton"
+                      className={`secondaryButton ${financeiro.formaPagamento === "DINHEIRO" ? "selected" : ""}`}
                       type="button"
-                      disabled={busy}
+                      disabled={busy || financeiro.formaPagamento === "DINHEIRO"}
+                      aria-pressed={financeiro.formaPagamento === "DINHEIRO"}
                       onClick={() => void definirFormaPagamento("DINHEIRO")}
                     >
-                      Usar Dinheiro
+                      {financeiro.formaPagamento === "DINHEIRO"
+                        ? "Dinheiro selecionado"
+                        : "Usar Dinheiro"}
                     </button>
                   </div>
                 </div>

@@ -124,19 +124,50 @@ describe('Operação e confirmação financeira', () => {
     await screen.findByRole('button', { name: 'Finalizar entrega' });
     expect(screen.queryByRole('button', { name: 'Confirmar dinheiro recebido' })).not.toBeInTheDocument();
   });
-  it('explica ao entregador por que um pagamento legado bloqueia a finalização', async () => {
+  it('permite ao entregador escolher a forma quando o pagamento legado bloqueia a finalização', async () => {
+    const user = userEvent.setup();
     state = { ...state, formaPagamento: 'OUTRO', podeConfirmar: false,
       pendencia: 'Escolha Pix ou Dinheiro e regularize o saldo pendente' };
     const concluidas = stops.map(parada => ({ ...parada, status: 'CONCLUIDA', realizadaEm: '2026-10-09T12:00:00Z' }));
     vi.mocked(api.get).mockImplementation(async url => ({ data: String(url).includes('/recebimentos/') ? { ...state } : concluidas }));
+    vi.mocked(api.patch).mockImplementation(async () => {
+      state = { ...state, formaPagamento: 'DINHEIRO', podeConfirmar: true,
+        pendencia: 'Confirme o recebimento em dinheiro para finalizar. Existe saldo pendente' };
+      return { data: {} };
+    });
 
     render(<OperacaoEntrega entregaId="entrega-1" versao={2} perfil="ENTREGADOR" />);
 
     expect(await screen.findByRole('heading', { name: 'Finalização bloqueada' })).toBeInTheDocument();
     expect(screen.getByText('Todas as paradas concluídas')).toBeInTheDocument();
     expect(screen.getByText('R$ 80,00 ainda pendente')).toBeInTheDocument();
-    expect(screen.getByText(/Escolha Pix ou Dinheiro no cartão de pagamento acima/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Usar Dinheiro' }));
+    expect(api.patch).toHaveBeenCalledWith(
+      '/operacao-entregador/recebimentos/entrega-1/forma-pagamento',
+      { formaPagamento: 'DINHEIRO' },
+    );
+    expect(await screen.findByRole('button', { name: 'Confirmar dinheiro recebido' })).toBeEnabled();
     expect(screen.getByRole('button', { name: 'Finalizar entrega' })).toBeDisabled();
-    expect(api.patch).not.toHaveBeenCalled();
+  });
+  it('permite trocar Pix sem chave por dinheiro antes de qualquer recebimento', async () => {
+    const user = userEvent.setup();
+    state = { ...state, formaPagamento: 'PIX', chavePix: undefined, podeConfirmar: false,
+      pendencia: 'Confirme o recebimento do Pix para finalizar. Existe saldo pendente' };
+    vi.mocked(api.patch).mockImplementation(async () => {
+      state = { ...state, formaPagamento: 'DINHEIRO', podeConfirmar: true,
+        pendencia: 'Confirme o recebimento em dinheiro para finalizar. Existe saldo pendente' };
+      return { data: {} };
+    });
+
+    render(<OperacaoEntrega entregaId="entrega-1" versao={2} perfil="ENTREGADOR" />);
+
+    expect(await screen.findByText('Cadastre a chave Pix do entregador designado para apresentar o pagamento.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Pix selecionado' })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Usar Dinheiro' }));
+    expect(api.patch).toHaveBeenCalledWith(
+      '/operacao-entregador/recebimentos/entrega-1/forma-pagamento',
+      { formaPagamento: 'DINHEIRO' },
+    );
+    expect(await screen.findByRole('button', { name: 'Confirmar dinheiro recebido' })).toBeEnabled();
   });
 });

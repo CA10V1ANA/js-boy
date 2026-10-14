@@ -1973,6 +1973,77 @@ a {
   border-radius: 14px;
 }
 
+.ownerDailyFocus {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  margin: 18px 0;
+  padding: 18px 20px;
+  border: 1px solid #ead9a6;
+  border-radius: 14px;
+  background: #fffaf0;
+  box-shadow: var(--shadow-sm);
+}
+
+.ownerDailyFocus.active {
+  border-color: #b9ded3;
+  background: #f4fbf8;
+}
+
+.ownerDailyFocus.done {
+  border-color: #c9e2d5;
+  background: #f5fbf7;
+}
+
+.ownerDailyFocusIcon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 12px;
+  background: #fff0bd;
+  color: #8b6000;
+}
+
+.ownerDailyFocus small {
+  color: #8b6000;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+
+.ownerDailyFocus h2,
+.ownerDailyFocus p {
+  margin: 0;
+}
+
+.ownerDailyFocus h2 {
+  margin-top: 3px;
+  font-size: 17px;
+}
+
+.ownerDailyFocus p {
+  margin-top: 4px;
+  color: var(--body-2);
+  font-size: 13px;
+}
+
+.ownerDailyFocus > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid #d9b24b;
+  border-radius: 9px;
+  background: #fff;
+  color: var(--ink);
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .ribbonLive {
   display: flex;
   align-items: center;
@@ -3473,6 +3544,16 @@ tbody tr:hover {
   .appHeader,
   .page {
     padding-inline: 18px;
+  }
+
+  .ownerDailyFocus {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .ownerDailyFocus > button {
+    grid-column: 1 / -1;
+    width: 100%;
   }
 
   .appHeader {

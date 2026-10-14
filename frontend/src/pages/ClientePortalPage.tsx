@@ -454,6 +454,12 @@ export function ClientePortalPage() {
   ]
     .filter(Boolean)
     .join(", ");
+  const entregaAcompanhada =
+    data.entregas.find((e) => e.status === "EM_ROTA") ||
+    data.entregas.find(
+      (e) => !finalStatuses.includes(e.status) && e.status !== "SOLICITADA",
+    ) ||
+    data.entregas.find((e) => e.status === "SOLICITADA");
 
   const deliveryList = (deliveries: EntregaCliente[]) =>
     deliveries.length === 0 ? (
@@ -609,6 +615,7 @@ export function ClientePortalPage() {
       ) : null}
       {tab === "RESUMO" ? (
         <>
+          <AcompanhamentoResumo entrega={entregaAcompanhada} />
           <section
             className="portalMetrics"
             aria-label="Resumo das suas entregas"
@@ -648,17 +655,6 @@ export function ClientePortalPage() {
           </section>
           <div className="portalOverviewColumns clientColumns">
             <div className="portalOverviewMain">
-              <AcompanhamentoResumo
-                entrega={
-                  data.entregas.find((e) => e.status === "EM_ROTA") ||
-                  data.entregas.find(
-                    (e) =>
-                      !finalStatuses.includes(e.status) &&
-                      e.status !== "SOLICITADA",
-                  ) ||
-                  data.entregas.find((e) => e.status === "SOLICITADA")
-                }
-              />
               <section className="portalPanel recentHistoryPanel">
                 <div className="portalPanelHeading">
                   <h2>Histórico recente</h2>
