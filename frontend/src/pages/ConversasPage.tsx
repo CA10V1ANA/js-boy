@@ -1,11 +1,12 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { ArrowLeft, MessageCircle, Send } from "lucide-react";
+import { ArrowLeft, Inbox, MessageCircle, Search, Send } from "lucide-react";
 import { api } from "../services/api";
 import { apiErrorMessage } from "../services/apiError";
 import { useAuth } from "../contexts/AuthContext";
 import { useAreaOperacional } from "../hooks/useAreaOperacional";
 import { Modal } from "../components/Modal";
+import { titleCase } from "../utils/display";
 
 type Resumo = {
   id: string;
@@ -45,6 +46,13 @@ const hora = (v: string) =>
     dateStyle: "short",
     timeStyle: "short",
   });
+const iniciais = (nome: string) =>
+  nome
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((parte) => parte[0]?.toUpperCase())
+    .join("") || "JS";
 export function ConversasPage() {
   const { usuario } = useAuth();
   const operacional = useAreaOperacional();
@@ -275,14 +283,24 @@ export function ConversasPage() {
       className={`page conversationsPage ${selecionada ? "hasSelection" : ""}`}
     >
       <aside className="panelCard conversationInbox">
-        <h1>Caixa de entrada</h1>
-        <input
-          aria-label="Buscar conversa"
-          placeholder="Entrega, cliente, entregador ou status"
-          value={busca}
-          onChange={(e) => filtro("busca", e.target.value)}
-        />
-        <div className="segmentedControl">
+        <header className="conversationInboxHeader">
+          <span className="conversationInboxIcon" aria-hidden="true"><Inbox size={19} /></span>
+          <div>
+            <span className="conversationEyebrow">ATENDIMENTO</span>
+            <h1>Caixa de entrada</h1>
+            <p>Converse sobre suas entregas.</p>
+          </div>
+        </header>
+        <label className="conversationSearch">
+          <Search size={16} aria-hidden="true" />
+          <input
+            aria-label="Buscar conversa"
+            placeholder="Buscar por cliente ou entrega"
+            value={busca}
+            onChange={(e) => filtro("busca", e.target.value)}
+          />
+        </label>
+        <div className="segmentedControl conversationFilters">
           <button
             aria-pressed={!naoLidas}
             onClick={() => filtro("naoLidas", "false")}
@@ -299,22 +317,30 @@ export function ConversasPage() {
         {loading ? (
           <p role="status">Carregando conversas...</p>
         ) : !lista.length ? (
-          <p>Abra Conversar no detalhe de uma entrega para começar.</p>
+          <div className="conversationListEmpty">
+            <MessageCircle size={20} />
+            <p>Abra “Conversar” no detalhe de uma entrega para começar.</p>
+          </div>
         ) : null}
         {lista.map((c) => (
           <button
-            className={`conversationItem ${selecionada === c.id ? "selected" : ""}`}
+            className={`conversationItem ${selecionada === c.id ? "selected" : ""} ${c.naoLida ? "hasUnread" : ""}`}
             key={c.id}
             onClick={() => setParams({ conversa: c.id })}
           >
-            <strong>
-              {c.clienteNome} · {c.codigo}
-            </strong>
-            <span>{c.ultimaMensagem || "Nenhuma mensagem"}</span>
-            <small>
-              {hora(c.atualizadaEm)} · {c.status.replace(/_/g, " ")}
-              {c.naoLida ? " · Não lida" : ""}
-            </small>
+            <span className="conversationAvatar" aria-hidden="true">{iniciais(c.clienteNome)}</span>
+            <span className="conversationItemBody">
+              <span className="conversationItemTop">
+                <strong>{c.clienteNome}</strong>
+                {c.naoLida ? <span className="conversationUnread">Nova</span> : null}
+              </span>
+              <small className="conversationCode">{c.codigo}</small>
+              <span className="conversationPreview">{c.ultimaMensagem || "Nenhuma mensagem"}</span>
+              <span className="conversationMeta">
+                <span>{titleCase(c.status.replace(/_/g, " "))}</span>
+                <span>{hora(c.atualizadaEm)}</span>
+              </span>
+            </span>
           </button>
         ))}
         <div className="quickLinks">

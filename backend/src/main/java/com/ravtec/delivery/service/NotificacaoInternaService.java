@@ -136,6 +136,30 @@ public class NotificacaoInternaService {
         );
     }
 
+    @Transactional
+    public void lerTodas(boolean operacional) {
+        if (operacional) identidade.entregadorObrigatorio();
+        var id = identidade.principal().getId();
+        var args = new ArrayList<Object>();
+        args.add(id);
+        var sql = new StringBuilder(
+            "update notificacoes_internas n set lida_em=coalesce(n.lida_em,now()) " +
+            "where n.usuario_id=? "
+        );
+        if (operacional) {
+            sql.append("and exists (select 1 from entregas e join entregadores r on r.id=e.entregador_id where e.id=n.entrega_id and r.usuario_id=? and r.ativo=true) ");
+            args.add(id);
+        } else if (identidade.usuario().getPerfilEfetivo() != PerfilAcesso.PROPRIETARIO) {
+            sql.append(
+                "and (n.conversa_id is null or exists (select 1 from entregas e join clientes c on c.id=e.cliente_id where e.id=n.entrega_id and c.usuario_id=?) " +
+                "or exists (select 1 from entregas e join entregadores r on r.id=e.entregador_id where e.id=n.entrega_id and r.usuario_id=? and r.ativo=true)) "
+            );
+            args.add(id);
+            args.add(id);
+        }
+        jdbc.update(sql.toString(), args.toArray());
+    }
+
     public void resolverConversa(UUID id) {
         jdbc.update(
             "update notificacoes_internas set lida_em=now() where conversa_id=? and usuario_id=?",

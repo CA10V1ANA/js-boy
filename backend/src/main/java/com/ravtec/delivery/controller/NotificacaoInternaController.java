@@ -31,4 +31,9 @@ public class NotificacaoInternaController {
     public void ler(HttpServletRequest r, @PathVariable UUID id) {
         service.ler(id, r.getServletPath().startsWith("/operacao-entregador/"));
     }
+
+    @PatchMapping("/leitura")
+    public void lerTodas(HttpServletRequest r) {
+        service.lerTodas(r.getServletPath().startsWith("/operacao-entregador/"));
+    }
 }
