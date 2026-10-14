@@ -1,4 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  CheckCircle2,
+  CircleAlert,
+  Clock3,
+  LockKeyhole,
+  RefreshCw,
+  Route,
+  WalletCards,
+} from "lucide-react";
 import { api } from "../services/api";
 import { apiErrorMessage } from "../services/apiError";
 import { getStoredUser } from "../services/authStorage";
@@ -8,7 +17,7 @@ import {
   pendingReceipt,
   PendingReceipt,
 } from "../services/financialIntent";
-import { Parada, Recebimento } from "../types";
+import { FormaPagamento, Parada, Recebimento } from "../types";
 import { ConfirmDialog } from "./AsyncState";
 import { Modal } from "./Modal";
 
@@ -242,6 +251,37 @@ export function OperacaoEntrega({
     }
   }
 
+  async function definirFormaPagamento(formaPagamento: FormaPagamento) {
+    if (sending.current || perfil !== "ENTREGADOR") return;
+    sending.current = true;
+    setBusy(true);
+    setError("");
+    setFeedback("");
+    try {
+      await api.patch(
+        `/operacao-entregador/recebimentos/${entregaId}/forma-pagamento`,
+        { formaPagamento },
+      );
+      await load();
+      setFeedback(
+        formaPagamento === "PIX"
+          ? "Pix selecionado. Confira os dados e confirme o recebimento."
+          : "Dinheiro selecionado. Confirme o valor recebido para liberar a finalização.",
+      );
+      onChange?.();
+    } catch (reason) {
+      setError(
+        apiErrorMessage(
+          reason,
+          "Não foi possível definir a forma de pagamento. Atualize os dados e tente novamente.",
+        ),
+      );
+    } finally {
+      sending.current = false;
+      setBusy(false);
+    }
+  }
+
   async function concluir(parada: Parada) {
     if (sending.current) return;
     const recebedorNome = conclusao.recebedorNome.trim();
@@ -331,6 +371,14 @@ export function OperacaoEntrega({
   }
 
   const proxima = paradas.find((p) => p.status !== "CONCLUIDA");
+  const rotaConcluida =
+    paradas.length > 0 && paradas.every((p) => p.status === "CONCLUIDA");
+  const pagamentoRegularizado = Boolean(financeiro?.recebidoConfirmado);
+  const pagamentoLegado = Boolean(
+    financeiro &&
+      financeiro.formaPagamento !== "PIX" &&
+      financeiro.formaPagamento !== "DINHEIRO",
+  );
   return (
     <section className="deliveryOperation" aria-label="Rota e recebimento">
       {loading ? <p role="status">Conferindo rota e pagamento...</p> : null}
@@ -340,16 +388,22 @@ export function OperacaoEntrega({
         </p>
       ) : null}
       {feedback ? <p role="status">{feedback}</p> : null}
-      <button
-        className="secondaryButton"
-        type="button"
-        disabled={busy || loading}
-        onClick={() => void load()}
-      >
-        {perfil === "CLIENTE"
-          ? "Atualizar acompanhamento"
-          : "Atualizar rota e pagamento"}
-      </button>
+      <div className="operationToolbar">
+        <div>
+          <span className="operationEyebrow">ACOMPANHAMENTO</span>
+          <h3>Rota e recebimento</h3>
+          <p>Confira as etapas necessárias antes de encerrar a entrega.</p>
+        </div>
+        <button
+          className="secondaryButton operationRefreshButton"
+          type="button"
+          disabled={busy || loading}
+          onClick={() => void load()}
+        >
+          <RefreshCw size={15} aria-hidden="true" />
+          {perfil === "CLIENTE" ? "Atualizar" : "Atualizar dados"}
+        </button>
+      </div>
       {financeiro && !loading ? (
         <>
           {intent.current && perfil !== "CLIENTE" ? (
@@ -393,32 +447,91 @@ export function OperacaoEntrega({
           />
           <div className="operationGrid">
             <div className="paymentSummary">
-              <strong>
-                {financeiro.formaPagamento === "PIX"
-                  ? "Pix direto"
-                  : financeiro.formaPagamento === "DINHEIRO"
-                    ? "Dinheiro"
-                    : "Pagamento legado"}
-              </strong>
-              <p>
-                {financeiro.recebidoConfirmado
-                  ? financeiro.valorRecebido === 0
-                    ? "Sem saldo pendente"
-                    : financeiro.formaPagamento === "PIX"
-                      ? "Pix recebido"
-                      : "Recebimento regularizado"
-                  : financeiro.formaPagamento === "DINHEIRO"
-                    ? "Aguardando recebimento em dinheiro"
-                    : "Aguardando confirmação"}
-              </p>
-              <p>
-                Recebedor:{" "}
-                {financeiro.recebedorNome || "Entregador ainda não designado"}
-              </p>
-              <p>
-                Recebido: {money(financeiro.valorRecebido)} · Saldo:{" "}
-                {money(financeiro.saldo)}
-              </p>
+              <div className="paymentSummaryHeader">
+                <span className="operationIcon payment" aria-hidden="true">
+                  <WalletCards size={18} />
+                </span>
+                <div>
+                  <span>Pagamento</span>
+                  <strong>
+                    {financeiro.formaPagamento === "PIX"
+                      ? "Pix direto"
+                      : financeiro.formaPagamento === "DINHEIRO"
+                        ? "Dinheiro"
+                        : "Forma ainda não definida"}
+                  </strong>
+                </div>
+                <span
+                  className={`operationState ${pagamentoRegularizado ? "done" : "pending"}`}
+                >
+                  {pagamentoRegularizado ? "Regularizado" : "Pendente"}
+                </span>
+              </div>
+              <div className="paymentAmounts" aria-label="Resumo do pagamento">
+                <div>
+                  <span>Recebido</span>
+                  <strong>{money(financeiro.valorRecebido)}</strong>
+                </div>
+                <div>
+                  <span>Saldo pendente</span>
+                  <strong>{money(financeiro.saldo)}</strong>
+                </div>
+              </div>
+              <dl className="paymentMetadata">
+                <div>
+                  <dt>Recebedor</dt>
+                  <dd>
+                    {financeiro.recebedorNome || "Entregador ainda não designado"}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Situação</dt>
+                  <dd>
+                    {financeiro.recebidoConfirmado
+                      ? financeiro.valorRecebido === 0
+                        ? "Sem saldo pendente"
+                        : "Recebimento confirmado"
+                      : financeiro.formaPagamento === "DINHEIRO"
+                        ? "Aguardando confirmação do dinheiro"
+                        : pagamentoLegado
+                          ? "Escolha Pix ou Dinheiro"
+                          : "Aguardando confirmação"}
+                  </dd>
+                </div>
+              </dl>
+              {pagamentoLegado && perfil === "ENTREGADOR" ? (
+                <div
+                  className="paymentMethodChoice"
+                  role="group"
+                  aria-label="Escolher forma de pagamento"
+                >
+                  <div>
+                    <strong>Como você recebeu?</strong>
+                    <small>
+                      Escolha a forma usada nesta entrega. Depois, confirme o valor
+                      recebido.
+                    </small>
+                  </div>
+                  <div className="paymentMethodActions">
+                    <button
+                      className="secondaryButton"
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void definirFormaPagamento("PIX")}
+                    >
+                      Usar Pix
+                    </button>
+                    <button
+                      className="secondaryButton"
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void definirFormaPagamento("DINHEIRO")}
+                    >
+                      Usar Dinheiro
+                    </button>
+                  </div>
+                </div>
+              ) : null}
               {financeiro.confirmadoEm ? (
                 <small>
                   Confirmado por {financeiro.confirmadoPor} em{" "}
@@ -510,7 +623,7 @@ export function OperacaoEntrega({
                 </div>
               ) : null}
             </div>
-            <ol className="routeCards">
+            <ol className="routeCards" aria-label="Etapas da rota">
               {paradas.map((parada) => (
                 <li
                   key={parada.id}
@@ -578,40 +691,107 @@ export function OperacaoEntrega({
           {paradas.length === 0 ? (
             <p>Rota ainda não cadastrada. Procure o proprietário.</p>
           ) : null}
-          <p role="status">
-            {(perfil === "CLIENTE"
-              ? financeiro.pendencia
-                  ?.replace(
-                    "Confirme o recebimento",
-                    "Aguardando confirmação do recebimento",
-                  )
-                  .replace(
-                    /conclua as paradas pendentes/gi,
-                    "Aguardando conclusão das paradas pendentes",
-                  )
-                  .replace(
-                    "Designe um entregador",
-                    "Aguardando designação de um entregador",
-                  )
-                  .replace(
-                    "Escolha Pix ou Dinheiro",
-                    "A JS Boy deve selecionar Pix ou Dinheiro",
-                  )
-              : financeiro.pendencia) ||
-              (financeiro.podeFinalizar
-                ? "Entrega pronta para finalizar"
-                : "Siga as etapas operacionais para finalizar")}
-          </p>
-          {perfil !== "CLIENTE" ? (
-            <button
-              className="darkButton"
-              type="button"
-              disabled={busy || !financeiro.podeFinalizar}
-              onClick={() => void finalizar()}
-            >
-              Finalizar entrega
-            </button>
-          ) : null}
+          <section
+            className={`completionPanel ${financeiro.podeFinalizar ? "ready" : "blocked"}`}
+            aria-labelledby={`completion-title-${entregaId}`}
+          >
+            <div className="completionHeading">
+              <span className="operationIcon" aria-hidden="true">
+                {financeiro.podeFinalizar ? (
+                  <CheckCircle2 size={20} />
+                ) : (
+                  <LockKeyhole size={20} />
+                )}
+              </span>
+              <div>
+                <h4 id={`completion-title-${entregaId}`}>
+                  {financeiro.podeFinalizar
+                    ? "Entrega pronta para finalizar"
+                    : "Finalização bloqueada"}
+                </h4>
+                <p role="status">
+                  {(perfil === "CLIENTE"
+                    ? financeiro.pendencia
+                        ?.replace(
+                          "Confirme o recebimento",
+                          "Aguardando confirmação do recebimento",
+                        )
+                        .replace(
+                          /conclua as paradas pendentes/gi,
+                          "Aguardando conclusão das paradas pendentes",
+                        )
+                        .replace(
+                          "Designe um entregador",
+                          "Aguardando designação de um entregador",
+                        )
+                        .replace(
+                          "Escolha Pix ou Dinheiro",
+                          "A JS Boy deve selecionar Pix ou Dinheiro",
+                        )
+                    : financeiro.pendencia) ||
+                    "Todas as verificações foram concluídas."}
+                </p>
+              </div>
+            </div>
+
+            <div className="completionChecklist" aria-label="Requisitos para finalizar">
+              <div className={rotaConcluida ? "done" : "pending"}>
+                {rotaConcluida ? (
+                  <CheckCircle2 size={18} aria-hidden="true" />
+                ) : (
+                  <Route size={18} aria-hidden="true" />
+                )}
+                <span>
+                  <strong>Rota</strong>
+                  <small>
+                    {rotaConcluida ? "Todas as paradas concluídas" : "Há paradas pendentes"}
+                  </small>
+                </span>
+              </div>
+              <div className={pagamentoRegularizado ? "done" : "pending"}>
+                {pagamentoRegularizado ? (
+                  <CheckCircle2 size={18} aria-hidden="true" />
+                ) : (
+                  <Clock3 size={18} aria-hidden="true" />
+                )}
+                <span>
+                  <strong>Pagamento</strong>
+                  <small>
+                    {pagamentoRegularizado
+                      ? "Recebimento regularizado"
+                      : `${money(financeiro.saldo)} ainda pendente`}
+                  </small>
+                </span>
+              </div>
+            </div>
+
+            {pagamentoLegado && !pagamentoRegularizado ? (
+              <div className="completionGuidance">
+                <CircleAlert size={18} aria-hidden="true" />
+                <p>
+                  {perfil === "PROPRIETARIO"
+                    ? "Edite esta entrega, escolha Pix ou Dinheiro e confirme o recebimento antes de finalizar."
+                    : "Escolha Pix ou Dinheiro no cartão de pagamento acima e confirme o valor recebido."}
+                </p>
+              </div>
+            ) : null}
+
+            {perfil !== "CLIENTE" ? (
+              <button
+                className="darkButton completionButton"
+                type="button"
+                disabled={busy || !financeiro.podeFinalizar}
+                onClick={() => void finalizar()}
+              >
+                {financeiro.podeFinalizar ? (
+                  <CheckCircle2 size={17} aria-hidden="true" />
+                ) : (
+                  <LockKeyhole size={16} aria-hidden="true" />
+                )}
+                Finalizar entrega
+              </button>
+            ) : null}
+          </section>
           {perfil === "ENTREGADOR" && proxima ? (
             <>
               <button

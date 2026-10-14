@@ -35,6 +35,24 @@ describe('PagamentosPage: resposta perdida e reenvio', () => {
     }));
   });
 
+  it('organiza o resumo e o histórico em blocos financeiros legíveis', async () => {
+    payments = [{
+      id: pagamentoId, entregaId, entregaCodigo: 'ENT-1', clienteNome: 'Maria',
+      pagoEm: '2026-10-01T12:00:00Z', criadoEm: '2026-10-01T12:00:00Z',
+      tipo: 'RECEBIMENTO', formaPagamento: 'PIX', valor: 25.5,
+      usuarioResponsavelNome: 'Caio',
+    }];
+
+    render(<PagamentosPage />);
+
+    expect(await screen.findByRole('heading', { name: 'Visão financeira' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Resumo financeiro' })).toBeInTheDocument();
+    const history = screen.getByRole('region', { name: 'Histórico de lançamentos' });
+    expect(within(history).getByRole('heading', { name: 'Recebimento · ENT-1' })).toBeInTheDocument();
+    expect(within(history).getByText('Pix')).toBeInTheDocument();
+    expect(within(history).getByText('R$ 25,50')).toBeInTheDocument();
+  });
+
   it('reenvia o pagamento com mesma chave e mesmo payload após reload', async () => {
     mockedApi.post.mockRejectedValueOnce(new Error('resposta perdida')).mockResolvedValueOnce({ data: {} });
     const user = userEvent.setup();

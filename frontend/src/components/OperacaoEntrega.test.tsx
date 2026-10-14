@@ -48,7 +48,7 @@ describe('Operação e confirmação financeira', () => {
     expect(screen.queryByText('Recebimento regularizado')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Finalizar entrega' })).not.toBeInTheDocument();
     const attempt = vi.mocked(api.post).mock.calls[0];
-    await user.click(screen.getByRole('button', { name: 'Atualizar rota e pagamento' }));
+    await user.click(screen.getByRole('button', { name: 'Atualizar dados' }));
     await user.click(await screen.findByRole('button', { name: 'Confirmar dinheiro recebido' }));
     await waitFor(() => expect(api.post).toHaveBeenCalledTimes(2));
     expect(vi.mocked(api.post).mock.calls[1]).toEqual(attempt);
@@ -123,5 +123,20 @@ describe('Operação e confirmação financeira', () => {
     render(<OperacaoEntrega entregaId="entrega-1" versao={2} perfil="ENTREGADOR" />);
     await screen.findByRole('button', { name: 'Finalizar entrega' });
     expect(screen.queryByRole('button', { name: 'Confirmar dinheiro recebido' })).not.toBeInTheDocument();
+  });
+  it('explica ao entregador por que um pagamento legado bloqueia a finalização', async () => {
+    state = { ...state, formaPagamento: 'OUTRO', podeConfirmar: false,
+      pendencia: 'Escolha Pix ou Dinheiro e regularize o saldo pendente' };
+    const concluidas = stops.map(parada => ({ ...parada, status: 'CONCLUIDA', realizadaEm: '2026-10-09T12:00:00Z' }));
+    vi.mocked(api.get).mockImplementation(async url => ({ data: String(url).includes('/recebimentos/') ? { ...state } : concluidas }));
+
+    render(<OperacaoEntrega entregaId="entrega-1" versao={2} perfil="ENTREGADOR" />);
+
+    expect(await screen.findByRole('heading', { name: 'Finalização bloqueada' })).toBeInTheDocument();
+    expect(screen.getByText('Todas as paradas concluídas')).toBeInTheDocument();
+    expect(screen.getByText('R$ 80,00 ainda pendente')).toBeInTheDocument();
+    expect(screen.getByText(/Escolha Pix ou Dinheiro no cartão de pagamento acima/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Finalizar entrega' })).toBeDisabled();
+    expect(api.patch).not.toHaveBeenCalled();
   });
 });
