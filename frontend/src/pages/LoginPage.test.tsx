@@ -87,4 +87,17 @@ describe('LoginPage', () => {
     expect(screen.getByRole('link', { name: 'Criar conta como cliente' })).toHaveAttribute('href', '/cadastro');
     expect(screen.queryByText(/sou funcionário|sou entregador/i)).not.toBeInTheDocument();
   });
+
+  it('organiza login e cadastro em abas e mantém a recuperação de senha acessível', () => {
+    mockedUseAuth.mockReturnValue({ autenticado: false, carregando: false, login: vi.fn(), usuario: null, token: null, entrarGoogle: vi.fn(), logout: vi.fn() });
+    renderLoginPage();
+
+    const tabs = within(screen.getByRole('navigation', { name: 'Acesso à conta' }));
+    expect(tabs.getByRole('link', { name: 'Entrar' })).toHaveAttribute('aria-current', 'page');
+    expect(tabs.getByRole('link', { name: 'Criar conta como cliente' })).toHaveAttribute('href', '/cadastro');
+    const forgotPassword = screen.getByRole('link', { name: 'Esqueci minha senha' });
+    expect(forgotPassword).toHaveAttribute('href', '/esqueci-senha');
+    expect(forgotPassword).toHaveClass('forgotPasswordLink');
+    expect(screen.getByLabelText('Senha').compareDocumentPosition(forgotPassword) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
 });

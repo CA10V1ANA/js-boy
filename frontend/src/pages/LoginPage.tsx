@@ -1,4 +1,5 @@
 import { GoogleLoginButton } from '../components/GoogleLoginButton';
+import { AuthTabs } from '../components/AuthTabs';
 import { apiErrorMessage } from '../services/apiError';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff } from 'lucide-react';
@@ -53,9 +54,7 @@ export function LoginPage() {
         <div className="siteContainer">
           <h1>Acesso à JS Boy</h1>
           <section className="clientLoginCard">
-            <div className="clientTabs" aria-label="Acesso ao sistema">
-              <span className="active">Entrar</span>
-            </div>
+            <AuthTabs active="login" />
 
             <form className="clientLoginForm" onSubmit={handleSubmit(onSubmit)} noValidate>
               <label>
@@ -63,10 +62,10 @@ export function LoginPage() {
                 <input {...register('email')} type="email" inputMode="email" autoComplete="username" placeholder="nome@exemplo.com" value={email} onChange={(event) => setValue('email', formatEmailInput(event.target.value), { shouldDirty: true, shouldValidate: true })} />
                 {errors.email ? <span className="fieldError">{errors.email.message}</span> : null}
               </label>
-              <label>
-                Senha
+              <div className="clientLoginField">
+                <label htmlFor="login-password">Senha</label>
                 <span className="passwordInputWrap">
-                  <input type={senhaVisivel ? 'text' : 'password'} autoComplete="current-password" placeholder="Digite sua senha" {...register('senha')} />
+                  <input id="login-password" type={senhaVisivel ? 'text' : 'password'} autoComplete="current-password" placeholder="Digite sua senha" {...register('senha')} />
                   <button
                     className="passwordVisibilityButton"
                     type="button"
@@ -79,19 +78,19 @@ export function LoginPage() {
                   </button>
                 </span>
                 {errors.senha ? <span className="fieldError">{errors.senha.message}</span> : null}
-              </label>
+                <Link className="forgotPasswordLink" to="/esqueci-senha">Esqueci minha senha</Link>
+              </div>
               {erro ? <p className="errorMessage">{erro}</p> : null}
               <button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? 'Entrando...' : 'Entrar'}
               </button>
             </form>
-            <p><Link to="/cadastro">Criar conta como cliente</Link></p>
-            <GoogleLoginButton onCredential={credencial => { void entrarGoogle(credencial).then(() => navigate('/portal', { replace: true })).catch(r => { if (r?.response?.data?.code === 'GOOGLE_CADASTRO_NECESSARIO') navigate('/cadastro', { state: { credencial } }); else setErro(apiErrorMessage(r, 'Não foi possível entrar com Google.')); }); }} />
-            <p style={{ textAlign: 'center', marginTop: '0.75rem' }}>
-              <Link to="/esqueci-senha" style={{ color: 'var(--primary, #0066cc)', fontSize: '0.875rem' }}>
-                Esqueci minha senha
-              </Link>
-            </p>
+            <div className="loginAlternatives">
+              <div className="loginDivider" aria-hidden="true"><span>ou</span></div>
+              <div className="googleLoginSlot">
+                <GoogleLoginButton onCredential={credencial => { void entrarGoogle(credencial).then(() => navigate('/portal', { replace: true })).catch(r => { if (r?.response?.data?.code === 'GOOGLE_CADASTRO_NECESSARIO') navigate('/cadastro', { state: { credencial } }); else setErro(apiErrorMessage(r, 'Não foi possível entrar com Google.')); }); }} />
+              </div>
+            </div>
           </section>
         </div>
       </section>

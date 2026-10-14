@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { ArrowLeft, MailCheck } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
@@ -45,23 +46,30 @@ export function EsqueciSenhaPage() {
       <section className="clientArea">
         <div className="siteContainer">
           <h1>Recuperar senha</h1>
-          <section className="clientLoginCard">
+          <section className="clientLoginCard passwordRecoveryCard">
             {enviado ? (
-              <div className="clientLoginForm" style={{ textAlign: 'center' }}>
-                <p style={{ marginBottom: '1rem', lineHeight: 1.5 }}>
-                  Se uma conta com esse e-mail existir, enviaremos instruções para redefinir sua senha.
-                </p>
-                <p style={{ marginBottom: '1.5rem', color: 'var(--text-secondary, #666)', fontSize: '0.875rem' }}>
-                  Verifique também a pasta de spam.
-                </p>
-                <Link to="/login" className="primaryButton" style={{ display: 'inline-block', textDecoration: 'none' }}>
+              <div className="passwordRecoverySuccess" role="status" aria-live="polite">
+                <span className="passwordRecoverySuccessIcon" aria-hidden="true">
+                  <MailCheck size={25} strokeWidth={2.2} />
+                </span>
+                <div className="passwordRecoverySuccessCopy">
+                  <h2>Confira seu e-mail</h2>
+                  <p>
+                    Se houver uma conta com esse endereço, enviaremos um link para você criar uma nova senha.
+                  </p>
+                  <p className="passwordRecoveryHint">
+                    Não encontrou a mensagem? Verifique a pasta de spam.
+                  </p>
+                </div>
+                <Link to="/login" className="authBackLink">
+                  <ArrowLeft size={16} aria-hidden="true" />
                   Voltar ao login
                 </Link>
               </div>
             ) : (
-              <form className="clientLoginForm" onSubmit={handleSubmit(onSubmit)} noValidate>
-                <p style={{ marginBottom: '1rem', lineHeight: 1.5, fontSize: '0.9rem' }}>
-                  Informe o e-mail da sua conta. Enviaremos um link para redefinir a senha.
+              <form className="clientLoginForm passwordRecoveryForm" onSubmit={handleSubmit(onSubmit)} noValidate>
+                <p className="passwordRecoveryIntro">
+                  Digite o e-mail cadastrado para receber um link de redefinição de senha.
                 </p>
                 <label>
                   E-mail
@@ -85,11 +93,10 @@ export function EsqueciSenhaPage() {
                 <button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? 'Enviando...' : 'Enviar link de recuperação'}
                 </button>
-                <p style={{ textAlign: 'center', marginTop: '1rem' }}>
-                  <Link to="/login" style={{ color: 'var(--primary, #0066cc)', fontSize: '0.875rem' }}>
-                    Voltar ao login
-                  </Link>
-                </p>
+                <Link to="/login" className="authBackLink">
+                  <ArrowLeft size={16} aria-hidden="true" />
+                  Voltar ao login
+                </Link>
               </form>
             )}
           </section>

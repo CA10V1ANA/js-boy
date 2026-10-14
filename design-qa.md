@@ -58,3 +58,60 @@ Regiões-alvo: os quatro círculos do resumo operacional, o avatar “PJ” do r
 - [ ] Comparação lado a lado
 
 final result: blocked
+
+---
+
+# Design QA — autenticação pública
+
+- Source visual truth: `C:\Users\viana\AppData\Local\Temp\codex-clipboard-34e01752-f387-46db-992c-f07393bf875e.png`
+- Previous implementation reference: `C:\Users\viana\AppData\Local\Temp\codex-clipboard-4aef9e73-264f-4b04-8106-bf317a5cb4f7.png`
+- Implementation: `http://localhost:5173/login` and `http://localhost:5173/cadastro`
+- Implementation screenshots: Codex in-app browser captures displayed in the task evidence; the browser API did not expose a filesystem path.
+- Viewports: desktop `1045 x 700` CSS px and mobile `375 x 700` CSS px, device scale factor 1.
+- Source pixels: target `1045 x 737`; previous implementation `1528 x 818`.
+- State: logged out, login tab active; create-account tab active after navigation.
+
+## Full-view comparison evidence
+
+The login card now follows the reference composition: two equal tabs, one selected state, form controls below, a single primary yellow action, and secondary authentication separated from the form. The JS Boy header, copy, colors, logo, footer, password visibility control, and existing routes were intentionally preserved from the product.
+
+The create-account route now uses the same public header, footer, card, and tabs. Its longer production form uses a responsive two-column desktop layout and one-column mobile layout instead of forcing the short reference-card height.
+
+## Focused region comparison evidence
+
+- Tabs: equal tracks, visible active elevation, keyboard focus, and real navigation between `/login` and `/cadastro`.
+- Password support: recovery link is aligned with the password label and resolves to `/esqueci-senha`.
+- Alternative login: divider and Google state are centered and contained instead of appearing as loose text.
+- Mobile: login and registration cards stay within the viewport at `375px`; registration fields collapse to one column.
+
+## Required fidelity surfaces
+
+- Fonts and typography: existing JS Boy families, weights, hierarchy, and labels preserved; no wrapping or truncation issue remains in the tested viewports.
+- Spacing and layout rhythm: card padding, tab spacing, form gaps, divider, radii, and shadow follow the reference hierarchy.
+- Colors and visual tokens: existing white, neutral gray, black, and JS Boy yellow tokens preserved.
+- Image quality and asset fidelity: existing official JS Boy logo asset preserved; no placeholder or generated substitute introduced.
+- Copy and content: production copy and client-only registration contract preserved. Google remains explicitly unavailable because `VITE_GOOGLE_CLIENT_ID` is not configured locally.
+
+## Comparison history
+
+1. P1 found: only the login tab was visible and the secondary actions appeared as unrelated loose text. Fixed with two real navigation tabs, a password recovery position next to the field, and a separated Google section.
+2. P1 found after interaction test: the create-account tab opened the legacy unframed registration page. Fixed by applying the same public authentication shell and active-tab state to registration.
+3. Post-fix evidence: desktop and mobile captures show both active states without horizontal overflow; tab navigation works; browser console returned no warnings or errors.
+
+## Findings
+
+No actionable P0, P1, or P2 visual differences remain for the requested authentication-card scope.
+
+## Follow-up polish
+
+- P3 environment constraint: configure `VITE_GOOGLE_CLIENT_ID` to replace the intentional unavailable state with the real Google Identity button.
+
+## Primary interactions tested
+
+- Login tab to create-account tab navigation.
+- Create-account tab back to login navigation.
+- Password recovery link target.
+- Desktop and mobile responsive states.
+- Browser console warnings and errors.
+
+final result: passed
