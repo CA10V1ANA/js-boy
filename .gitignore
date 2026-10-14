@@ -6,6 +6,7 @@
 graphify-out/
 coverage/
 *.log
+*.tsbuildinfo
 
 # Flutter/Dart (pubspec.lock é versionado em aplicações)
 **/.dart_tool/
