@@ -11,6 +11,10 @@ public interface ClienteRepository extends JpaRepository<Cliente, UUID> {
     long countByAtivoTrue();
     Optional<Cliente> findByUsuarioId(UUID usuarioId);
     Optional<Cliente> findByUsuarioIdAndAtivoTrue(UUID usuarioId);
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("select c from Cliente c where c.usuario.id = :usuarioId and c.ativo = true")
+    Optional<Cliente> buscarAtivoPorUsuarioParaAtualizacao(@org.springframework.data.repository.query.Param("usuarioId") UUID usuarioId);
     boolean existsByDocumento(String documento);
     boolean existsByDocumentoAndIdNot(String documento, UUID id);
 }
