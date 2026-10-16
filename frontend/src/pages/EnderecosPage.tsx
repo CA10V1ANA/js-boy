@@ -1,3 +1,4 @@
+import { message, useLocale } from '../i18n';
 import { FormEvent, useEffect, useState } from "react";
 import { api } from "../services/api";
 import { apiErrorMessage } from "../services/apiError";
@@ -30,6 +31,7 @@ const empty = {
   contatoTelefone: "",
 };
 export function EnderecosPage() {
+  useLocale();
   const [items, setItems] = useState<Endereco[]>([]);
   const [form, setForm] = useState(empty);
   const [editing, setEditing] = useState<Endereco | null>(null);
@@ -40,7 +42,7 @@ export function EnderecosPage() {
     try {
       setItems((await api.get<Endereco[]>("/cliente/enderecos")).data);
     } catch (r) {
-      setError(apiErrorMessage(r, "Não foi possível carregar endereços."));
+      setError(apiErrorMessage(r, message("enderecos.nao.foi.possivel.carregar.enderecos")));
     }
   }
   useEffect(() => {
@@ -60,7 +62,7 @@ export function EnderecosPage() {
       setOpen(false);
       await load();
     } catch (r) {
-      setError(apiErrorMessage(r, "Não foi possível salvar o endereço."));
+      setError(apiErrorMessage(r, message("enderecos.nao.foi.possivel.salvar.o.endereco")));
     } finally {
       setBusy(false);
     }
@@ -69,7 +71,7 @@ export function EnderecosPage() {
     <main className="page">
       <section className="panelCard notificationPanel">
         <div className="panelCardHeader">
-          <h1>Endereços e contatos</h1>
+          <h1>{message("enderecos.enderecos.e.contatos")}</h1>
           <button
             className="primaryButton"
             onClick={() => {
@@ -78,15 +80,12 @@ export function EnderecosPage() {
               setOpen(true);
             }}
           >
-            Incluir endereço
-          </button>
+            {message("enderecos.incluir.endereco")} </button>
         </div>
         <p>
-          Locais frequentes para novas solicitações. Alterações aqui preservam o
-          histórico das entregas.
-        </p>
+          {message("enderecos.locais.frequentes.para.novas.solicitacoes.alteracoes.aqui.preservam.")} </p>
         {error ? <p role="alert">{error}</p> : null}
-        {!items.length ? <p>Nenhum endereço salvo.</p> : null}
+        {!items.length ? <p>{message("enderecos.nenhum.endereco.salvo")}</p> : null}
         {items.map((item) => (
           <article key={item.id} className="notificationRow">
             <div>
@@ -107,13 +106,12 @@ export function EnderecosPage() {
                   setOpen(true);
                 }}
               >
-                Editar
-              </button>
+                {message("enderecos.editar")} </button>
               <button
                 className="smallButton"
                 disabled={busy}
                 onClick={async () => {
-                  if (!window.confirm(`Remover o endereço ${item.apelido}?`))
+                  if (!window.confirm(message("enderecos.remover.o.endereco.value", { value1: item.apelido })))
                     return;
                   setBusy(true);
                   try {
@@ -122,14 +120,13 @@ export function EnderecosPage() {
                     });
                     await load();
                   } catch (r) {
-                    setError(apiErrorMessage(r, "Não foi possível remover."));
+                    setError(apiErrorMessage(r, message("enderecos.nao.foi.possivel.remover")));
                   } finally {
                     setBusy(false);
                   }
                 }}
               >
-                Remover
-              </button>
+                {message("enderecos.remover")} </button>
             </div>
           </article>
         ))}
@@ -137,20 +134,20 @@ export function EnderecosPage() {
       <Modal
         open={open}
         onClose={() => !busy && setOpen(false)}
-        title={editing ? "Editar endereço" : "Incluir endereço"}
+        title={editing ? message("enderecos.editar.endereco") : message("enderecos.incluir.endereco")}
       >
         <form className="settingsForm" onSubmit={salvar}>
           {Object.entries({
-            apelido: "Nome do local",
-            endereco: "Endereço completo",
-            bairro: "Bairro",
-            cidade: "Cidade",
-            estado: "UF",
-            cep: "CEP",
-            complemento: "Complemento",
-            referencia: "Referência e instruções de acesso",
-            contatoNome: "Nome do contato",
-            contatoTelefone: "Telefone do contato",
+            apelido: message("enderecos.nome.do.local"),
+            endereco: message("enderecos.endereco.completo"),
+            bairro: message("enderecos.bairro"),
+            cidade: message("enderecos.cidade"),
+            estado: message("enderecos.uf"),
+            cep: message("enderecos.cep"),
+            complemento: message("enderecos.complemento"),
+            referencia: message("enderecos.referencia.e.instrucoes.de.acesso"),
+            contatoNome: message("enderecos.nome.do.contato"),
+            contatoTelefone: message("enderecos.telefone.do.contato"),
           }).map(([key, label]) => (
             <label key={key}>
               {label}
@@ -196,7 +193,7 @@ export function EnderecosPage() {
           ))}
           {error ? <p role="alert">{error}</p> : null}
           <button className="primaryButton" disabled={busy}>
-            {busy ? "Salvando..." : "Salvar"}
+            {busy ? message("comum.salvando") : message("enderecos.salvar")}
           </button>
         </form>
       </Modal>

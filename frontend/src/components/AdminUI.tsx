@@ -1,3 +1,4 @@
+import { message, useLocale } from '../i18n';
 import { MoreVertical, Search } from 'lucide-react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 
@@ -8,6 +9,7 @@ type PageHeaderProps = {
 };
 
 export function PageHeader({ title, description, action }: PageHeaderProps) {
+  useLocale();
   return (
     <div className="pageHeader">
       <div>
@@ -28,6 +30,7 @@ type StatCardProps = {
 };
 
 export function StatCard({ title, value, helper, tone = 'value', icon }: StatCardProps) {
+  useLocale();
   return (
     <article className={`statCard tone-${tone}`}>
       <div className="statCardTop">
@@ -47,6 +50,7 @@ type SearchInputProps = {
 };
 
 export function SearchInput({ value, onChange, placeholder }: SearchInputProps) {
+  useLocale();
   return (
     <label className="searchField">
       <Search size={17} />
@@ -63,6 +67,7 @@ type FilterPillProps<T extends string> = {
 };
 
 export function FilterPill<T extends string>({ value, activeValue, onChange, children }: FilterPillProps<T>) {
+  useLocale();
   return (
     <button className={`filterPill ${value === activeValue ? 'active' : ''}`} type="button" onClick={() => onChange(value)}>
       {children}
@@ -76,6 +81,7 @@ type StatusPillProps = {
 };
 
 export function StatusPill({ children, tone = 'neutral' }: StatusPillProps) {
+  useLocale();
   return <span className={`statusPill tone-${tone}`}>{children}</span>;
 }
 
@@ -86,6 +92,7 @@ type ActionItem = {
 };
 
 export function ActionMenu({ items }: { items: ActionItem[] }) {
+  useLocale();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -102,7 +109,7 @@ export function ActionMenu({ items }: { items: ActionItem[] }) {
 
   return (
     <div className="actionMenu" ref={ref}>
-      <button className="ellipsisButton" type="button" onClick={() => setOpen((current) => !current)} aria-label="Mais ações">
+      <button className="ellipsisButton" type="button" onClick={() => setOpen((current) => !current)} aria-label={message("interface.mais.acoes")}>
         <MoreVertical size={18} />
       </button>
       {open ? (

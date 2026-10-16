@@ -1,3 +1,4 @@
+import { message } from '../i18n';
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../services/api";
 import { apiErrorMessage } from "../services/apiError";
@@ -19,7 +20,7 @@ export function useOperacao() {
       setSummary(resumo.data);
     } catch (reason) {
       setError(
-        apiErrorMessage(reason, "Não foi possível carregar suas entregas."),
+        apiErrorMessage(reason, message("operacao.nao.foi.possivel.carregar.suas.entregas")),
       );
     } finally {
       setLoading(false);

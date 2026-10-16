@@ -1,3 +1,4 @@
+import { message, useLocale } from '../i18n';
 import { ReactNode } from 'react';
 
 export type TableAction = {
@@ -9,8 +10,9 @@ export type TableAction = {
 };
 
 export function TableActions({ actions }: { actions: TableAction[] }) {
+  useLocale();
   return (
-    <div className="tableActions" aria-label="Ações do registro">
+    <div className="tableActions" aria-label={message("tabela.acoes.acoes.do.registro")}>
       {actions.map((action) => (
         <button
           key={action.label}

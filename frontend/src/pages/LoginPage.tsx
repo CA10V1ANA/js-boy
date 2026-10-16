@@ -1,3 +1,4 @@
+import { message, useLocale } from '../i18n';
 import { GoogleLoginButton } from '../components/GoogleLoginButton';
 import { AuthTabs } from '../components/AuthTabs';
 import { apiErrorMessage } from '../services/apiError';
@@ -12,6 +13,7 @@ import { formatEmailInput } from '../utils/inputMasks';
 import { PublicHeader, SiteFooter } from './LandingPage';
 
 export function LoginPage() {
+  useLocale();
   const { autenticado, entrarGoogle, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -43,7 +45,7 @@ export function LoginPage() {
       await login(formatEmailInput(data.email), data.senha);
       navigate(redirectTo, { replace: true });
     } catch {
-      setErro('E-mail ou senha inválidos.');
+      setErro(message("login.e.mail.ou.senha.invalidos"));
     }
   }
 
@@ -52,43 +54,42 @@ export function LoginPage() {
       <PublicHeader />
       <section className="clientArea">
         <div className="siteContainer">
-          <h1>Acesso à JS Boy</h1>
+          <h1>{message("login.acesso.a.js.boy")}</h1>
           <section className="clientLoginCard">
             <AuthTabs active="login" />
 
             <form className="clientLoginForm" onSubmit={handleSubmit(onSubmit)} noValidate>
               <label>
-                E-mail
-                <input {...register('email')} type="email" inputMode="email" autoComplete="username" placeholder="nome@exemplo.com" value={email} onChange={(event) => setValue('email', formatEmailInput(event.target.value), { shouldDirty: true, shouldValidate: true })} />
-                {errors.email ? <span className="fieldError">{errors.email.message}</span> : null}
+                {message("login.e.mail")} <input {...register('email')} type="email" inputMode="email" autoComplete="username" placeholder={message("comum.email.exemplo")} value={email} onChange={(event) => setValue('email', formatEmailInput(event.target.value), { shouldDirty: true, shouldValidate: true })} />
+                {errors.email ? <span className="fieldError">{message(errors.email.message || "")}</span> : null}
               </label>
               <div className="clientLoginField">
-                <label htmlFor="login-password">Senha</label>
+                <label htmlFor="login-password">{message("login.senha")}</label>
                 <span className="passwordInputWrap">
-                  <input id="login-password" type={senhaVisivel ? 'text' : 'password'} autoComplete="current-password" placeholder="Digite sua senha" {...register('senha')} />
+                  <input id="login-password" type={senhaVisivel ? 'text' : 'password'} autoComplete="current-password" placeholder={message("login.digite.sua.senha")} {...register('senha')} />
                   <button
                     className="passwordVisibilityButton"
                     type="button"
-                    aria-label={senhaVisivel ? 'Ocultar senha' : 'Mostrar senha'}
-                    title={senhaVisivel ? 'Ocultar senha' : 'Mostrar senha'}
+                    aria-label={senhaVisivel ? message("login.ocultar.senha") : message("login.mostrar.senha")}
+                    title={senhaVisivel ? message("login.ocultar.senha") : message("login.mostrar.senha")}
                     aria-pressed={senhaVisivel}
                     onClick={() => setSenhaVisivel((visivel) => !visivel)}
                   >
                     {senhaVisivel ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
                   </button>
                 </span>
-                {errors.senha ? <span className="fieldError">{errors.senha.message}</span> : null}
-                <Link className="forgotPasswordLink" to="/esqueci-senha">Esqueci minha senha</Link>
+                {errors.senha ? <span className="fieldError">{message(errors.senha.message || "")}</span> : null}
+                <Link className="forgotPasswordLink" to="/esqueci-senha">{message("login.esqueci.minha.senha")}</Link>
               </div>
               {erro ? <p className="errorMessage">{erro}</p> : null}
               <button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Entrando...' : 'Entrar'}
+                {isSubmitting ? message("comum.entrando") : message("login.entrar")}
               </button>
             </form>
             <div className="loginAlternatives">
-              <div className="loginDivider" aria-hidden="true"><span>ou</span></div>
+              <div className="loginDivider" aria-hidden="true"><span>{message("login.ou")}</span></div>
               <div className="googleLoginSlot">
-                <GoogleLoginButton onCredential={credencial => { void entrarGoogle(credencial).then(() => navigate('/portal', { replace: true })).catch(r => { if (r?.response?.data?.code === 'GOOGLE_CADASTRO_NECESSARIO') navigate('/cadastro', { state: { credencial } }); else setErro(apiErrorMessage(r, 'Não foi possível entrar com Google.')); }); }} />
+                <GoogleLoginButton onCredential={credencial => { void entrarGoogle(credencial).then(() => navigate('/portal', { replace: true })).catch(r => { if (r?.response?.data?.code === 'GOOGLE_CADASTRO_NECESSARIO') navigate('/cadastro', { state: { credencial } }); else setErro(apiErrorMessage(r, message("login.nao.foi.possivel.entrar.com.google"))); }); }} />
               </div>
             </div>
           </section>

@@ -1,3 +1,5 @@
+import { getLocale } from '../preferences';
+import { message, useLocale } from '../i18n';
 import { Bike, Calculator, Car, Clock3, MapPinned, RotateCcw, Save } from 'lucide-react';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { api } from '../services/api';
@@ -10,7 +12,7 @@ const emptyFallback: ConfiguracaoPrecoForm = {
 };
 
 function money(value: number) {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  return new Intl.NumberFormat(getLocale(), { style: 'currency', currency: 'BRL' }).format(value);
 }
 
 function normalize(value: string) {
@@ -18,6 +20,7 @@ function normalize(value: string) {
 }
 
 export function ConfiguracaoPrecoPage() {
+  useLocale();
   const [fallback, setFallback] = useState<ConfiguracaoPrecoForm>(emptyFallback);
   const [tabela, setTabela] = useState<TabelaPreco | null>(null);
   const [bairroSimulado, setBairroSimulado] = useState('Cocó');
@@ -46,7 +49,7 @@ export function ConfiguracaoPrecoPage() {
       });
       setTabela(tabelaResponse.data);
     } catch {
-      setErro('Não foi possível carregar a tabela de preços.');
+      setErro(message("preco.nao.foi.possivel.carregar.a.tabela.de.precos"));
     }
   }
 
@@ -71,9 +74,9 @@ export function ConfiguracaoPrecoPage() {
         })),
       });
       setTabela(response.data);
-      setMensagem('Tabela de preços atualizada.');
+      setMensagem(message("preco.tabela.de.precos.atualizada"));
     } catch {
-      setErro('Revise os valores e tente novamente.');
+      setErro(message("preco.revise.os.valores.e.tente.novamente"));
     }
   }
 
@@ -87,16 +90,16 @@ export function ConfiguracaoPrecoPage() {
     const espera = blocos * tabela.taxaEsperaTrintaMinutos;
     const retorno = retornoSimulado ? tabela.taxaRetorno : 0;
     let base = 0;
-    let origem = 'Cálculo alternativo por distância';
+    let origem = message("preco.calculo.alternativo.por.distancia");
     let pendente = false;
 
     if (areaSimulada?.valorNegociado) {
       base = Number(valorNegociadoSimulado) || 0;
-      origem = 'Valor negociado nesta entrega';
+      origem = message("preco.valor.negociado.nesta.entrega");
       pendente = base <= 0;
     } else if (areaSimulada) {
       base = tipoSimulado === 'CARRO' ? areaSimulada.valorCarro : areaSimulada.valorMoto;
-      origem = `${areaSimulada.nome} · ${tipoSimulado === 'CARRO' ? 'Carro' : 'Moto'}`;
+      origem = `${areaSimulada.nome} · ${tipoSimulado === 'CARRO' ? message("preco.configuracao.carro") : message("preco.configuracao.moto")}`;
     } else {
       base = Math.max(
         Number(fallback.taxaInicial) + Number(distanciaFallback || 0) * Number(fallback.valorPorKm),
@@ -118,28 +121,26 @@ export function ConfiguracaoPrecoPage() {
       <div className="infoBanner priceIntro">
         <span className="infoBannerIcon"><MapPinned size={19} /></span>
         <div>
-          <strong>{tabela?.nome || 'Tabela de preços por bairro'}</strong>
-          <p>O bairro de destino define a área e o valor-base. Rua e número completam o endereço, sem alterar a tarifa.</p>
+          <strong>{tabela?.nome || message("preco.tabela.de.precos.por.bairro")}</strong>
+          <p>{message("preco.o.bairro.de.destino.define.a.area.e.o.valor.base.rua.e.numero.comple")}</p>
         </div>
-        {tabela ? <span className="priceTableStatus">Vigente desde {new Date(`${tabela.vigenteDesde}T12:00:00`).toLocaleDateString('pt-BR')}</span> : null}
+        {tabela ? <span className="priceTableStatus">{message("preco.vigente.desde")} {new Date(`${tabela.vigenteDesde}T12:00:00`).toLocaleDateString(getLocale())}</span> : null}
       </div>
 
       <form className="settingsSections" onSubmit={salvar}>
         <section className="settingsSection">
           <div className="settingsSectionTitle">
             <Clock3 size={19} />
-            <div><h2>Taxas adicionais</h2><p>Não existe adicional por horário, domingo, feriado ou período noturno.</p></div>
+            <div><h2>{message("preco.taxas.adicionais")}</h2><p>{message("preco.nao.existe.adicional.por.horario.domingo.feriado.ou.periodo.noturno")}</p></div>
           </div>
           <div className="priceFeeGrid">
             <label>
-              Retorno
-              <div className="moneyInput"><span>R$</span><input type="number" min="0" step="0.01" value={tabela?.taxaRetorno ?? ''} onChange={(event) => setTabela((atual) => atual ? { ...atual, taxaRetorno: Number(event.target.value) } : atual)} required /></div>
-              <small>Cobrado uma vez quando a entrega possui retorno.</small>
+              {message("preco.configuracao.retorno")} <div className="moneyInput"><span>R$</span><input type="number" min="0" step="0.01" value={tabela?.taxaRetorno ?? ''} onChange={(event) => setTabela((atual) => atual ? { ...atual, taxaRetorno: Number(event.target.value) } : atual)} required /></div>
+              <small>{message("preco.cobrado.uma.vez.quando.a.entrega.possui.retorno")}</small>
             </label>
             <label>
-              Espera a cada 30 minutos completos
-              <div className="moneyInput"><span>R$</span><input type="number" min="0" step="0.01" value={tabela?.taxaEsperaTrintaMinutos ?? ''} onChange={(event) => setTabela((atual) => atual ? { ...atual, taxaEsperaTrintaMinutos: Number(event.target.value) } : atual)} required /></div>
-              <small>Ex.: 31 minutos = uma cobrança; 60 minutos = duas.</small>
+              {message("preco.espera.a.cada.30.minutos.completos")} <div className="moneyInput"><span>R$</span><input type="number" min="0" step="0.01" value={tabela?.taxaEsperaTrintaMinutos ?? ''} onChange={(event) => setTabela((atual) => atual ? { ...atual, taxaEsperaTrintaMinutos: Number(event.target.value) } : atual)} required /></div>
+              <small>{message("preco.ex.31.minutos.uma.cobranca.60.minutos.duas")}</small>
             </label>
           </div>
         </section>
@@ -147,21 +148,21 @@ export function ConfiguracaoPrecoPage() {
         <section className="settingsSection">
           <div className="settingsSectionTitle">
             <MapPinned size={19} />
-            <div><h2>Áreas e bairros</h2><p>Moto e carro começam com o mesmo valor, mas ficam preparados para diferenciação futura.</p></div>
+            <div><h2>{message("preco.areas.e.bairros")}</h2><p>{message("preco.moto.e.carro.comecam.com.o.mesmo.valor.mas.ficam.preparados.para.dif")}</p></div>
           </div>
           <div className="priceAreaList">
             {tabela?.areas.map((area) => (
               <article className="priceAreaCard" key={area.id}>
                 <div className="priceAreaHeader">
-                  <div><strong>{area.nome}</strong><span>{area.valorNegociado ? 'Definido em cada entrega' : `${area.bairros.length} bairros cadastrados`}</span></div>
-                  {area.valorNegociado ? <span className="statusBadge pending">A combinar</span> : null}
+                  <div><strong>{area.nome}</strong><span>{area.valorNegociado ? message("preco.definido.em.cada.entrega") : message("preco.value.bairros.cadastrados", { value1: area.bairros.length })}</span></div>
+                  {area.valorNegociado ? <span className="statusBadge pending">{message("preco.a.combinar")}</span> : null}
                 </div>
                 {area.valorNegociado ? (
-                  <p className="priceNegotiatedNote">O valor-base será obrigatório durante o cadastro da entrega para esta região.</p>
+                  <p className="priceNegotiatedNote">{message("preco.o.valor.base.sera.obrigatorio.durante.o.cadastro.da.entrega.para.est")}</p>
                 ) : (
                   <div className="priceVehicleGrid">
-                    <label><span><Bike size={15} /> Moto</span><div className="moneyInput"><span>R$</span><input type="number" min="0" step="0.01" value={area.valorMoto} onChange={(event) => atualizarArea(area.id, 'valorMoto', Number(event.target.value))} required /></div></label>
-                    <label><span><Car size={15} /> Carro</span><div className="moneyInput"><span>R$</span><input type="number" min="0" step="0.01" value={area.valorCarro} onChange={(event) => atualizarArea(area.id, 'valorCarro', Number(event.target.value))} required /></div></label>
+                    <label><span><Bike size={15} /> {message("preco.configuracao.moto")}</span><div className="moneyInput"><span>R$</span><input type="number" min="0" step="0.01" value={area.valorMoto} onChange={(event) => atualizarArea(area.id, 'valorMoto', Number(event.target.value))} required /></div></label>
+                    <label><span><Car size={15} /> {message("preco.configuracao.carro")}</span><div className="moneyInput"><span>R$</span><input type="number" min="0" step="0.01" value={area.valorCarro} onChange={(event) => atualizarArea(area.id, 'valorCarro', Number(event.target.value))} required /></div></label>
                   </div>
                 )}
                 <div className="neighborhoodChips">{area.bairros.map((bairro) => <span key={bairro}>{bairro}</span>)}</div>
@@ -174,36 +175,36 @@ export function ConfiguracaoPrecoPage() {
           <section className="settingsSection">
             <div className="settingsSectionTitle">
               <RotateCcw size={19} />
-              <div><h2>Cálculo alternativo</h2><p>Usado somente quando o bairro não estiver na tabela.</p></div>
+              <div><h2>{message("preco.calculo.alternativo")}</h2><p>{message("preco.usado.somente.quando.o.bairro.nao.estiver.na.tabela")}</p></div>
             </div>
             <div className="priceFallbackGrid">
-              <label>Valor inicial<input type="number" min="0" step="0.01" value={fallback.taxaInicial} onChange={(event) => setFallback({ ...fallback, taxaInicial: event.target.value })} required /></label>
-              <label>Preço por km<input type="number" min="0" step="0.01" value={fallback.valorPorKm} onChange={(event) => setFallback({ ...fallback, valorPorKm: event.target.value })} required /></label>
-              <label>Valor mínimo<input type="number" min="0" step="0.01" value={fallback.valorMinimo} onChange={(event) => setFallback({ ...fallback, valorMinimo: event.target.value })} required /></label>
+              <label>{message("preco.valor.inicial")}<input type="number" min="0" step="0.01" value={fallback.taxaInicial} onChange={(event) => setFallback({ ...fallback, taxaInicial: event.target.value })} required /></label>
+              <label>{message("preco.preco.por.km")}<input type="number" min="0" step="0.01" value={fallback.valorPorKm} onChange={(event) => setFallback({ ...fallback, valorPorKm: event.target.value })} required /></label>
+              <label>{message("preco.valor.minimo")}<input type="number" min="0" step="0.01" value={fallback.valorMinimo} onChange={(event) => setFallback({ ...fallback, valorMinimo: event.target.value })} required /></label>
             </div>
           </section>
 
           <section className="settingsSection priceSimulator">
             <div className="settingsSectionTitle">
               <Calculator size={19} />
-              <div><h2>Simulador</h2><p>Confira a composição antes de usar a tabela.</p></div>
+              <div><h2>{message("preco.configuracao.simulador")}</h2><p>{message("preco.confira.a.composicao.antes.de.usar.a.tabela")}</p></div>
             </div>
-            <label>Bairro de destino<input list="bairros-preco" value={bairroSimulado} onChange={(event) => setBairroSimulado(event.target.value)} placeholder="Digite o bairro" /></label>
+            <label>{message("preco.bairro.de.destino")}<input list="bairros-preco" value={bairroSimulado} onChange={(event) => setBairroSimulado(event.target.value)} placeholder={message("preco.digite.o.bairro")} /></label>
             <datalist id="bairros-preco">{bairros.map((bairro) => <option key={bairro} value={bairro} />)}</datalist>
             <div className="priceSimulatorFields">
-              <label>Veículo<select value={tipoSimulado} onChange={(event) => setTipoSimulado(event.target.value as 'MOTO' | 'CARRO')}><option value="MOTO">Moto</option><option value="CARRO">Carro</option></select></label>
-              <label>Espera (minutos)<input type="number" min="0" step="1" value={esperaSimulada} onChange={(event) => setEsperaSimulada(event.target.value)} /></label>
+              <label>{message("preco.veiculo")}<select value={tipoSimulado} onChange={(event) => setTipoSimulado(event.target.value as 'MOTO' | 'CARRO')}><option value="MOTO">{message("preco.configuracao.moto")}</option><option value="CARRO">{message("preco.configuracao.carro")}</option></select></label>
+              <label>{message("preco.espera.minutos")}<input type="number" min="0" step="1" value={esperaSimulada} onChange={(event) => setEsperaSimulada(event.target.value)} /></label>
             </div>
-            {areaSimulada?.valorNegociado ? <label>Valor negociado<input type="number" min="0" step="0.01" value={valorNegociadoSimulado} onChange={(event) => setValorNegociadoSimulado(event.target.value)} placeholder="0,00" /></label> : null}
-            {!areaSimulada && bairroSimulado ? <label>Distância para fallback (km)<input type="number" min="0" step="0.1" value={distanciaFallback} onChange={(event) => setDistanciaFallback(event.target.value)} /></label> : null}
-            <label className="priceReturnCheck"><input type="checkbox" checked={retornoSimulado} onChange={(event) => setRetornoSimulado(event.target.checked)} /> Possui retorno (+ {money(tabela?.taxaRetorno || 0)})</label>
+            {areaSimulada?.valorNegociado ? <label>{message("preco.valor.negociado")}<input type="number" min="0" step="0.01" value={valorNegociadoSimulado} onChange={(event) => setValorNegociadoSimulado(event.target.value)} placeholder="0,00" /></label> : null}
+            {!areaSimulada && bairroSimulado ? <label>{message("preco.distancia.para.fallback.km")}<input type="number" min="0" step="0.1" value={distanciaFallback} onChange={(event) => setDistanciaFallback(event.target.value)} /></label> : null}
+            <label className="priceReturnCheck"><input type="checkbox" checked={retornoSimulado} onChange={(event) => setRetornoSimulado(event.target.checked)} /> {message("preco.possui.retorno")} {money(tabela?.taxaRetorno || 0)})</label>
             {simulacao ? (
               <div className="wizardSummary priceSimulationResult">
-                <div className="wizardSummaryRow"><span>{simulacao.origem}</span><strong>{simulacao.pendente ? 'Informe o valor' : money(simulacao.base)}</strong></div>
-                {simulacao.retorno > 0 ? <div className="wizardSummaryRow"><span>Retorno</span><strong>{money(simulacao.retorno)}</strong></div> : null}
-                {simulacao.espera > 0 ? <div className="wizardSummaryRow"><span>Espera · {simulacao.blocos} bloco(s)</span><strong>{money(simulacao.espera)}</strong></div> : null}
+                <div className="wizardSummaryRow"><span>{simulacao.origem}</span><strong>{simulacao.pendente ? message("preco.informe.o.valor") : money(simulacao.base)}</strong></div>
+                {simulacao.retorno > 0 ? <div className="wizardSummaryRow"><span>{message("preco.configuracao.retorno")}</span><strong>{money(simulacao.retorno)}</strong></div> : null}
+                {simulacao.espera > 0 ? <div className="wizardSummaryRow"><span>{message("preco.espera")} {simulacao.blocos} {message("preco.configuracao.bloco.s")}</span><strong>{money(simulacao.espera)}</strong></div> : null}
                 <div className="wizardSummaryDivider" />
-                <div className="wizardSummaryTotal"><span>Total estimado</span><strong>{simulacao.pendente ? '—' : money(simulacao.total)}</strong></div>
+                <div className="wizardSummaryTotal"><span>{message("preco.total.estimado")}</span><strong>{simulacao.pendente ? '—' : money(simulacao.total)}</strong></div>
               </div>
             ) : null}
           </section>
@@ -211,7 +212,7 @@ export function ConfiguracaoPrecoPage() {
 
         {mensagem ? <p className="successMessage">{mensagem}</p> : null}
         {erro ? <p className="errorMessage">{erro}</p> : null}
-        <div className="settingsSubmit"><button className="primaryButton" type="submit" disabled={!tabela}><Save size={16} /> Salvar tabela</button></div>
+        <div className="settingsSubmit"><button className="primaryButton" type="submit" disabled={!tabela}><Save size={16} /> {message("preco.salvar.tabela")}</button></div>
       </form>
     </main>
   );

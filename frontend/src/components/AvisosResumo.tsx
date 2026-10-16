@@ -1,3 +1,4 @@
+import { message, useLocale } from '../i18n';
 import { useEffect, useState } from "react";
 import {
   Bell,
@@ -30,8 +31,8 @@ function conteudo(evento: string, operacional: boolean) {
     return {
       icon: MessageCircle,
       tone: "blue",
-      title: "Nova mensagem",
-      description: "Há uma atualização na conversa da entrega.",
+      title: message("avisos.resumo.nova.mensagem"),
+      description: message("avisos.resumo.ha.uma.atualizacao.na.conversa.da.entrega"),
     };
   if (
     (e.includes("ROTA") && (e.includes("ATUALIZ") || e.includes("EDIT"))) ||
@@ -40,31 +41,31 @@ function conteudo(evento: string, operacional: boolean) {
     return {
       icon: MapPin,
       tone: "violet",
-      title: "Rota atualizada",
-      description: "Confira os locais e a ordem das paradas.",
+      title: message("avisos.resumo.rota.atualizada"),
+      description: message("avisos.resumo.confira.os.locais.e.a.ordem.das.paradas"),
     };
   if (e.includes("DESIGN"))
     return {
       icon: Package,
       tone: "amber",
-      title: operacional ? "Nova entrega atribuída" : "Entregador designado",
+      title: operacional ? message("avisos.resumo.nova.entrega.atribuida") : message("avisos.resumo.entregador.designado"),
       description: operacional
-        ? "Você recebeu uma nova entrega. Confira a rota."
-        : "A entrega possui um responsável designado.",
+        ? message("avisos.resumo.voce.recebeu.uma.nova.entrega.confira.a.rota")
+        : message("avisos.resumo.a.entrega.possui.um.responsavel.designado"),
     };
   if (e.includes("EM_ROTA") || e.includes("SAIDA"))
     return {
       icon: Truck,
       tone: "green",
-      title: "Entrega em rota",
-      description: "Acompanhe o andamento da entrega.",
+      title: message("avisos.resumo.entrega.em.rota"),
+      description: message("avisos.resumo.acompanhe.o.andamento.da.entrega"),
     };
   if (e.includes("SOLICIT"))
     return {
       icon: Package,
       tone: "amber",
-      title: "Solicitação recebida",
-      description: "A solicitação foi recebida para análise.",
+      title: message("avisos.resumo.solicitacao.recebida"),
+      description: message("avisos.resumo.a.solicitacao.foi.recebida.para.analise"),
     };
   return {
     icon: FileText,
@@ -73,10 +74,11 @@ function conteudo(evento: string, operacional: boolean) {
       .replace(/_/g, " ")
       .toLowerCase()
       .replace(/^./, (c) => c.toUpperCase()),
-    description: "Consulte o histórico para ver a atualização.",
+    description: message("avisos.resumo.consulte.o.historico.para.ver.a.atualizacao"),
   };
 }
 export function AvisosResumo() {
+  useLocale();
   const operacional = useAreaOperacional();
   const { usuario } = useAuth();
   const [items, setItems] = useState<Aviso[] | null>(null);
@@ -92,7 +94,7 @@ export function AvisosResumo() {
       })
       .catch((r) => {
         if (active)
-          setError(apiErrorMessage(r, "Não foi possível carregar avisos."));
+          setError(apiErrorMessage(r, message("avisos.resumo.nao.foi.possivel.carregar.avisos")));
       });
     return () => {
       active = false;
@@ -126,10 +128,9 @@ export function AvisosResumo() {
       }
     >
       <div className="portalPanelHeading">
-        <h2>{operacional ? <Bell size={28} /> : null}Avisos</h2>
+        <h2>{operacional ? <Bell size={28} /> : null}{message("avisos.resumo.avisos")}</h2>
         <Link className="portalTextLink" to={destino}>
-          Ver todos
-        </Link>
+          {message("avisos.resumo.ver.todos")} </Link>
       </div>
       {error ? (
         <p role="alert" className="portalEmpty">
@@ -137,8 +138,7 @@ export function AvisosResumo() {
         </p>
       ) : !items ? (
         <p role="status" className="portalEmpty">
-          Carregando avisos...
-        </p>
+          {message("avisos.resumo.carregando.avisos")} </p>
       ) : items.length ? (
         <div className="overviewNoticeList">
           {items.slice(0, 2).map((n) => {
@@ -152,7 +152,7 @@ export function AvisosResumo() {
                 <div>
                   <strong>
                     {!n.lidaEm ? (
-                      <i className="noticeUnread" aria-label="Não lida" />
+                      <i className="noticeUnread" aria-label={message("avisos.resumo.nao.lida")} />
                     ) : null}
                     {c.title}
                   </strong>
@@ -168,7 +168,7 @@ export function AvisosResumo() {
           })}
         </div>
       ) : (
-        <p className="portalEmpty">Nenhum aviso registrado.</p>
+        <p className="portalEmpty">{message("avisos.resumo.nenhum.aviso.registrado")}</p>
       )}
     </section>
   );

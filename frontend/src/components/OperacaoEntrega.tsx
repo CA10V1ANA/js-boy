@@ -1,3 +1,6 @@
+import { getLocale } from '../preferences';
+import { completionMessage } from '../i18n/server';
+import { message, useLocale } from '../i18n';
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   CheckCircle2,
@@ -22,7 +25,7 @@ import { ConfirmDialog } from "./AsyncState";
 import { Modal } from "./Modal";
 
 const money = (value: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
+  new Intl.NumberFormat(getLocale(), { style: "currency", currency: "BRL" }).format(
     value,
   );
 
@@ -37,6 +40,7 @@ export function OperacaoEntrega({
   perfil?: "CLIENTE" | "ENTREGADOR" | "PROPRIETARIO";
   onChange?: () => void;
 }) {
+  useLocale();
   const [financeiro, setFinanceiro] = useState<Recebimento | null>(null);
   const [paradas, setParadas] = useState<Parada[]>([]);
   const [loading, setLoading] = useState(true);
@@ -96,7 +100,7 @@ export function OperacaoEntrega({
       setError(
         apiErrorMessage(
           reason,
-          "Não foi possível conferir rota e pagamento. A finalização permanece bloqueada.",
+          message("operacao.entrega.nao.foi.possivel.conferir.rota.e.pagamento.a.finalizacao.permanece.b"),
         ),
       );
     } finally {
@@ -117,14 +121,14 @@ export function OperacaoEntrega({
         Number(valor) <= 0 ||
         Number(valor) > financeiro.saldo)
     ) {
-      setError("Informe um valor positivo até o saldo pendente.");
+      setError(message("operacao.entrega.informe.um.valor.positivo.ate.o.saldo.pendente"));
       return;
     }
     try {
       const user = getStoredUser();
       if (!user)
         throw new Error(
-          "Sessão não identificada. Entre novamente antes de confirmar.",
+          message("operacao.entrega.sessao.nao.identificada.entre.novamente.antes.de.confirmar"),
         );
       if (!intent.current) {
         if (
@@ -142,7 +146,7 @@ export function OperacaoEntrega({
       setError(
         apiErrorMessage(
           reason,
-          "Não foi possível preservar a confirmação. Habilite o armazenamento do navegador e tente novamente.",
+          message("operacao.entrega.nao.foi.possivel.preservar.a.confirmacao.habilite.o.armazenamento.do"),
         ),
       );
       return;
@@ -167,7 +171,7 @@ export function OperacaoEntrega({
       setError(
         apiErrorMessage(
           reason,
-          "Recebimento ainda não confirmado nesta tela. Atualize os dados ou repita a confirmação.",
+          message("operacao.entrega.recebimento.ainda.nao.confirmado.nesta.tela.atualize.os.dados.ou.rep"),
         ),
       );
       setFinanceiro(null);
@@ -197,7 +201,7 @@ export function OperacaoEntrega({
         !atual.chavePix
       ) {
         setError(
-          "Os dados de pagamento mudaram. Confira o recebedor atualizado antes de copiar.",
+          message("operacao.entrega.os.dados.de.pagamento.mudaram.confira.o.recebedor.atualizado.antes.d"),
         );
         setBusy(false);
         return;
@@ -208,7 +212,7 @@ export function OperacaoEntrega({
       setError(
         apiErrorMessage(
           reason,
-          "Não foi possível conferir a chave atual. Atualize os dados antes de pagar.",
+          message("operacao.entrega.nao.foi.possivel.conferir.a.chave.atual.atualize.os.dados.antes.de.p"),
         ),
       );
       return;
@@ -216,11 +220,11 @@ export function OperacaoEntrega({
     try {
       await navigator.clipboard.writeText(atual.chavePix!);
       setFeedback(
-        "Chave copiada. O recebimento será confirmado manualmente após a conferência do crédito.",
+        message("operacao.entrega.chave.copiada.o.recebimento.sera.confirmado.manualmente.apos.a.confe"),
       );
     } catch {
       setError(
-        "Não foi possível copiar. Selecione a chave e copie manualmente.",
+        message("operacao.entrega.nao.foi.possivel.copiar.selecione.a.chave.e.copie.manualmente"),
       );
     } finally {
       setBusy(false);
@@ -242,7 +246,7 @@ export function OperacaoEntrega({
       setError(
         apiErrorMessage(
           reason,
-          "Não foi possível conciliar a cobrança legada.",
+          message("operacao.entrega.nao.foi.possivel.conciliar.a.cobranca.legada"),
         ),
       );
     } finally {
@@ -265,15 +269,15 @@ export function OperacaoEntrega({
       await load();
       setFeedback(
         formaPagamento === "PIX"
-          ? "Pix selecionado. Confira os dados e confirme o recebimento."
-          : "Dinheiro selecionado. Confirme o valor recebido para liberar a finalização.",
+          ? message("operacao.entrega.pix.selecionado.confira.os.dados.e.confirme.o.recebimento")
+          : message("operacao.entrega.dinheiro.selecionado.confirme.o.valor.recebido.para.liberar.a.finali"),
       );
       onChange?.();
     } catch (reason) {
       setError(
         apiErrorMessage(
           reason,
-          "Não foi possível definir a forma de pagamento. Atualize os dados e tente novamente.",
+          message("operacao.entrega.nao.foi.possivel.definir.a.forma.de.pagamento.atualize.os.dados.e.te"),
         ),
       );
     } finally {
@@ -307,7 +311,7 @@ export function OperacaoEntrega({
       onChange?.();
     } catch (reason) {
       setConclusaoError(
-        apiErrorMessage(reason, "Não foi possível concluir a parada."),
+        apiErrorMessage(reason, message("operacao.entrega.nao.foi.possivel.concluir.a.parada")),
       );
     } finally {
       sending.current = false;
@@ -337,7 +341,7 @@ export function OperacaoEntrega({
       setError(
         apiErrorMessage(
           reason,
-          "Não foi possível finalizar a entrega. Confira o estado no servidor.",
+          message("operacao.entrega.nao.foi.possivel.finalizar.a.entrega.confira.o.estado.no.servidor"),
         ),
       );
     } finally {
@@ -362,7 +366,7 @@ export function OperacaoEntrega({
       onChange?.();
     } catch (reason) {
       setError(
-        apiErrorMessage(reason, "Não foi possível registrar a ocorrência."),
+        apiErrorMessage(reason, message("operacao.entrega.nao.foi.possivel.registrar.a.ocorrencia")),
       );
     } finally {
       sending.current = false;
@@ -389,8 +393,8 @@ export function OperacaoEntrega({
       !intent.current,
   );
   return (
-    <section className="deliveryOperation" aria-label="Rota e recebimento">
-      {loading ? <p role="status">Conferindo rota e pagamento...</p> : null}
+    <section className="deliveryOperation" aria-label={message("operacao.entrega.rota.e.recebimento")}>
+      {loading ? <p role="status">{message("operacao.entrega.conferindo.rota.e.pagamento")}</p> : null}
       {error ? (
         <p role="alert" className="errorMessage">
           {error}
@@ -399,9 +403,9 @@ export function OperacaoEntrega({
       {feedback ? <p role="status">{feedback}</p> : null}
       <div className="operationToolbar">
         <div>
-          <span className="operationEyebrow">ACOMPANHAMENTO</span>
-          <h3>Rota e recebimento</h3>
-          <p>Confira as etapas necessárias antes de encerrar a entrega.</p>
+          <span className="operationEyebrow">{message("operacao.entrega.acompanhamento")}</span>
+          <h3>{message("operacao.entrega.rota.e.recebimento")}</h3>
+          <p>{message("operacao.entrega.confira.as.etapas.necessarias.antes.de.encerrar.a.entrega")}</p>
         </div>
         <button
           className="secondaryButton operationRefreshButton"
@@ -410,7 +414,7 @@ export function OperacaoEntrega({
           onClick={() => void load()}
         >
           <RefreshCw size={15} aria-hidden="true" />
-          {perfil === "CLIENTE" ? "Atualizar" : "Atualizar dados"}
+          {perfil === "CLIENTE" ? message("operacao.entrega.atualizar") : message("operacao.entrega.atualizar.dados")}
         </button>
       </div>
       {financeiro && !loading ? (
@@ -418,32 +422,28 @@ export function OperacaoEntrega({
           {intent.current && perfil !== "CLIENTE" ? (
             <div className="manualReceipt">
               <p>
-                Há uma confirmação anterior sem resposta. Confira essa tentativa
-                antes de registrar outro recebimento.
-              </p>
+                {message("operacao.entrega.ha.uma.confirmacao.anterior.sem.resposta.confira.essa.tentativa.ante")} </p>
               <button
                 className="secondaryButton"
                 type="button"
                 disabled={busy}
                 onClick={() => void confirmar()}
               >
-                Conferir tentativa anterior
-              </button>
+                {message("operacao.entrega.conferir.tentativa.anterior")} </button>
               <button
                 className="secondaryButton"
                 type="button"
                 disabled={busy}
                 onClick={() => setDiscardOpen(true)}
               >
-                Descartar tentativa
-              </button>
+                {message("operacao.entrega.descartar.tentativa")} </button>
             </div>
           ) : null}
           <ConfirmDialog
             open={discardOpen}
-            title="Descartar a tentativa anterior?"
-            description="Ela pode já ter sido registrada. Confira o valor recebido no financeiro antes de descartar. Isso não estorna nenhum valor."
-            confirmLabel="Descartar tentativa"
+            title={message("operacao.entrega.descartar.a.tentativa.anterior")}
+            description={message("operacao.entrega.ela.pode.ja.ter.sido.registrada.confira.o.valor.recebido.no.financei")}
+            confirmLabel={message("operacao.entrega.descartar.tentativa")}
             danger
             busy={busy}
             onCancel={() => setDiscardOpen(false)}
@@ -461,50 +461,50 @@ export function OperacaoEntrega({
                   <WalletCards size={18} />
                 </span>
                 <div>
-                  <span>Pagamento</span>
+                  <span>{message("operacao.entrega.pagamento")}</span>
                   <strong>
                     {financeiro.formaPagamento === "PIX"
-                      ? "Pix direto"
+                      ? message("operacao.entrega.pix.direto")
                       : financeiro.formaPagamento === "DINHEIRO"
-                        ? "Dinheiro"
-                        : "Forma ainda não definida"}
+                        ? message("operacao.entrega.dinheiro")
+                        : message("operacao.entrega.forma.ainda.nao.definida")}
                   </strong>
                 </div>
                 <span
                   className={`operationState ${pagamentoRegularizado ? "done" : "pending"}`}
                 >
-                  {pagamentoRegularizado ? "Regularizado" : "Pendente"}
+                  {pagamentoRegularizado ? message("operacao.entrega.regularizado") : message("operacao.entrega.pendente")}
                 </span>
               </div>
-              <div className="paymentAmounts" aria-label="Resumo do pagamento">
+              <div className="paymentAmounts" aria-label={message("operacao.entrega.resumo.do.pagamento")}>
                 <div>
-                  <span>Recebido</span>
+                  <span>{message("operacao.entrega.recebido")}</span>
                   <strong>{money(financeiro.valorRecebido)}</strong>
                 </div>
                 <div>
-                  <span>Saldo pendente</span>
+                  <span>{message("operacao.entrega.saldo.pendente")}</span>
                   <strong>{money(financeiro.saldo)}</strong>
                 </div>
               </div>
               <dl className="paymentMetadata">
                 <div>
-                  <dt>Recebedor</dt>
+                  <dt>{message("operacao.entrega.recebedor")}</dt>
                   <dd>
-                    {financeiro.recebedorNome || "Entregador ainda não designado"}
+                    {financeiro.recebedorNome || message("operacao.entrega.entregador.ainda.nao.designado")}
                   </dd>
                 </div>
                 <div>
-                  <dt>Situação</dt>
+                  <dt>{message("operacao.entrega.situacao")}</dt>
                   <dd>
                     {financeiro.recebidoConfirmado
                       ? financeiro.valorRecebido === 0
-                        ? "Sem saldo pendente"
-                        : "Recebimento confirmado"
+                        ? message("operacao.entrega.sem.saldo.pendente")
+                        : message("operacao.entrega.recebimento.confirmado")
                       : financeiro.formaPagamento === "DINHEIRO"
-                        ? "Aguardando confirmação do dinheiro"
+                        ? message("operacao.entrega.aguardando.confirmacao.do.dinheiro")
                         : pagamentoLegado
-                          ? "Escolha Pix ou Dinheiro"
-                          : "Aguardando confirmação"}
+                          ? message("operacao.entrega.escolha.pix.ou.dinheiro")
+                          : message("operacao.entrega.aguardando.confirmacao")}
                   </dd>
                 </div>
               </dl>
@@ -512,18 +512,18 @@ export function OperacaoEntrega({
                 <div
                   className="paymentMethodChoice"
                   role="group"
-                  aria-label="Escolher forma de pagamento"
+                  aria-label={message("operacao.entrega.escolher.forma.de.pagamento")}
                 >
                   <div>
                     <strong>
                       {pagamentoLegado
-                        ? "Como você recebeu?"
-                        : "Forma do recebimento"}
+                        ? message("operacao.entrega.como.voce.recebeu")
+                        : message("operacao.entrega.forma.do.recebimento")}
                     </strong>
                     <small>
                       {pagamentoLegado
-                        ? "Escolha a forma usada nesta entrega. Depois, confirme o valor recebido."
-                        : "Você pode ajustar a forma antes de confirmar qualquer valor."}
+                        ? message("operacao.entrega.escolha.a.forma.usada.nesta.entrega.depois.confirme.o.valor.recebido")
+                        : message("operacao.entrega.voce.pode.ajustar.a.forma.antes.de.confirmar.qualquer.valor")}
                     </small>
                   </div>
                   <div className="paymentMethodActions">
@@ -535,8 +535,8 @@ export function OperacaoEntrega({
                       onClick={() => void definirFormaPagamento("PIX")}
                     >
                       {financeiro.formaPagamento === "PIX"
-                        ? "Pix selecionado"
-                        : "Usar Pix"}
+                        ? message("operacao.entrega.pix.selecionado")
+                        : message("operacao.entrega.usar.pix")}
                     </button>
                     <button
                       className={`secondaryButton ${financeiro.formaPagamento === "DINHEIRO" ? "selected" : ""}`}
@@ -546,22 +546,22 @@ export function OperacaoEntrega({
                       onClick={() => void definirFormaPagamento("DINHEIRO")}
                     >
                       {financeiro.formaPagamento === "DINHEIRO"
-                        ? "Dinheiro selecionado"
-                        : "Usar Dinheiro"}
+                        ? message("operacao.entrega.dinheiro.selecionado")
+                        : message("operacao.entrega.usar.dinheiro")}
                     </button>
                   </div>
                 </div>
               ) : null}
               {financeiro.confirmadoEm ? (
                 <small>
-                  Confirmado por {financeiro.confirmadoPor} em{" "}
-                  {new Date(financeiro.confirmadoEm).toLocaleString("pt-BR")}
+                  {message("operacao.entrega.confirmado.por")} {financeiro.confirmadoPor} {message("operacao.entrega.em")}{" "}
+                  {new Date(financeiro.confirmadoEm).toLocaleString(getLocale())}
                 </small>
               ) : null}
               {financeiro.formaPagamento === "PIX" && financeiro.saldo > 0 ? (
                 financeiro.chavePix ? (
                   <>
-                    <p>Titular: {financeiro.titularPix}</p>
+                    <p>{message("operacao.entrega.titular")} {financeiro.titularPix}</p>
                     <code className="pixKey">{financeiro.chavePix}</code>
                     <button
                       type="button"
@@ -569,29 +569,21 @@ export function OperacaoEntrega({
                       disabled={busy}
                       onClick={() => void copiarChave()}
                     >
-                      Copiar chave Pix
-                    </button>
+                      {message("operacao.entrega.copiar.chave.pix")} </button>
                     <small>
-                      Confira o destinatário no seu banco antes de pagar. Copiar
-                      a chave não confirma recebimento.
-                    </small>
+                      {message("operacao.entrega.confira.o.destinatario.no.seu.banco.antes.de.pagar.copiar.a.chave.na")} </small>
                   </>
                 ) : (
                   <p>
-                    Cadastre a chave Pix do entregador designado para apresentar
-                    o pagamento.
-                  </p>
+                    {message("operacao.entrega.cadastre.a.chave.pix.do.entregador.designado.para.apresentar.o.pagam")} </p>
                 )
               ) : null}
               {financeiro.cobrancaLegadaId && perfil === "PROPRIETARIO" ? (
                 <div className="manualReceipt">
                   <p>
-                    Existe uma cobrança anterior pendente. Confira a transação
-                    no Mercado Pago antes de receber novamente.
-                  </p>
+                    {message("operacao.entrega.existe.uma.cobranca.anterior.pendente.confira.a.transacao.no.mercado")} </p>
                   <label>
-                    ID da transação antiga
-                    <input
+                    {message("operacao.entrega.id.da.transacao.antiga")} <input
                       inputMode="numeric"
                       value={transacaoLegada}
                       onChange={(e) =>
@@ -605,20 +597,15 @@ export function OperacaoEntrega({
                     disabled={busy || !transacaoLegada}
                     onClick={() => void conciliarLegado()}
                   >
-                    Consultar e conciliar cobrança antiga
-                  </button>
+                    {message("operacao.entrega.consultar.e.conciliar.cobranca.antiga")} </button>
                   <small>
-                    A consulta não emite cobrança. Sem ID conhecido, localize a
-                    transação na conta do provedor; a pendência permanece até
-                    confirmação.
-                  </small>
+                    {message("operacao.entrega.a.consulta.nao.emite.cobranca.sem.id.conhecido.localize.a.transacao.")} </small>
                 </div>
               ) : null}
               {financeiro.podeConfirmar && perfil !== "CLIENTE" ? (
                 <div className="manualReceipt">
                   <label>
-                    Valor conferido na conta ou recebido em dinheiro
-                    <input
+                    {message("operacao.entrega.valor.conferido.na.conta.ou.recebido.em.dinheiro")} <input
                       type="number"
                       min="0.01"
                       max={financeiro.saldo}
@@ -635,15 +622,15 @@ export function OperacaoEntrega({
                     onClick={() => void confirmar()}
                   >
                     {busy
-                      ? "Confirmando..."
+                      ? message("comum.confirmando")
                       : financeiro.formaPagamento === "PIX"
-                        ? "Confirmar Pix recebido"
-                        : "Confirmar dinheiro recebido"}
+                        ? message("operacao.entrega.confirmar.pix.recebido")
+                        : message("operacao.entrega.confirmar.dinheiro.recebido")}
                   </button>
                 </div>
               ) : null}
             </div>
-            <ol className="routeCards" aria-label="Etapas da rota">
+            <ol className="routeCards" aria-label={message("operacao.entrega.etapas.da.rota")}>
               {paradas.map((parada) => (
                 <li
                   key={parada.id}
@@ -652,15 +639,15 @@ export function OperacaoEntrega({
                   <strong>
                     {parada.ordem}.{" "}
                     {parada.tipo === "COLETA"
-                      ? "Coleta"
+                      ? message("operacao.entrega.coleta")
                       : parada.tipo === "INTERMEDIARIA"
-                        ? "Parada intermediária"
-                        : "Entrega"}
-                    {proxima?.id === parada.id ? " · Próxima parada" : ""}
+                        ? message("operacao.entrega.parada.intermediaria")
+                        : message("operacao.entrega.entrega")}
+                    {proxima?.id === parada.id ? (" " + message("operacao.entrega.proxima.parada")) : ""}
                   </strong>
                   <p>
                     {parada.endereco}
-                    {parada.complemento ? ` · ${parada.complemento}` : ""}
+                    {parada.complemento ? (" " + message("operacao.entrega.value", { value1: parada.complemento })) : ""}
                   </p>
                   <p>
                     {[parada.cidade, parada.estado, parada.cep]
@@ -675,16 +662,16 @@ export function OperacaoEntrega({
                   {parada.observacao ? <p>{parada.observacao}</p> : null}
                   <small>
                     {parada.status === "CONCLUIDA"
-                      ? `Concluída em ${new Date(parada.realizadaEm!).toLocaleString("pt-BR")}${parada.usuarioConclusaoNome ? ` por ${parada.usuarioConclusaoNome}` : ""}`
+                      ? message("operacao.entrega.concluida.em.valuevalue", { value1: new Date(parada.realizadaEm!).toLocaleString(getLocale()), value2: parada.usuarioConclusaoNome ? message('comum.by', { name: parada.usuarioConclusaoNome }) : "" })
                       : parada.status === "FALHOU"
-                        ? "Tentativa falhou; parada pendente de resolução"
-                        : "Pendente"}
+                        ? message("operacao.entrega.tentativa.falhou.parada.pendente.de.resolucao")
+                        : message("operacao.entrega.pendente")}
                   </small>
                   {parada.recebedorNome ? (
-                    <p>Recebido por {parada.recebedorNome}</p>
+                    <p>{message("operacao.entrega.recebido.por")} {parada.recebedorNome}</p>
                   ) : null}
                   {parada.observacaoConclusao ? (
-                    <p>Observação: {parada.observacaoConclusao}</p>
+                    <p>{message("operacao.entrega.observacao")} {parada.observacaoConclusao}</p>
                   ) : null}
                   {perfil !== "CLIENTE" &&
                   proxima?.id === parada.id &&
@@ -700,8 +687,8 @@ export function OperacaoEntrega({
                       }}
                     >
                       {parada.tipo === "COLETA"
-                        ? "Concluir coleta"
-                        : "Concluir parada"}
+                        ? message("operacao.entrega.concluir.coleta")
+                        : message("operacao.entrega.concluir.parada")}
                     </button>
                   ) : null}
                 </li>
@@ -709,7 +696,7 @@ export function OperacaoEntrega({
             </ol>
           </div>
           {paradas.length === 0 ? (
-            <p>Rota ainda não cadastrada. Procure o proprietário.</p>
+            <p>{message("operacao.entrega.rota.ainda.nao.cadastrada.procure.o.proprietario")}</p>
           ) : null}
           <section
             className={`completionPanel ${financeiro.podeFinalizar ? "ready" : "blocked"}`}
@@ -726,35 +713,16 @@ export function OperacaoEntrega({
               <div>
                 <h4 id={`completion-title-${entregaId}`}>
                   {financeiro.podeFinalizar
-                    ? "Entrega pronta para finalizar"
-                    : "Finalização bloqueada"}
+                    ? message("operacao.entrega.entrega.pronta.para.finalizar")
+                    : message("operacao.entrega.finalizacao.bloqueada")}
                 </h4>
                 <p role="status">
-                  {(perfil === "CLIENTE"
-                    ? financeiro.pendencia
-                        ?.replace(
-                          "Confirme o recebimento",
-                          "Aguardando confirmação do recebimento",
-                        )
-                        .replace(
-                          /conclua as paradas pendentes/gi,
-                          "Aguardando conclusão das paradas pendentes",
-                        )
-                        .replace(
-                          "Designe um entregador",
-                          "Aguardando designação de um entregador",
-                        )
-                        .replace(
-                          "Escolha Pix ou Dinheiro",
-                          "A JS Boy deve selecionar Pix ou Dinheiro",
-                        )
-                    : financeiro.pendencia) ||
-                    "Todas as verificações foram concluídas."}
+                  {completionMessage(financeiro.pendencia, perfil === 'CLIENTE')}
                 </p>
               </div>
             </div>
 
-            <div className="completionChecklist" aria-label="Requisitos para finalizar">
+            <div className="completionChecklist" aria-label={message("operacao.entrega.requisitos.para.finalizar")}>
               <div className={rotaConcluida ? "done" : "pending"}>
                 {rotaConcluida ? (
                   <CheckCircle2 size={18} aria-hidden="true" />
@@ -762,9 +730,9 @@ export function OperacaoEntrega({
                   <Route size={18} aria-hidden="true" />
                 )}
                 <span>
-                  <strong>Rota</strong>
+                  <strong>{message("operacao.entrega.rota")}</strong>
                   <small>
-                    {rotaConcluida ? "Todas as paradas concluídas" : "Há paradas pendentes"}
+                    {rotaConcluida ? message("operacao.entrega.todas.as.paradas.concluidas") : message("operacao.entrega.ha.paradas.pendentes")}
                   </small>
                 </span>
               </div>
@@ -775,11 +743,11 @@ export function OperacaoEntrega({
                   <Clock3 size={18} aria-hidden="true" />
                 )}
                 <span>
-                  <strong>Pagamento</strong>
+                  <strong>{message("operacao.entrega.pagamento")}</strong>
                   <small>
                     {pagamentoRegularizado
-                      ? "Recebimento regularizado"
-                      : `${money(financeiro.saldo)} ainda pendente`}
+                      ? message("operacao.entrega.recebimento.regularizado")
+                      : message("operacao.entrega.value.ainda.pendente", { value1: money(financeiro.saldo) })}
                   </small>
                 </span>
               </div>
@@ -790,8 +758,8 @@ export function OperacaoEntrega({
                 <CircleAlert size={18} aria-hidden="true" />
                 <p>
                   {perfil === "PROPRIETARIO"
-                    ? "Edite esta entrega, escolha Pix ou Dinheiro e confirme o recebimento antes de finalizar."
-                    : "Escolha Pix ou Dinheiro no cartão de pagamento acima e confirme o valor recebido."}
+                    ? message("operacao.entrega.edite.esta.entrega.escolha.pix.ou.dinheiro.e.confirme.o.recebimento.")
+                    : message("operacao.entrega.escolha.pix.ou.dinheiro.no.cartao.de.pagamento.acima.e.confirme.o.va")}
                 </p>
               </div>
             ) : null}
@@ -808,8 +776,7 @@ export function OperacaoEntrega({
                 ) : (
                   <LockKeyhole size={16} aria-hidden="true" />
                 )}
-                Finalizar entrega
-              </button>
+                {message("operacao.entrega.finalizar.entrega")} </button>
             ) : null}
           </section>
           {perfil === "ENTREGADOR" && proxima ? (
@@ -820,13 +787,11 @@ export function OperacaoEntrega({
                 disabled={busy}
                 onClick={() => setOccurrenceOpen(!occurrenceOpen)}
               >
-                Registrar tentativa frustrada
-              </button>
+                {message("operacao.entrega.registrar.tentativa.frustrada")} </button>
               {occurrenceOpen ? (
                 <div className="settingsForm">
                   <label>
-                    Local
-                    <select
+                    {message("operacao.entrega.local")} <select
                       value={ocorrencia.paradaId}
                       onChange={(e) =>
                         setOcorrencia({
@@ -835,7 +800,7 @@ export function OperacaoEntrega({
                         })
                       }
                     >
-                      <option value="">Entrega inteira</option>
+                      <option value="">{message("operacao.entrega.entrega.inteira")}</option>
                       {paradas.map((p) => (
                         <option key={p.id} value={p.id}>
                           {p.ordem}. {p.endereco}
@@ -844,8 +809,7 @@ export function OperacaoEntrega({
                     </select>
                   </label>
                   <label>
-                    Motivo
-                    <input
+                    {message("operacao.entrega.motivo")} <input
                       maxLength={180}
                       value={ocorrencia.motivo}
                       onChange={(e) =>
@@ -854,8 +818,7 @@ export function OperacaoEntrega({
                     />
                   </label>
                   <label>
-                    Próxima ação
-                    <input
+                    {message("operacao.entrega.proxima.acao")} <input
                       maxLength={300}
                       value={ocorrencia.proximaAcao}
                       onChange={(e) =>
@@ -876,8 +839,7 @@ export function OperacaoEntrega({
                     }
                     onClick={() => void registrarOcorrencia()}
                   >
-                    Registrar ocorrência
-                  </button>
+                    {message("operacao.entrega.registrar.ocorrencia")} </button>
                 </div>
               ) : null}
             </>
@@ -889,14 +851,14 @@ export function OperacaoEntrega({
         onClose={() => {
           if (!busy) setParadaConclusao(null);
         }}
-        eyebrow="PRÓXIMA PARADA"
-        title="Concluir parada"
+        eyebrow={message("operacao.entrega.proxima.parada.2")}
+        title={message("operacao.entrega.concluir.parada")}
         maxWidth={560}
       >
-        {loading ? <p role="status">Conferindo a parada pendente...</p> : null}
+        {loading ? <p role="status">{message("operacao.entrega.conferindo.a.parada.pendente")}</p> : null}
         {!loading && !paradaConclusao ? (
           <p role="alert">
-            {error || "Não há parada pendente para concluir nesta entrega."}
+            {error || message("operacao.entrega.nao.ha.parada.pendente.para.concluir.nesta.entrega")}
           </p>
         ) : null}
         {paradaConclusao ? (
@@ -908,7 +870,7 @@ export function OperacaoEntrega({
             }}
           >
             <div className="proofDeliverySummary">
-              <span>Entrega selecionada</span>
+              <span>{message("operacao.entrega.entrega.selecionada")}</span>
               <strong>
                 {paradaConclusao.contatoNome || paradaConclusao.endereco}
               </strong>
@@ -921,12 +883,11 @@ export function OperacaoEntrega({
             ) : null}
             {paradaConclusao.tipo === "ENTREGA" ? (
               <label>
-                Quem recebeu (opcional)
-                <input
+                {message("operacao.entrega.quem.recebeu.opcional")} <input
                   maxLength={140}
                   disabled={busy}
                   value={conclusao.recebedorNome}
-                  placeholder="Nome da pessoa que recebeu"
+                  placeholder={message("operacao.entrega.nome.da.pessoa.que.recebeu")}
                   onChange={(event) =>
                     setConclusao({
                       ...conclusao,
@@ -937,8 +898,7 @@ export function OperacaoEntrega({
               </label>
             ) : null}
             <label>
-              Observação
-              <textarea
+              {message("operacao.entrega.observacao.2")} <textarea
                 rows={3}
                 maxLength={500}
                 disabled={busy}
@@ -949,7 +909,7 @@ export function OperacaoEntrega({
               />
             </label>
             <button className="primaryButton" type="submit" disabled={busy}>
-              {busy ? "Registrando..." : "Confirmar conclusão"}
+              {busy ? message("comum.registrando") : message("operacao.entrega.confirmar.conclusao")}
             </button>
           </form>
         ) : null}

@@ -1,3 +1,4 @@
+import { message, useLocale } from '../i18n';
 type PagePlaceholderProps = {
   title: string;
   description: string;
@@ -5,6 +6,7 @@ type PagePlaceholderProps = {
 };
 
 export function PagePlaceholder({ title, description, actionLabel }: PagePlaceholderProps) {
+  useLocale();
   return (
     <main className="page">
       <div className="pageHeader">
@@ -16,8 +18,8 @@ export function PagePlaceholder({ title, description, actionLabel }: PagePlaceho
       </div>
 
       <section className="emptyState">
-        <strong>Estrutura pronta para a proxima etapa</strong>
-        <span>Os formulários, tabelas e a integração com a API entram nas etapas seguintes do projeto.</span>
+        <strong>{message("pagina.estrutura.pronta.para.a.proxima.etapa")}</strong>
+        <span>{message("pagina.os.formularios.tabelas.e.a.integracao.com.a.api.entram.nas.etapas.se")}</span>
       </section>
     </main>
   );

@@ -1,3 +1,4 @@
+import { message, useLocale } from '../i18n';
 import { FormEvent, useRef, useState } from "react";
 import { Check, Circle, Eye, EyeOff } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -20,6 +21,7 @@ const vazio = {
   estado: "CE",
 };
 export function CadastroClientePage() {
+  useLocale();
   const [form, setForm] = useState(vazio);
   const [senha, setSenha] = useState("");
   const [senhaVisivel, setSenhaVisivel] = useState(false);
@@ -32,10 +34,10 @@ export function CadastroClientePage() {
   const credencial = (location.state as { credencial?: string } | null)
     ?.credencial;
   const requisitosSenha = [
-    { id: "tamanho", label: "Pelo menos 12 caracteres", completo: senha.length >= 12 },
-    { id: "maiuscula", label: "Uma letra maiúscula", completo: /[A-Z]/.test(senha) },
-    { id: "minuscula", label: "Uma letra minúscula", completo: /[a-z]/.test(senha) },
-    { id: "numero", label: "Um número", completo: /\d/.test(senha) },
+    { id: "tamanho", label: message("cliente.cadastro.pelo.menos.12.caracteres"), completo: senha.length >= 12 },
+    { id: "maiuscula", label: message("cliente.cadastro.uma.letra.maiuscula"), completo: /[A-Z]/.test(senha) },
+    { id: "minuscula", label: message("cliente.cadastro.uma.letra.minuscula"), completo: /[a-z]/.test(senha) },
+    { id: "numero", label: message("cliente.cadastro.um.numero"), completo: /\d/.test(senha) },
   ];
   const senhaValida = requisitosSenha.every((requisito) => requisito.completo);
 
@@ -70,11 +72,11 @@ export function CadastroClientePage() {
       } else {
         await api.post("/auth/cadastro-cliente", { cliente, senha });
         setFeedback(
-          "Cadastro recebido. Confira seu e-mail para ativar o acesso ao portal.",
+          message("cliente.cadastro.cadastro.recebido.confira.seu.e.mail.para.ativar.o.acesso.ao.portal"),
         );
       }
     } catch (r) {
-      setFeedback(apiErrorMessage(r, "Não foi possível concluir o cadastro."));
+      setFeedback(apiErrorMessage(r, message("cliente.cadastro.nao.foi.possivel.concluir.o.cadastro")));
     } finally {
       setBusy(false);
     }
@@ -84,23 +86,22 @@ export function CadastroClientePage() {
       <PublicHeader />
       <section className="clientArea clientRegistrationArea">
         <div className="siteContainer">
-          <h1>Criar conta como cliente</h1>
+          <h1>{message("cliente.cadastro.criar.conta.como.cliente")}</h1>
           <section className="clientLoginCard clientRegistrationCard">
             <AuthTabs active="cadastro" />
             <p className="clientRegistrationIntro">
-              Solicite entregas e acompanhe os serviços da sua empresa.
-            </p>
+              {message("cliente.cadastro.solicite.entregas.e.acompanhe.os.servicos.da.sua.empresa")} </p>
             <form className="clientRegistrationForm" onSubmit={cadastrar}>
               {Object.entries({
-                nome: "Nome ou razão social",
-                email: "E-mail",
-                telefone: "Telefone",
-                documento: "CPF ou CNPJ (opcional)",
-                logradouro: "Logradouro",
-                numero: "Número",
-                bairro: "Bairro",
-                cidade: "Cidade",
-                estado: "UF",
+                nome: message("cliente.cadastro.nome.ou.razao.social"),
+                email: message("cliente.cadastro.e.mail"),
+                telefone: message("cliente.cadastro.telefone"),
+                documento: message("cliente.cadastro.cpf.ou.cnpj.opcional"),
+                logradouro: message("cliente.cadastro.logradouro"),
+                numero: message("cliente.cadastro.numero"),
+                bairro: message("cliente.cadastro.bairro"),
+                cidade: message("cliente.cadastro.cidade"),
+                estado: message("cliente.cadastro.uf"),
               }).map(([key, label]) => (
                 <label
                   className={key === "nome" || key === "logradouro" ? "registrationWide" : undefined}
@@ -114,7 +115,7 @@ export function CadastroClientePage() {
                     }
                     disabled={busy || (key === "numero" && form.semNumero)}
                     aria-describedby={key === "numero" && form.semNumero ? "numero-desativado" : undefined}
-                    placeholder={key === "numero" && form.semNumero ? "Não se aplica" : undefined}
+                    placeholder={key === "numero" && form.semNumero ? message("cliente.cadastro.nao.se.aplica") : undefined}
                     maxLength={
                       key === "estado"
                         ? 2
@@ -133,8 +134,7 @@ export function CadastroClientePage() {
                   />
                   {key === "numero" && form.semNumero ? (
                     <small className="disabledFieldHint" id="numero-desativado">
-                      Campo desativado. Desmarque “Sem número” para restaurar o valor informado.
-                    </small>
+                      {message("cliente.cadastro.campo.desativado.desmarque.sem.numero.para.restaurar.o.valor.informa")} </small>
                   ) : null}
                 </label>
               ))}
@@ -145,17 +145,16 @@ export function CadastroClientePage() {
                   onChange={(e) => alternarSemNumero(e.target.checked)}
                 />
                 <span>
-                  <strong>Sem número</strong>
-                  <small>Use quando o endereço não possui numeração.</small>
+                  <strong>{message("cliente.cadastro.sem.numero")}</strong>
+                  <small>{message("cliente.cadastro.use.quando.o.endereco.nao.possui.numeracao")}</small>
                 </span>
               </label>
               {!credencial ? (
                 <div className="registrationPassword registrationWide">
                   <div className="registrationPasswordHeader">
-                    <label htmlFor="cadastro-senha">Senha</label>
+                    <label htmlFor="cadastro-senha">{message("cliente.cadastro.senha")}</label>
                     <span aria-live="polite">
-                      {requisitosSenha.filter((requisito) => requisito.completo).length} de 4 requisitos
-                    </span>
+                      {requisitosSenha.filter((requisito) => requisito.completo).length} {message("cliente.cadastro.de.4.requisitos")} </span>
                   </div>
                   <span className="passwordInputWrap">
                     <input
@@ -173,7 +172,7 @@ export function CadastroClientePage() {
                     <button
                       className="passwordVisibilityButton"
                       type="button"
-                      aria-label={senhaVisivel ? "Ocultar senha" : "Mostrar senha"}
+                      aria-label={senhaVisivel ? message("cliente.cadastro.ocultar.senha") : message("cliente.cadastro.mostrar.senha")}
                       aria-pressed={senhaVisivel}
                       onClick={() => setSenhaVisivel((visivel) => !visivel)}
                     >
@@ -190,18 +189,18 @@ export function CadastroClientePage() {
                   </ul>
                 </div>
               ) : (
-                <p className="registrationWide">Seu acesso será vinculado ao Google verificado.</p>
+                <p className="registrationWide">{message("cliente.cadastro.seu.acesso.sera.vinculado.ao.google.verificado")}</p>
               )}
               <button
                 className="primaryButton registrationWide"
                 disabled={busy || (!credencial && !senhaValida)}
               >
-                {busy ? "Enviando..." : "Criar conta de cliente"}
+                {busy ? message("comum.enviando") : message("cliente.cadastro.criar.conta.de.cliente")}
               </button>
             </form>
             {feedback ? <p className="registrationFeedback" role="status">{feedback}</p> : null}
             <p className="registrationHelp">
-              Já iniciou o cadastro? <Link to="/verificar-email">Reenviar verificação</Link>
+              {message("cliente.cadastro.ja.iniciou.o.cadastro")} <Link to="/verificar-email">{message("cliente.cadastro.reenviar.verificacao")}</Link>
             </p>
           </section>
         </div>

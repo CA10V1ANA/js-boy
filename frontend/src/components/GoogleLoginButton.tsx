@@ -1,3 +1,4 @@
+import { message, useLocale } from '../i18n';
 import { useEffect, useRef, useState } from "react";
 
 type GoogleApi = {
@@ -9,7 +10,7 @@ type GoogleApi = {
       }) => void;
       renderButton: (
         el: HTMLElement,
-        config: { theme: string; size: string; text: string },
+        config: { theme: string; size: string; text: string; locale: string },
       ) => void;
     };
   };
@@ -24,6 +25,7 @@ export function GoogleLoginButton({
 }: {
   onCredential: (credencial: string) => void;
 }) {
+  const locale = useLocale();
   const container = useRef<HTMLDivElement>(null);
   const callback = useRef(onCredential);
   const [error, setError] = useState("");
@@ -44,6 +46,7 @@ export function GoogleLoginButton({
         theme: "outline",
         size: "large",
         text: "continue_with",
+        locale: locale === 'pt-BR' ? 'pt_BR' : locale,
       });
     }
     const existing = document.querySelector<HTMLScriptElement>(
@@ -58,7 +61,7 @@ export function GoogleLoginButton({
       script.dataset.googleLogin = "true";
       script.addEventListener("load", render);
       script.addEventListener("error", () => {
-        if (active) setError("Login Google indisponível. Use e-mail e senha.");
+        if (active) setError(message("autenticacao.google.login.google.indisponivel.use.e.mail.e.senha"));
       });
       document.head.appendChild(script);
     }
@@ -66,12 +69,12 @@ export function GoogleLoginButton({
       active = false;
       existing?.removeEventListener("load", render);
     };
-  }, [clientId]);
+  }, [clientId, locale]);
   if (!clientId)
-    return <p className="formHelp">Login Google ainda não configurado.</p>;
+    return <p className="formHelp">{message("autenticacao.google.login.google.ainda.nao.configurado")}</p>;
   return (
     <>
-      <div ref={container} aria-label="Continuar com Google" />
+      <div ref={container} aria-label={message("autenticacao.google.continuar.com.google")} />
       {error ? <p role="alert">{error}</p> : null}
     </>
   );

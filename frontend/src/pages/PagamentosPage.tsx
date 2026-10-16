@@ -1,3 +1,5 @@
+import { getLocale } from '../preferences';
+import { message, useLocale } from '../i18n';
 import { Banknote, CircleCheckBig, Clock3, Plus, ReceiptText, Undo2, WalletCards } from 'lucide-react';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { ConfirmDialog, EmptyState, ErrorState, FeedbackMessage, LoadingState } from '../components/AsyncState';
@@ -15,16 +17,17 @@ import { Entrega, FormaPagamento, Pagamento, PagamentoForm, RelatorioFinanceiro 
 const emptyForm: PagamentoForm = { entregaId: '', valor: '', formaPagamento: 'PIX', comprovante: '', observacoes: '' };
 const emptyReport: RelatorioFinanceiro = { valorEntregas: 0, valorRecebido: 0, valorPendente: 0, pagamentosRegistrados: 0, pendencias: [] };
 const formas: FormaPagamento[] = ['PIX', 'DINHEIRO'];
-const money = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-const dateTime = (value: string) => new Intl.DateTimeFormat('pt-BR', {
+const money = (value: number) => new Intl.NumberFormat(getLocale(), { style: 'currency', currency: 'BRL' }).format(value);
+const dateTime = (value: string) => new Intl.DateTimeFormat(getLocale(), {
   dateStyle: 'short', timeStyle: 'short',
 }).format(new Date(value));
 const paymentMethodLabel = (value: FormaPagamento) => ({
-  PIX: 'Pix', DINHEIRO: 'Dinheiro', CARTAO: 'Cartão', BOLETO: 'Boleto',
-  TRANSFERENCIA: 'Transferência', OUTRO: 'Outro',
+  PIX: message("pagamento.pix.2"), DINHEIRO: message("pagamento.dinheiro"), CARTAO: message("pagamento.cartao"), BOLETO: message("pagamentos.boleto"),
+  TRANSFERENCIA: message("pagamento.transferencia"), OUTRO: message("pagamentos.outro"),
 })[value];
 
 export function PagamentosPage() {
+  useLocale();
   const { usuario } = useAuth();
   const [items, setItems] = useState<Pagamento[]>([]);
   const [deliveries, setDeliveries] = useState<Entrega[]>([]);
@@ -56,7 +59,7 @@ export function PagamentosPage() {
       ]);
       setItems(payments.data); setDeliveries(deliveryResponse.data); setReport(reportResponse.data);
     } catch (reason) {
-      setError(apiErrorMessage(reason, 'Não foi possível carregar os dados financeiros.'));
+      setError(apiErrorMessage(reason, message("pagamento.nao.foi.possivel.carregar.os.dados.financeiros")));
     } finally {
       setLoading(false);
     }
@@ -75,10 +78,10 @@ export function PagamentosPage() {
     try {
       await api.post('/pagamentos', intent.payload, { headers: { 'Idempotency-Key': intent.chave } });
       clearPaymentIntent(); setPaymentIntent(null);
-      setSuccess('Pagamento registrado.'); setForm(emptyForm);
+      setSuccess(message("pagamento.pagamento.registrado")); setForm(emptyForm);
       await load();
     } catch (reason) {
-      setError(apiErrorMessage(reason, 'Resultado do pagamento não confirmado. Reenvie a tentativa pendente.'));
+      setError(apiErrorMessage(reason, message("pagamento.resultado.do.pagamento.nao.confirmado.reenvie.a.tentativa.pendente")));
     } finally { setBusy(false); }
   }
 
@@ -92,7 +95,7 @@ export function PagamentosPage() {
       setPaymentIntent(intent);
       void sendPayment(intent);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Não foi possível preparar o pagamento.');
+      setError(reason instanceof Error ? reason.message : message("pagamento.nao.foi.possivel.preparar.o.pagamento"));
     }
   }
 
@@ -104,9 +107,9 @@ export function PagamentosPage() {
       await api.post(`/pagamentos/${intent.pagamentoId}/estornos`, intent.payload,
         { headers: { 'Idempotency-Key': intent.chave } });
       clearRefundIntent(); setRefundIntent(null);
-      setSuccess('Estorno registrado.'); await load();
+      setSuccess(message("pagamento.estorno.registrado")); await load();
     } catch (reason) {
-      setError(apiErrorMessage(reason, 'Resultado do estorno não confirmado. Reenvie a tentativa pendente.'));
+      setError(apiErrorMessage(reason, message("pagamento.resultado.do.estorno.nao.confirmado.reenvie.a.tentativa.pendente")));
     } finally { setBusy(false); }
   }
 
@@ -118,7 +121,7 @@ export function PagamentosPage() {
       setRefundIntent(intent);
       void sendRefund(intent);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Não foi possível preparar o estorno.');
+      setError(reason instanceof Error ? reason.message : message("pagamento.nao.foi.possivel.preparar.o.estorno"));
     }
   }
 
@@ -129,7 +132,7 @@ export function PagamentosPage() {
     setError('');
   }
 
-  if (loading) return <main className="page"><LoadingState label="Carregando financeiro..." /></main>;
+  if (loading) return <main className="page"><LoadingState label={message("pagamento.carregando.financeiro")} /></main>;
   if (error && items.length === 0 && deliveries.length === 0 && !paymentIntent && !refundIntent) {
     return <main className="page"><ErrorState message={error} onRetry={() => void load()} /></main>;
   }
@@ -138,32 +141,32 @@ export function PagamentosPage() {
     <main className="page paymentsPage">
       <header className="paymentsToolbar">
         <div>
-          <span className="paymentsEyebrow">CONTROLE FINANCEIRO</span>
-          <h1>Visão financeira</h1>
-          <p>Acompanhe valores recebidos, saldos em aberto e o histórico de movimentações.</p>
+          <span className="paymentsEyebrow">{message("pagamento.controle.financeiro")}</span>
+          <h1>{message("pagamento.visao.financeira")}</h1>
+          <p>{message("pagamento.acompanhe.valores.recebidos.saldos.em.aberto.e.o.historico.de.movime")}</p>
         </div>
-        <button className="primaryButton" type="button" disabled={Boolean(paymentIntent) || busy} onClick={() => setModalOpen(true)}><Plus size={17} /> Novo pagamento</button>
+        <button className="primaryButton" type="button" disabled={Boolean(paymentIntent) || busy} onClick={() => setModalOpen(true)}><Plus size={17} /> {message("pagamento.novo.pagamento")}</button>
       </header>
       {success ? <FeedbackMessage tone="success">{success}</FeedbackMessage> : null}
       {error ? <FeedbackMessage tone="error">{error}</FeedbackMessage> : null}
-      {paymentIntent ? <div className="infoBanner"><div><strong>Pagamento pendente de confirmação</strong><p>Reenvie a mesma tentativa de {money(paymentIntent.payload.valor)}. Antes de descartá-la, confira o histórico para evitar duplicidade.</p></div><button type="button" disabled={busy} onClick={() => void sendPayment(paymentIntent)}>Reenviar pagamento pendente</button><button type="button" disabled={busy} onClick={() => setDiscardIntent('payment')}>Descartar tentativa</button></div> : null}
-      {refundIntent ? <div className="infoBanner"><div><strong>Estorno pendente de confirmação</strong><p>Reenvie a mesma tentativa de {money(refundIntent.payload.valor)}. Antes de descartá-la, confira o histórico.</p></div><button type="button" disabled={busy} onClick={() => void sendRefund(refundIntent)}>Reenviar estorno pendente</button><button type="button" disabled={busy} onClick={() => setDiscardIntent('refund')}>Descartar tentativa</button></div> : null}
-      <section className="paymentsMetricGrid" aria-label="Resumo financeiro">
+      {paymentIntent ? <div className="infoBanner"><div><strong>{message("pagamento.pagamento.pendente.de.confirmacao")}</strong><p>{message("pagamento.reenvie.a.mesma.tentativa.de")} {money(paymentIntent.payload.valor)}{message("pagamento.antes.de.descarta.la.confira.o.historico.para.evitar.duplicidade")}</p></div><button type="button" disabled={busy} onClick={() => void sendPayment(paymentIntent)}>{message("pagamento.reenviar.pagamento.pendente")}</button><button type="button" disabled={busy} onClick={() => setDiscardIntent('payment')}>{message("pagamento.descartar.tentativa")}</button></div> : null}
+      {refundIntent ? <div className="infoBanner"><div><strong>{message("pagamento.estorno.pendente.de.confirmacao")}</strong><p>{message("pagamento.reenvie.a.mesma.tentativa.de")} {money(refundIntent.payload.valor)}{message("pagamento.antes.de.descarta.la.confira.o.historico")}</p></div><button type="button" disabled={busy} onClick={() => void sendRefund(refundIntent)}>{message("pagamento.reenviar.estorno.pendente")}</button><button type="button" disabled={busy} onClick={() => setDiscardIntent('refund')}>{message("pagamento.descartar.tentativa")}</button></div> : null}
+      <section className="paymentsMetricGrid" aria-label={message("pagamento.resumo.financeiro")}>
         <article className="paymentMetricCard">
           <span className="paymentMetricIcon neutral"><WalletCards size={19} aria-hidden="true" /></span>
-          <div><span>Total em entregas</span><strong>{money(report.valorEntregas)}</strong><small>Valor contratado</small></div>
+          <div><span>{message("pagamento.total.em.entregas")}</span><strong>{money(report.valorEntregas)}</strong><small>{message("pagamento.valor.contratado")}</small></div>
         </article>
         <article className="paymentMetricCard received">
           <span className="paymentMetricIcon"><CircleCheckBig size={19} aria-hidden="true" /></span>
-          <div><span>Recebido líquido</span><strong>{money(report.valorRecebido)}</strong><small>Valores confirmados</small></div>
+          <div><span>{message("pagamento.recebido.liquido")}</span><strong>{money(report.valorRecebido)}</strong><small>{message("pagamento.valores.confirmados")}</small></div>
         </article>
         <article className="paymentMetricCard pending">
           <span className="paymentMetricIcon"><Clock3 size={19} aria-hidden="true" /></span>
-          <div><span>Saldo pendente</span><strong>{money(report.valorPendente)}</strong><small>{report.pendencias.length} {report.pendencias.length === 1 ? 'entrega em aberto' : 'entregas em aberto'}</small></div>
+          <div><span>{message("pagamento.saldo.pendente")}</span><strong>{money(report.valorPendente)}</strong><small>{report.pendencias.length} {report.pendencias.length === 1 ? message("pagamento.entrega.em.aberto") : message("pagamento.entregas.em.aberto")}</small></div>
         </article>
         <article className="paymentMetricCard">
           <span className="paymentMetricIcon neutral"><ReceiptText size={19} aria-hidden="true" /></span>
-          <div><span>Lançamentos</span><strong>{report.pagamentosRegistrados}</strong><small>Recebimentos registrados</small></div>
+          <div><span>{message("pagamento.lancamentos")}</span><strong>{report.pagamentosRegistrados}</strong><small>{message("pagamento.recebimentos.registrados")}</small></div>
         </article>
       </section>
 
@@ -171,9 +174,9 @@ export function PagamentosPage() {
         <section className="paymentsSection" aria-labelledby="pending-payments-title">
           <div className="paymentsSectionHeader">
             <div>
-              <span className="paymentsEyebrow">OPERAÇÃO EM ABERTO</span>
-              <h2 id="pending-payments-title">Recebimentos pendentes</h2>
-              <p>Confira a rota, o recebedor e o saldo antes de regularizar cada entrega.</p>
+              <span className="paymentsEyebrow">{message("pagamento.operacao.em.aberto")}</span>
+              <h2 id="pending-payments-title">{message("pagamento.recebimentos.pendentes")}</h2>
+              <p>{message("pagamento.confira.a.rota.o.recebedor.e.o.saldo.antes.de.regularizar.cada.entre")}</p>
             </div>
             <span className="paymentsCount">{report.pendencias.length}</span>
           </div>
@@ -184,14 +187,14 @@ export function PagamentosPage() {
                   <div className="paymentPendingIdentity">
                     <span className="paymentPendingIcon"><Banknote size={20} aria-hidden="true" /></span>
                     <div>
-                      <span>Entrega {pending.entregaCodigo}</span>
+                      <span>{message("pagamento.entrega")} {pending.entregaCodigo}</span>
                       <h3 id={`pending-${pending.entregaId}`}>{pending.clienteNome}</h3>
                     </div>
                   </div>
                   <dl className="paymentPendingAmounts">
-                    <div><dt>Valor da entrega</dt><dd>{money(pending.valorEntrega)}</dd></div>
-                    <div><dt>Já recebido</dt><dd>{money(pending.valorPago)}</dd></div>
-                    <div className="highlight"><dt>Saldo pendente</dt><dd>{money(pending.valorPendente)}</dd></div>
+                    <div><dt>{message("pagamento.valor.da.entrega")}</dt><dd>{money(pending.valorEntrega)}</dd></div>
+                    <div><dt>{message("pagamento.ja.recebido")}</dt><dd>{money(pending.valorPago)}</dd></div>
+                    <div className="highlight"><dt>{message("pagamento.saldo.pendente")}</dt><dd>{money(pending.valorPendente)}</dd></div>
                   </dl>
                 </header>
                 <PixPagamento entregaId={pending.entregaId} />
@@ -204,13 +207,13 @@ export function PagamentosPage() {
       <section className="paymentsSection" aria-labelledby="payment-history-title">
         <div className="paymentsSectionHeader">
           <div>
-            <span className="paymentsEyebrow">MOVIMENTAÇÕES</span>
-            <h2 id="payment-history-title">Histórico de lançamentos</h2>
-            <p>Recebimentos e estornos registrados na operação.</p>
+            <span className="paymentsEyebrow">{message("pagamento.movimentacoes")}</span>
+            <h2 id="payment-history-title">{message("pagamento.historico.de.lancamentos")}</h2>
+            <p>{message("pagamento.recebimentos.e.estornos.registrados.na.operacao")}</p>
           </div>
           <span className="paymentsCount neutral">{items.length}</span>
         </div>
-        {items.length === 0 ? <EmptyState title="Nenhum lançamento financeiro" description="Os pagamentos registrados aparecerão aqui." /> : (
+        {items.length === 0 ? <EmptyState title={message("pagamento.nenhum.lancamento.financeiro")} description={message("pagamento.os.pagamentos.registrados.aparecerao.aqui")} /> : (
           <div className="paymentHistoryList">
           {items.map((payment) => (
             <article className={`paymentHistoryCard ${payment.tipo === 'ESTORNO' ? 'refund' : ''}`} key={payment.id}>
@@ -219,36 +222,36 @@ export function PagamentosPage() {
               </span>
               <div className="paymentHistoryMain">
                 <div className="paymentHistoryTitle">
-                  <h3>{payment.tipo === 'ESTORNO' ? 'Estorno' : 'Recebimento'}{payment.entregaCodigo ? ` · ${payment.entregaCodigo}` : ''}</h3>
+                  <h3>{payment.tipo === 'ESTORNO' ? message("pagamentos.estorno") : message("pagamentos.recebimento")}{payment.entregaCodigo ? (" " + message("pagamento.value", { value1: payment.entregaCodigo })) : ''}</h3>
                   <span className="paymentMethodBadge">{paymentMethodLabel(payment.formaPagamento)}</span>
                 </div>
                 <p>{payment.clienteNome} · {dateTime(payment.pagoEm || payment.criadoEm)}</p>
                 <dl>
-                  {payment.usuarioResponsavelNome ? <div><dt>Registrado por</dt><dd>{payment.usuarioResponsavelNome}</dd></div> : null}
-                  {payment.tipo === 'ESTORNO' && payment.motivo ? <div><dt>Motivo</dt><dd>{payment.motivo}</dd></div> : null}
-                  {payment.observacoes ? <div><dt>Observação</dt><dd>{payment.observacoes}</dd></div> : null}
+                  {payment.usuarioResponsavelNome ? <div><dt>{message("pagamento.registrado.por")}</dt><dd>{payment.usuarioResponsavelNome}</dd></div> : null}
+                  {payment.tipo === 'ESTORNO' && payment.motivo ? <div><dt>{message("pagamentos.motivo")}</dt><dd>{payment.motivo}</dd></div> : null}
+                  {payment.observacoes ? <div><dt>{message("pagamento.observacao")}</dt><dd>{payment.observacoes}</dd></div> : null}
                 </dl>
               </div>
               <strong className="paymentHistoryValue">{payment.tipo === 'ESTORNO' ? '− ' : ''}{money(payment.valor)}</strong>
-              {payment.tipo === 'RECEBIMENTO' ? <button className="paymentRefundButton" type="button" disabled={Boolean(refundIntent) || busy} onClick={() => setRefund({ payment, value: String(payment.valor), reason: '' })}><Undo2 size={15} aria-hidden="true" /> Estornar</button> : null}
+              {payment.tipo === 'RECEBIMENTO' ? <button className="paymentRefundButton" type="button" disabled={Boolean(refundIntent) || busy} onClick={() => setRefund({ payment, value: String(payment.valor), reason: '' })}><Undo2 size={15} aria-hidden="true" /> {message("pagamentos.estornar")}</button> : null}
             </article>
           ))}
           </div>
         )}
       </section>
-      <Modal open={modalOpen} onClose={() => !busy && setModalOpen(false)} title="Novo pagamento" maxWidth={520}>
+      <Modal open={modalOpen} onClose={() => !busy && setModalOpen(false)} title={message("pagamento.novo.pagamento")} maxWidth={520}>
         <form onSubmit={submit} className="settingsForm">
-          <label>Entrega<select value={form.entregaId} onChange={(e) => setForm({ ...form, entregaId: e.target.value })} required><option value="">Selecione</option>{deliveries.map((delivery) => <option key={delivery.id} value={delivery.id}>{delivery.codigo} - {delivery.clienteNome}</option>)}</select></label>
-          <div className="formGrid"><label>Valor<input type="number" min="0.01" step="0.01" placeholder="0,00" value={form.valor} onChange={(e) => setForm({ ...form, valor: e.target.value })} required /></label><label>Forma<select value={form.formaPagamento} onChange={(e) => setForm({ ...form, formaPagamento: e.target.value as FormaPagamento })}>{formas.map((forma) => <option key={forma}>{forma}</option>)}</select></label></div>
+          <label>{message("pagamento.entrega")}<select value={form.entregaId} onChange={(e) => setForm({ ...form, entregaId: e.target.value })} required><option value="">{message("pagamentos.selecione")}</option>{deliveries.map((delivery) => <option key={delivery.id} value={delivery.id}>{delivery.codigo} - {delivery.clienteNome}</option>)}</select></label>
+          <div className="formGrid"><label>{message("pagamento.valor")}<input type="number" min="0.01" step="0.01" placeholder="0,00" value={form.valor} onChange={(e) => setForm({ ...form, valor: e.target.value })} required /></label><label>{message("pagamentos.forma")}<select value={form.formaPagamento} onChange={(e) => setForm({ ...form, formaPagamento: e.target.value as FormaPagamento })}>{formas.map((forma) => <option key={forma}>{forma}</option>)}</select></label></div>
 
-          <label>Observações<textarea rows={3} value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} /></label>
-          <button className="primaryButton" type="submit" disabled={busy}>Revisar pagamento</button>
+          <label>{message("pagamento.observacoes")}<textarea rows={3} value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} /></label>
+          <button className="primaryButton" type="submit" disabled={busy}>{message("pagamento.revisar.pagamento")}</button>
         </form>
       </Modal>
-      <ConfirmDialog open={confirmPayment} title="Registrar pagamento?" description={`Confirme o recebimento de ${money(Number(form.valor || 0))}.`} confirmLabel="Registrar pagamento" busy={busy} onCancel={() => setConfirmPayment(false)} onConfirm={() => void register()} />
-      <ConfirmDialog open={discardIntent !== null} title="Descartar tentativa pendente?" description="Confira o histórico financeiro antes de descartar. Uma tentativa já processada pode ter ficado sem resposta no navegador." confirmLabel="Descartar tentativa" busy={busy} onCancel={() => setDiscardIntent(null)} onConfirm={discardPending} />
-      <Modal open={refund !== null} onClose={() => !busy && setRefund(null)} title="Registrar estorno" maxWidth={480}>
-        {refund ? <form className="settingsForm" onSubmit={(e) => { e.preventDefault(); void registerRefund(); }}><label>Valor<input type="number" min="0.01" max={refund.payment.valor} step="0.01" placeholder="0,00" value={refund.value} onChange={(e) => setRefund({ ...refund, value: e.target.value })} required /></label><label>Motivo<textarea rows={3} maxLength={500} value={refund.reason} onChange={(e) => setRefund({ ...refund, reason: e.target.value })} required /></label><button className="dangerButton" type="submit" disabled={busy}>{busy ? 'Processando...' : 'Confirmar estorno'}</button></form> : null}
+      <ConfirmDialog open={confirmPayment} title={message("pagamento.registrar.pagamento")} description={message("pagamento.confirme.o.recebimento.de.value", { value1: money(Number(form.valor || 0)) })} confirmLabel={message("pagamento.registrar.pagamento.2")} busy={busy} onCancel={() => setConfirmPayment(false)} onConfirm={() => void register()} />
+      <ConfirmDialog open={discardIntent !== null} title={message("pagamento.descartar.tentativa.pendente")} description={message("pagamento.confira.o.historico.financeiro.antes.de.descartar.uma.tentativa.ja.p")} confirmLabel={message("pagamento.descartar.tentativa")} busy={busy} onCancel={() => setDiscardIntent(null)} onConfirm={discardPending} />
+      <Modal open={refund !== null} onClose={() => !busy && setRefund(null)} title={message("pagamento.registrar.estorno")} maxWidth={480}>
+        {refund ? <form className="settingsForm" onSubmit={(e) => { e.preventDefault(); void registerRefund(); }}><label>{message("pagamento.valor")}<input type="number" min="0.01" max={refund.payment.valor} step="0.01" placeholder="0,00" value={refund.value} onChange={(e) => setRefund({ ...refund, value: e.target.value })} required /></label><label>{message("pagamentos.motivo")}<textarea rows={3} maxLength={500} value={refund.reason} onChange={(e) => setRefund({ ...refund, reason: e.target.value })} required /></label><button className="dangerButton" type="submit" disabled={busy}>{busy ? message("comum.processando") : message("pagamento.confirmar.estorno")}</button></form> : null}
       </Modal>
     </main>
   );

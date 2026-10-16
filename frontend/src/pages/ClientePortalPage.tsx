@@ -1,3 +1,6 @@
+import { domainLabel } from '../i18n/domain';
+import { getLocale } from '../preferences';
+import { message, useLocale } from '../i18n';
 import {
   AcompanhamentoResumo,
   PortalMetric,
@@ -84,19 +87,15 @@ const finalStatuses: StatusEntrega[] = [
   "CANCELADA",
 ];
 const money = (value: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
+  new Intl.NumberFormat(getLocale(), { style: "currency", currency: "BRL" }).format(
     value || 0,
   );
 const date = (value: string) =>
-  new Intl.DateTimeFormat("pt-BR", {
+  new Intl.DateTimeFormat(getLocale(), {
     dateStyle: "short",
     timeStyle: "short",
   }).format(new Date(value));
-const statusLabel = (value: string) =>
-  value
-    .replace(/_/g, " ")
-    .toLowerCase()
-    .replace(/(^|\s)\S/g, (letter) => letter.toUpperCase());
+const statusLabel = domainLabel;
 function statusClass(status: StatusEntrega) {
   if (status === "ENTREGUE") return "statusBadge active";
   if (status === "CANCELADA" || status === "FALHA_OPERACIONAL")
@@ -114,6 +113,7 @@ function localDatetime(v?: string) {
     .slice(0, 16);
 }
 export function ClientePortalPage() {
+  useLocale();
   const [data, setData] = useState<PortalData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -172,7 +172,7 @@ export function ClientePortalPage() {
       });
     } catch (reason) {
       setError(
-        apiErrorMessage(reason, "Não foi possível carregar seu portal."),
+        apiErrorMessage(reason, message("portal.cliente.nao.foi.possivel.carregar.seu.portal")),
       );
     } finally {
       setLoading(false);
@@ -211,12 +211,12 @@ export function ClientePortalPage() {
       setRequestOpen(false);
       setRequestStep(1);
       setFeedback(
-        "Solicitação recebida. A JS Boy fará a análise antes de confirmar a entrega.",
+        message("portal.cliente.solicitacao.recebida.a.js.boy.fara.a.analise.antes.de.confirmar.a.en"),
       );
       await load();
     } catch (reason) {
       setFeedback(
-        apiErrorMessage(reason, "Não foi possível enviar a solicitação."),
+        apiErrorMessage(reason, message("portal.cliente.nao.foi.possivel.enviar.a.solicitacao")),
       );
     } finally {
       setSending(false);
@@ -244,7 +244,7 @@ export function ClientePortalPage() {
           setFeedback(
             apiErrorMessage(
               r,
-              "Não foi possível carregar endereços frequentes.",
+              message("portal.cliente.nao.foi.possivel.carregar.enderecos.frequentes"),
             ),
           );
       });
@@ -287,7 +287,7 @@ export function ClientePortalPage() {
         !request.bairroDestino.trim())
     ) {
       setFeedback(
-        "Preencha os endereços e bairros da rota antes de continuar.",
+        message("portal.cliente.preencha.os.enderecos.e.bairros.da.rota.antes.de.continuar"),
       );
       return;
     }
@@ -298,7 +298,7 @@ export function ClientePortalPage() {
         !request.descricaoMercadoria.trim())
     ) {
       setFeedback(
-        "Preencha o destinatário, um telefone válido e a mercadoria antes de continuar.",
+        message("portal.cliente.preencha.o.destinatario.um.telefone.valido.e.a.mercadoria.antes.de.c"),
       );
       return;
     }
@@ -321,7 +321,7 @@ export function ClientePortalPage() {
       setRequestStep(1);
       setRequestOpen(true);
     } catch (e) {
-      setFeedback(apiErrorMessage(e, "Não foi possível editar."));
+      setFeedback(apiErrorMessage(e, message("portal.cliente.nao.foi.possivel.editar")));
     }
   }
   async function cancelarPedido(id: string) {
@@ -333,7 +333,7 @@ export function ClientePortalPage() {
       setMotivoCancelamento("");
     } catch (e) {
       setFeedback(
-        apiErrorMessage(e, "Não foi possível consultar a solicitação."),
+        apiErrorMessage(e, message("portal.cliente.nao.foi.possivel.consultar.a.solicitacao")),
       );
     }
   }
@@ -359,7 +359,7 @@ export function ClientePortalPage() {
       }));
     } catch (reason) {
       setFeedback(
-        apiErrorMessage(reason, "Não foi possível carregar os detalhes."),
+        apiErrorMessage(reason, message("portal.cliente.nao.foi.possivel.carregar.os.detalhes")),
       );
     } finally {
       setDetailLoading("");
@@ -424,14 +424,14 @@ export function ClientePortalPage() {
   if (loading)
     return (
       <main className="page">
-        <LoadingState label="Montando seu portal..." />
+        <LoadingState label={message("portal.cliente.montando.seu.portal")} />
       </main>
     );
   if (error || !data)
     return (
       <main className="page">
         <ErrorState
-          message={error || "Não foi possível carregar seu portal."}
+          message={error || message("portal.cliente.nao.foi.possivel.carregar.seu.portal")}
           onRetry={() => void load()}
         />
       </main>
@@ -464,8 +464,8 @@ export function ClientePortalPage() {
   const deliveryList = (deliveries: EntregaCliente[]) =>
     deliveries.length === 0 ? (
       <EmptyState
-        title="Nenhuma entrega vinculada"
-        description="Suas solicitações e entregas aparecerão aqui."
+        title={message("portal.cliente.nenhuma.entrega.vinculada")}
+        description={message("portal.cliente.suas.solicitacoes.e.entregas.aparecerao.aqui")}
       />
     ) : (
       <div className="roleDeliveryList clientDeliveryList">
@@ -476,25 +476,25 @@ export function ClientePortalPage() {
               <div>
                 <strong>{titleCase(delivery.destinatarioNome)}</strong>
                 <p>
-                  <MapPin size={14} /> {titleCase(delivery.bairroOrigem)} para{" "}
+                  <MapPin size={14} /> {titleCase(delivery.bairroOrigem)} {message("portal.cliente.para")}{" "}
                   {titleCase(delivery.bairroDestino)}
                 </p>
               </div>
             </div>
             <div className="roleDeliveryMeta clientDeliveryMeta">
               <div>
-                <span>Criada em</span>
+                <span>{message("portal.cliente.criada.em")}</span>
                 <strong>{date(delivery.criadoEm)}</strong>
               </div>
               <div>
-                <span>Mercadoria</span>
+                <span>{message("portal.cliente.mercadoria")}</span>
                 <strong>{delivery.descricaoMercadoria}</strong>
               </div>
               <div>
-                <span>Valor</span>
+                <span>{message("portal.cliente.valor")}</span>
                 <strong>
                   {delivery.status === "SOLICITADA" && delivery.valorFinal === 0
-                    ? "A confirmar pela JS Boy"
+                    ? message("portal.cliente.a.confirmar.pela.js.boy")
                     : money(delivery.valorFinal)}
                 </strong>
               </div>
@@ -509,8 +509,7 @@ export function ClientePortalPage() {
                   className="secondaryButton"
                   onClick={() => void editarPedido(delivery.id)}
                 >
-                  Editar solicitação
-                </button>
+                  {message("portal.cliente.editar.solicitacao")} </button>
               ) : null}
               {[
                 "SOLICITADA",
@@ -523,15 +522,13 @@ export function ClientePortalPage() {
                   className="secondaryButton"
                   onClick={() => void cancelarPedido(delivery.id)}
                 >
-                  Cancelar solicitação
-                </button>
+                  {message("portal.cliente.cancelar.solicitacao")} </button>
               ) : null}
               <Link
                 className="secondaryButton"
                 to={`/conversas?entrega=${delivery.id}`}
               >
-                Conversar
-              </Link>
+                {message("portal.cliente.conversar")} </Link>
               <button
                 className="smallButton"
                 onClick={() => {
@@ -549,8 +546,7 @@ export function ClientePortalPage() {
                   setRequestOpen(true);
                 }}
               >
-                Repetir solicitação
-              </button>
+                {message("portal.cliente.repetir.solicitacao")} </button>
 
               <button
                 className="secondaryButton"
@@ -560,10 +556,10 @@ export function ClientePortalPage() {
               >
                 <Route size={16} />{" "}
                 {detail[delivery.id]
-                  ? "Ocultar detalhes"
+                  ? message("portal.cliente.ocultar.detalhes")
                   : detailLoading === delivery.id
-                    ? "Carregando..."
-                    : "Acompanhar entrega"}
+                    ? message("portal.cliente.carregando")
+                    : message("portal.cliente.acompanhar.entrega")}
               </button>
             </div>
             {detail[delivery.id] ? (
@@ -590,7 +586,7 @@ export function ClientePortalPage() {
                             type="button"
                             onClick={() => openProof(delivery.id, proof.id)}
                           >
-                            <FileCheck2 size={16} /> Comprovante de{" "}
+                            <FileCheck2 size={16} /> {message("portal.cliente.comprovante.de")}{" "}
                             {statusLabel(proof.tipo)}
                           </button>
                         ))
@@ -618,36 +614,36 @@ export function ClientePortalPage() {
           <AcompanhamentoResumo entrega={entregaAcompanhada} />
           <section
             className="portalMetrics"
-            aria-label="Resumo das suas entregas"
+            aria-label={message("portal.cliente.resumo.das.suas.entregas")}
           >
             <PortalMetric
               icon={Package}
               tone="amber"
-              label="Em andamento"
+              label={message("portal.cliente.em.andamento")}
               value={summary.active}
-              hint="em rota ou em coleta"
+              hint={message("portal.cliente.em.rota.ou.em.coleta")}
             />
             <PortalMetric
               icon={FileText}
               tone="green"
-              label="Aguardando orçamento"
+              label={message("portal.cliente.aguardando.orcamento")}
               value={summary.route}
-              hint="aguardando confirmação"
+              hint={message("portal.cliente.aguardando.confirmacao")}
             />
             <PortalMetric
               icon={CheckCircle2}
               tone="blue"
-              label="Concluídas no mês"
+              label={message("portal.cliente.concluidas.no.mes")}
               value={summary.delivered}
-              hint="entregas finalizadas neste mês"
+              hint={message("portal.cliente.entregas.finalizadas.neste.mes")}
             />
             <PortalMetric
               icon={DollarSign}
               tone="violet"
-              label="Pagamentos pendentes"
+              label={message("portal.cliente.pagamentos.pendentes")}
               value={money(summary.pending)}
               hint={
-                "em " +
+                (message("portal.cliente.em") + " ") +
                 summary.pendingCount +
                 (summary.pendingCount === 1 ? " entrega" : " entregas")
               }
@@ -657,9 +653,9 @@ export function ClientePortalPage() {
             <div className="portalOverviewMain">
               <section className="portalPanel recentHistoryPanel">
                 <div className="portalPanelHeading">
-                  <h2>Histórico recente</h2>
+                  <h2>{message("portal.cliente.historico.recente")}</h2>
                   <Link className="portalTextLink" to="/portal/entregas">
-                    Ver todas <ChevronRight size={18} />
+                    {message("portal.cliente.ver.todas")} <ChevronRight size={18} />
                   </Link>
                 </div>
                 <div className="portalHistoryRows">
@@ -697,17 +693,14 @@ export function ClientePortalPage() {
                           onClick={() => repetirPedido(delivery)}
                         >
                           <RotateCcw size={17} />
-                          Repetir solicitação
-                        </button>
+                          {message("portal.cliente.repetir.solicitacao")} </button>
                       </div>
                     ))}
                   {!data.entregas.some((e) =>
                     finalStatuses.includes(e.status),
                   ) ? (
                     <p className="portalEmpty">
-                      Seu histórico aparecerá aqui após a conclusão das
-                      entregas.
-                    </p>
+                      {message("portal.cliente.seu.historico.aparecera.aqui.apos.a.conclusao.das.entregas")} </p>
                   ) : null}
                 </div>
               </section>
@@ -723,26 +716,24 @@ export function ClientePortalPage() {
         <section className="panelCard">
           <div className="panelCardHeader roleListHeader">
             <div>
-              <h2>Minhas entregas</h2>
-              <p>Histórico, rota e recebimentos da operação.</p>
+              <h2>{message("portal.cliente.minhas.entregas")}</h2>
+              <p>{message("portal.cliente.historico.rota.e.recebimentos.da.operacao")}</p>
             </div>
             <label>
-              Buscar entrega
-              <input
+              {message("portal.cliente.buscar.entrega")} <input
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)}
-                placeholder="Identificador, destino ou status"
+                placeholder={message("portal.cliente.identificador.destino.ou.status")}
               />
             </label>
           </div>
           <div className="deliveryFilters">
             <label>
-              Status
-              <select
+              {message("portal.cliente.status")} <select
                 value={statusFiltro}
                 onChange={(e) => setStatusFiltro(e.target.value)}
               >
-                <option value="">Todos</option>
+                <option value="">{message("portal.cliente.todos")}</option>
                 {[...new Set(data.entregas.map((e) => e.status))].map((s) => (
                   <option key={s} value={s}>
                     {statusLabel(s)}
@@ -751,16 +742,14 @@ export function ClientePortalPage() {
               </select>
             </label>
             <label>
-              De
-              <input
+              {message("portal.cliente.de")} <input
                 type="date"
                 value={inicio}
                 onChange={(e) => setInicio(e.target.value)}
               />
             </label>
             <label>
-              Até
-              <input
+              {message("portal.cliente.ate")} <input
                 type="date"
                 value={fim}
                 onChange={(e) => setFim(e.target.value)}
@@ -786,31 +775,31 @@ export function ClientePortalPage() {
           <section className="panelCard portalAccount">
             <div className="panelCardHeader">
               <div>
-                <span className="modalEyebrow">DADOS DO CLIENTE</span>
+                <span className="modalEyebrow">{message("portal.cliente.dados.do.cliente")}</span>
                 <h2>{titleCase(data.cliente.nome)}</h2>
               </div>
               <Building2 size={23} />
             </div>
             <dl className="portalDetails">
               <div>
-                <dt>E-mail</dt>
-                <dd>{data.cliente.email || "Não informado"}</dd>
+                <dt>{message("portal.cliente.e.mail")}</dt>
+                <dd>{data.cliente.email || message("portal.cliente.nao.informado")}</dd>
               </div>
               <div>
-                <dt>Telefone</dt>
+                <dt>{message("portal.cliente.telefone")}</dt>
                 <dd>{formatPhone(data.cliente.telefone)}</dd>
               </div>
               <div>
-                <dt>Documento</dt>
+                <dt>{message("portal.cliente.documento")}</dt>
                 <dd>
                   {data.cliente.documento
                     ? formatCpfOrCnpj(data.cliente.documento)
-                    : "Não informado"}
+                    : message("portal.cliente.nao.informado")}
                 </dd>
               </div>
               <div>
-                <dt>Endereço</dt>
-                <dd>{address || "Não informado"}</dd>
+                <dt>{message("portal.cliente.endereco")}</dt>
+                <dd>{address || message("portal.cliente.nao.informado")}</dd>
               </div>
             </dl>
             <ContaClienteEdicao
@@ -822,8 +811,8 @@ export function ClientePortalPage() {
           <section className="panelCard contactCard">
             <div className="panelCardHeader">
               <div>
-                <span className="modalEyebrow">PRECISA DE AJUDA?</span>
-                <h2>Contato da JS Boy</h2>
+                <span className="modalEyebrow">{message("portal.cliente.precisa.de.ajuda")}</span>
+                <h2>{message("portal.cliente.contato.da.js.boy")}</h2>
               </div>
               <Headphones size={22} />
             </div>
@@ -840,8 +829,7 @@ export function ClientePortalPage() {
                 <li>
                   <Phone size={17} />
                   <a href={`https://wa.me/${data.contato.whatsapp}`}>
-                    WhatsApp
-                  </a>
+                    {message("portal.cliente.whatsapp")} </a>
                 </li>
               ) : null}
               {data.contato.email ? (
@@ -866,7 +854,7 @@ export function ClientePortalPage() {
       <Modal
         open={!!cancelamento}
         onClose={() => !sending && setCancelamento(null)}
-        title="Cancelar solicitação"
+        title={message("portal.cliente.cancelar.solicitacao")}
       >
         <form
           className="settingsForm"
@@ -883,18 +871,16 @@ export function ClientePortalPage() {
               setCancelamento(null);
               await load();
             } catch (r) {
-              setFeedback(apiErrorMessage(r, "Não foi possível cancelar."));
+              setFeedback(apiErrorMessage(r, message("portal.cliente.nao.foi.possivel.cancelar")));
             } finally {
               setSending(false);
             }
           }}
         >
           <p>
-            O cancelamento depende do estado atual e da ausência de recebimento.
-          </p>
+            {message("portal.cliente.o.cancelamento.depende.do.estado.atual.e.da.ausencia.de.recebimento")} </p>
           <label>
-            Motivo
-            <input
+            {message("portal.cliente.motivo")} <input
               required
               maxLength={500}
               value={motivoCancelamento}
@@ -902,20 +888,19 @@ export function ClientePortalPage() {
             />
           </label>
           <button className="primaryButton" disabled={sending}>
-            Confirmar cancelamento
-          </button>
+            {message("portal.cliente.confirmar.cancelamento")} </button>
         </form>
       </Modal>
       <Modal
         open={requestOpen}
         onClose={() => !sending && setRequestOpen(false)}
-        eyebrow={`${editing ? "EDITAR SOLICITAÇÃO" : "SOLICITAR ENTREGA"} · ETAPA ${requestStep}/3`}
+        eyebrow={message("portal.cliente.value.etapa.value.3", { value1: editing ? "EDITAR SOLICITAÇÃO" : "SOLICITAR ENTREGA", value2: requestStep })}
         title={
           requestStep === 1
-            ? "Rota da entrega"
+            ? message("portal.cliente.rota.da.entrega")
             : requestStep === 2
-              ? "Destinatário e mercadoria"
-              : "Agendamento e revisão"
+              ? message("portal.cliente.destinatario.e.mercadoria")
+              : message("portal.cliente.agendamento.e.revisao")
         }
         maxWidth={760}
         footer={
@@ -926,17 +911,16 @@ export function ClientePortalPage() {
               style={requestStep === 1 ? { visibility: "hidden" } : undefined}
               onClick={() => setRequestStep((step) => Math.max(1, step - 1))}
             >
-              <ArrowLeft size={16} /> Voltar
-            </button>
+              <ArrowLeft size={16} /> {message("portal.cliente.voltar")} </button>
             <div className="modalFooterActions">
-              <span>Etapa {requestStep} de 3</span>
+              <span>{message("portal.cliente.etapa")} {requestStep} {message("portal.cliente.de.3")}</span>
               {requestStep < 3 ? (
                 <button
                   className="darkButton"
                   type="button"
                   onClick={advanceRequest}
                 >
-                  Próximo <ArrowRight size={16} />
+                  {message("portal.cliente.proximo")} <ArrowRight size={16} />
                 </button>
               ) : (
                 <button
@@ -946,7 +930,7 @@ export function ClientePortalPage() {
                   disabled={sending}
                 >
                   <Check size={16} />{" "}
-                  {sending ? "Enviando..." : "Enviar solicitação"}
+                  {sending ? message("comum.enviando") : message("portal.cliente.enviar.solicitacao")}
                 </button>
               )}
             </div>
@@ -967,8 +951,7 @@ export function ClientePortalPage() {
         </div>
         <div className="quickLinks">
           <label>
-            Origem frequente
-            <select
+            {message("portal.cliente.origem.frequente")} <select
               defaultValue=""
               onChange={(e) => {
                 const a = enderecos.find((a) => a.id === e.target.value);
@@ -980,7 +963,7 @@ export function ClientePortalPage() {
                   });
               }}
             >
-              <option value="">Selecionar</option>
+              <option value="">{message("portal.cliente.selecionar")}</option>
               {enderecos.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.apelido}
@@ -989,8 +972,7 @@ export function ClientePortalPage() {
             </select>
           </label>
           <label>
-            Destino frequente
-            <select
+            {message("portal.cliente.destino.frequente")} <select
               defaultValue=""
               onChange={(e) => {
                 const a = enderecos.find((a) => a.id === e.target.value);
@@ -1005,7 +987,7 @@ export function ClientePortalPage() {
                   });
               }}
             >
-              <option value="">Selecionar</option>
+              <option value="">{message("portal.cliente.selecionar")}</option>
               {enderecos.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.apelido}
@@ -1022,8 +1004,7 @@ export function ClientePortalPage() {
           {requestStep === 1 ? (
             <div className="formGrid">
               <label>
-                Endereço de origem
-                <input
+                {message("portal.cliente.endereco.de.origem")} <input
                   required
                   value={request.enderecoOrigem}
                   onChange={(event) =>
@@ -1035,8 +1016,7 @@ export function ClientePortalPage() {
                 />
               </label>
               <label>
-                Bairro da origem
-                <input
+                {message("portal.cliente.bairro.da.origem")} <input
                   required
                   value={request.bairroOrigem}
                   onChange={(event) =>
@@ -1045,8 +1025,7 @@ export function ClientePortalPage() {
                 />
               </label>
               <label>
-                Endereço de destino
-                <input
+                {message("portal.cliente.endereco.de.destino")} <input
                   required
                   value={request.enderecoDestino}
                   onChange={(event) =>
@@ -1058,8 +1037,7 @@ export function ClientePortalPage() {
                 />
               </label>
               <label>
-                Bairro do destino
-                <input
+                {message("portal.cliente.bairro.do.destino")} <input
                   required
                   value={request.bairroDestino}
                   onChange={(event) =>
@@ -1071,8 +1049,7 @@ export function ClientePortalPage() {
                 />
               </label>
               <label className="requestWide">
-                Distância estimada (km)
-                <input
+                {message("portal.cliente.distancia.estimada.km")} <input
                   required
                   min="0"
                   step="0.1"
@@ -1087,16 +1064,14 @@ export function ClientePortalPage() {
                   }
                 />
                 <span className="formHelp">
-                  A JS Boy revisará o valor antes de confirmar.
-                </span>
+                  {message("portal.cliente.a.js.boy.revisara.o.valor.antes.de.confirmar")} </span>
               </label>
             </div>
           ) : null}
           {requestStep === 2 ? (
             <div className="formGrid">
               <label>
-                Destinatário
-                <input
+                {message("portal.cliente.destinatario")} <input
                   required
                   value={request.destinatarioNome}
                   onChange={(event) =>
@@ -1108,8 +1083,7 @@ export function ClientePortalPage() {
                 />
               </label>
               <label>
-                Telefone autorizado
-                <input
+                {message("portal.cliente.telefone.autorizado")} <input
                   required
                   type="tel"
                   maxLength={15}
@@ -1124,8 +1098,7 @@ export function ClientePortalPage() {
                 />
               </label>
               <label className="requestWide">
-                Mercadoria
-                <input
+                {message("portal.cliente.mercadoria")} <input
                   required
                   maxLength={255}
                   value={request.descricaoMercadoria}
@@ -1142,8 +1115,7 @@ export function ClientePortalPage() {
           {requestStep === 3 ? (
             <div className="formGrid">
               <label>
-                Forma de pagamento
-                <select
+                {message("portal.cliente.forma.de.pagamento")} <select
                   value={request.formaPagamento || "DINHEIRO"}
                   onChange={(e) =>
                     setRequest({
@@ -1152,13 +1124,12 @@ export function ClientePortalPage() {
                     })
                   }
                 >
-                  <option value="DINHEIRO">Dinheiro</option>
-                  <option value="PIX">Pix direto do entregador</option>
+                  <option value="DINHEIRO">{message("portal.cliente.dinheiro")}</option>
+                  <option value="PIX">{message("portal.cliente.pix.direto.do.entregador")}</option>
                 </select>
               </label>
               <label>
-                <CalendarClock size={15} /> Início agendado (opcional)
-                <input
+                <CalendarClock size={15} /> {message("portal.cliente.inicio.agendado.opcional")} <input
                   type="datetime-local"
                   value={request.agendadaInicio || ""}
                   onChange={(event) =>
@@ -1170,8 +1141,7 @@ export function ClientePortalPage() {
                 />
               </label>
               <label>
-                <CalendarClock size={15} /> Fim agendado (opcional)
-                <input
+                <CalendarClock size={15} /> {message("portal.cliente.fim.agendado.opcional")} <input
                   type="datetime-local"
                   value={request.agendadaFim || ""}
                   onChange={(event) =>
@@ -1180,8 +1150,7 @@ export function ClientePortalPage() {
                 />
               </label>
               <label className="requestWide">
-                Observações
-                <textarea
+                {message("portal.cliente.observacoes")} <textarea
                   rows={4}
                   maxLength={500}
                   value={request.observacoes}
@@ -1191,11 +1160,9 @@ export function ClientePortalPage() {
                 />
               </label>
               <div className="requestReview requestWide">
-                <strong>Como funciona</strong>
+                <strong>{message("portal.cliente.como.funciona")}</strong>
                 <span>
-                  A solicitação entra como “Solicitada”. A JS Boy revisa rota,
-                  disponibilidade e valor antes de confirmar.
-                </span>
+                  {message("portal.cliente.a.solicitacao.entra.como.solicitada.a.js.boy.revisa.rota.disponibili")} </span>
               </div>
             </div>
           ) : null}

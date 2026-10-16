@@ -1,3 +1,4 @@
+import { message, useLocale } from '../i18n';
 import { useEffect, useState } from "react";
 import { api } from "../services/api";
 import { apiErrorMessage } from "../services/apiError";
@@ -11,6 +12,7 @@ export function ContaClienteEdicao({
   cliente: Cliente;
   onChange: () => void;
 }) {
+  useLocale();
   const [telefone, setTelefone] = useState(cliente.telefone);
   const [whatsapp, setWhatsapp] = useState(cliente.whatsapp || "");
   const [email, setEmail] = useState("");
@@ -24,13 +26,13 @@ export function ContaClienteEdicao({
       .then((r) => setEmailAtivo(r.data.emailAtivo))
       .catch((r) =>
         setFeedback(
-          apiErrorMessage(r, "Não foi possível consultar preferências."),
+          apiErrorMessage(r, message("cliente.conta.nao.foi.possivel.consultar.preferencias")),
         ),
       );
   }, []);
   return (
     <section>
-      <h2>Contato e preferências</h2>
+      <h2>{message("cliente.conta.contato.e.preferencias")}</h2>
       <form
         className="settingsForm"
         onSubmit={async (e) => {
@@ -44,18 +46,17 @@ export function ContaClienteEdicao({
               whatsappAtivo: false,
               smsAtivo: false,
             });
-            setFeedback("Contato e preferências atualizados.");
+            setFeedback(message("cliente.conta.contato.e.preferencias.atualizados"));
             onChange();
           } catch (r) {
-            setFeedback(apiErrorMessage(r, "Não foi possível atualizar."));
+            setFeedback(apiErrorMessage(r, message("cliente.conta.nao.foi.possivel.atualizar")));
           } finally {
             setBusy(false);
           }
         }}
       >
         <label>
-          Telefone
-          <input
+          {message("cliente.conta.telefone")} <input
             maxLength={30}
             required
             value={telefone}
@@ -63,8 +64,7 @@ export function ContaClienteEdicao({
           />
         </label>
         <label>
-          WhatsApp de contato
-          <input
+          {message("cliente.conta.whatsapp.de.contato")} <input
             maxLength={30}
             value={whatsapp}
             onChange={(e) => setWhatsapp(e.target.value)}
@@ -76,11 +76,9 @@ export function ContaClienteEdicao({
             checked={emailAtivo}
             onChange={(e) => setEmailAtivo(e.target.checked)}
           />{" "}
-          Receber avisos da entrega por e-mail
-        </label>
+          {message("cliente.conta.receber.avisos.da.entrega.por.e.mail")} </label>
         <button className="secondaryButton" disabled={busy}>
-          Atualizar contato
-        </button>
+          {message("cliente.conta.atualizar.contato")} </button>
       </form>
       <form
         className="settingsForm"
@@ -91,11 +89,11 @@ export function ContaClienteEdicao({
           try {
             await api.post("/cliente/me/email", { email });
             setFeedback(
-              "Verifique o novo e-mail. Seu endereço atual continua válido até a confirmação.",
+              message("cliente.conta.verifique.o.novo.e.mail.seu.endereco.atual.continua.valido.ate.a.con"),
             );
           } catch (r) {
             setFeedback(
-              apiErrorMessage(r, "Não foi possível solicitar alteração."),
+              apiErrorMessage(r, message("cliente.conta.nao.foi.possivel.solicitar.alteracao")),
             );
           } finally {
             setBusy(false);
@@ -103,8 +101,7 @@ export function ContaClienteEdicao({
         }}
       >
         <label>
-          Novo e-mail
-          <input
+          {message("cliente.conta.novo.e.mail")} <input
             required
             type="email"
             maxLength={180}
@@ -113,20 +110,19 @@ export function ContaClienteEdicao({
           />
         </label>
         <button className="secondaryButton" disabled={busy}>
-          Solicitar alteração de e-mail
-        </button>
+          {message("cliente.conta.solicitar.alteracao.de.e.mail")} </button>
       </form>
-      <h2>Vincular Google</h2>
+      <h2>{message("cliente.conta.vincular.google")}</h2>
       <GoogleLoginButton
         onCredential={(credencial) => {
           if (busy) return;
           setBusy(true);
           void api
             .post("/conta/google", { credencial })
-            .then(() => setFeedback("Google vinculado à sua conta."))
+            .then(() => setFeedback(message("cliente.conta.google.vinculado.a.sua.conta")))
             .catch((r) =>
               setFeedback(
-                apiErrorMessage(r, "Não foi possível vincular Google."),
+                apiErrorMessage(r, message("cliente.conta.nao.foi.possivel.vincular.google")),
               ),
             )
             .finally(() => setBusy(false));
@@ -134,11 +130,8 @@ export function ContaClienteEdicao({
       />
       {feedback ? <p role="status">{feedback}</p> : null}
       <p>
-        Para alterar identidade ou solicitar exportação/exclusão de dados, use
-        Ajuda e contato. O atendimento respeita a retenção do histórico
-        operacional e financeiro.
-      </p>
-      <h2>Privacidade</h2>
+        {message("cliente.conta.para.alterar.identidade.ou.solicitar.exportacao.exclusao.de.dados.us")} </p>
+      <h2>{message("cliente.conta.privacidade")}</h2>
       <button
         type="button"
         className="secondaryButton"
@@ -158,14 +151,13 @@ export function ContaClienteEdicao({
             a.click();
             URL.revokeObjectURL(url);
           } catch (e) {
-            setFeedback(apiErrorMessage(e, "Não foi possível exportar."));
+            setFeedback(apiErrorMessage(e, message("cliente.conta.nao.foi.possivel.exportar")));
           } finally {
             setBusy(false);
           }
         }}
       >
-        Exportar meus dados
-      </button>
+        {message("cliente.conta.exportar.meus.dados")} </button>
       <form
         className="settingsForm"
         onSubmit={async (e) => {
@@ -178,12 +170,12 @@ export function ContaClienteEdicao({
               justificativa,
             });
             setFeedback(
-              "Pedido registrado para análise da JS Boy. Os históricos financeiros são preservados.",
+              message("cliente.conta.pedido.registrado.para.analise.da.js.boy.os.historicos.financeiros.s"),
             );
             setJustificativa("");
           } catch (r) {
             setFeedback(
-              apiErrorMessage(r, "Não foi possível registrar o pedido."),
+              apiErrorMessage(r, message("cliente.conta.nao.foi.possivel.registrar.o.pedido")),
             );
           } finally {
             setBusy(false);
@@ -191,8 +183,7 @@ export function ContaClienteEdicao({
         }}
       >
         <label>
-          Motivo do pedido de anonimização
-          <textarea
+          {message("cliente.conta.motivo.do.pedido.de.anonimizacao")} <textarea
             required
             maxLength={500}
             value={justificativa}
@@ -200,8 +191,7 @@ export function ContaClienteEdicao({
           />
         </label>
         <button className="secondaryButton" disabled={busy}>
-          Solicitar análise de anonimização
-        </button>
+          {message("cliente.conta.solicitar.analise.de.anonimizacao")} </button>
       </form>
     </section>
   );

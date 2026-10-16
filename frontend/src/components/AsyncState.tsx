@@ -1,7 +1,9 @@
+import { message, useLocale } from '../i18n';
 import { AlertTriangle, CheckCircle2, Inbox, LoaderCircle, RotateCcw } from 'lucide-react';
 import { ReactNode, useEffect, useRef } from 'react';
 
-export function LoadingState({ label = 'Carregando...' }: { label?: string }) {
+export function LoadingState({ label = message("estado.carregando") }: { label?: string }) {
+  useLocale();
   return (
     <div className="asyncState" role="status" aria-live="polite">
       <LoaderCircle className="spin" size={24} aria-hidden="true" />
@@ -11,6 +13,7 @@ export function LoadingState({ label = 'Carregando...' }: { label?: string }) {
 }
 
 export function EmptyState({ title, description }: { title: string; description?: string }) {
+  useLocale();
   return (
     <div className="asyncState">
       <Inbox size={26} aria-hidden="true" />
@@ -21,21 +24,21 @@ export function EmptyState({ title, description }: { title: string; description?
 }
 
 export function ErrorState({
-  message,
+  message: errorMessage,
   onRetry,
 }: {
   message: string;
   onRetry?: () => void;
 }) {
+  useLocale();
   return (
     <div className="asyncState error" role="alert">
       <AlertTriangle size={25} aria-hidden="true" />
-      <strong>Algo deu errado</strong>
-      <span>{message}</span>
+      <strong>{message("estado.algo.deu.errado")}</strong>
+      <span>{errorMessage}</span>
       {onRetry ? (
         <button className="secondaryButton" type="button" onClick={onRetry}>
-          <RotateCcw size={16} aria-hidden="true" /> Tentar novamente
-        </button>
+          <RotateCcw size={16} aria-hidden="true" /> {message("estado.tentar.novamente")} </button>
       ) : null}
     </div>
   );
@@ -48,6 +51,7 @@ export function FeedbackMessage({
   tone: 'success' | 'error';
   children: ReactNode;
 }) {
+  useLocale();
   return (
     <div className={`feedbackMessage ${tone}`} role={tone === 'error' ? 'alert' : 'status'} aria-live="polite">
       {tone === 'success' ? <CheckCircle2 size={18} aria-hidden="true" /> : <AlertTriangle size={18} aria-hidden="true" />}
@@ -71,12 +75,13 @@ export function ConfirmDialog({
   open,
   title,
   description,
-  confirmLabel = 'Confirmar',
+  confirmLabel = message("estado.confirmar"),
   danger = false,
   busy = false,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  useLocale();
   const cancelRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -98,10 +103,9 @@ export function ConfirmDialog({
         <p id="confirm-description">{description}</p>
         <div className="confirmActions">
           <button ref={cancelRef} className="secondaryButton" type="button" onClick={onCancel} disabled={busy}>
-            Voltar
-          </button>
+            {message("estado.voltar")} </button>
           <button className={danger ? 'dangerButton' : 'primaryButton'} type="button" onClick={onConfirm} disabled={busy}>
-            {busy ? 'Processando...' : confirmLabel}
+            {busy ? message("comum.processando") : confirmLabel}
           </button>
         </div>
       </div>

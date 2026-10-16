@@ -1,3 +1,4 @@
+import { message, useLocale } from '../i18n';
 import { MouseEvent, ReactNode, useEffect, useId, useRef } from "react";
 import { X } from "lucide-react";
 import { createPortal } from "react-dom";
@@ -21,6 +22,7 @@ export function Modal({
   footer,
   maxWidth = 580,
 }: ModalProps) {
+  useLocale();
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
   const onCloseRef = useRef(onClose);
@@ -93,7 +95,7 @@ export function Modal({
             className="modalClose"
             onClick={onClose}
             type="button"
-            aria-label="Fechar"
+            aria-label={message("modal.fechar")}
           >
             <X size={18} />
           </button>

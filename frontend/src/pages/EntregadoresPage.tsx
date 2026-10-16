@@ -1,3 +1,5 @@
+import { domainLabel } from '../i18n/domain';
+import { message, useLocale } from '../i18n';
 import { KeyRound, Pencil, Plus, Search, ToggleLeft, ToggleRight, UserPlus } from 'lucide-react';
 import { FormEvent, useEffect, useState } from 'react';
 import { Modal } from '../components/Modal';
@@ -27,6 +29,7 @@ function iniciais(nome: string) {
 }
 
 export function EntregadoresPage() {
+  useLocale();
   const { showToast } = useToast();
   const [entregadores, setEntregadores] = useState<Entregador[]>([]);
   const [form, setForm] = useState<EntregadorForm>(emptyForm);
@@ -49,7 +52,7 @@ export function EntregadoresPage() {
       });
       setEntregadores(response.data);
     } catch {
-      showToast('Não foi possível carregar os entregadores.', 'error');
+      showToast(message("entregadores.nao.foi.possivel.carregar.os.entregadores"), 'error');
     }
   }
 
@@ -89,10 +92,10 @@ export function EntregadoresPage() {
     try {
       if (editingId) {
         await api.put(`/entregadores/${editingId}`, payload, { headers: { 'If-Match': String(entregadores.find((item) => item.id === editingId)?.versao ?? 0) } });
-        showToast('Entregador atualizado com sucesso.', 'success');
+        showToast(message("entregadores.entregador.atualizado.com.sucesso"), 'success');
       } else {
         await api.post('/entregadores', payload);
-        showToast('Entregador cadastrado com sucesso.', 'success');
+        showToast(message("entregadores.entregador.cadastrado.com.sucesso"), 'success');
       }
 
       setModalOpen(false);
@@ -100,20 +103,20 @@ export function EntregadoresPage() {
       setEditingId(null);
       await carregarEntregadores();
     } catch (reason) {
-      showToast(apiErrorMessage(reason, 'Revise os dados do entregador e tente novamente.'), 'error');
+      showToast(apiErrorMessage(reason, message("entregadores.revise.os.dados.do.entregador.e.tente.novamente")), 'error');
     } finally {
       setCarregando(false);
     }
   }
 
   async function alterarStatus(entregador: Entregador) {
-    if (!window.confirm('Confirma a alteração de status de ' + entregador.nome + '?')) return;
+    if (!window.confirm((message("entregadores.confirma.a.alteracao.de.status.de") + " ") + entregador.nome + '?')) return;
     try {
       await api.patch(`/entregadores/${entregador.id}/status`, { ativo: !entregador.ativo }, { headers: { 'If-Match': String(entregador.versao) } });
-      showToast(entregador.ativo ? 'Entregador desativado.' : 'Entregador ativado.', 'success');
+      showToast(entregador.ativo ? message("entregadores.entregador.desativado") : message("entregadores.entregador.ativado"), 'success');
       await carregarEntregadores();
     } catch {
-      showToast('Não foi possível alterar o status do entregador.', 'error');
+      showToast(message("entregadores.nao.foi.possivel.alterar.o.status.do.entregador"), 'error');
     }
   }
 
@@ -125,12 +128,12 @@ export function EntregadoresPage() {
         email: formatEmailInput(accessForm.email),
 
       });
-      showToast('Convite enviado para definição de senha.', 'success');
+      showToast(message("entregadores.convite.enviado.para.definicao.de.senha"), 'success');
       setAccessForm({ entregadorId: '', email: '', senha: '' });
       setAccessModalOpen(false);
       await carregarEntregadores();
     } catch {
-      showToast('Não foi possível criar o acesso. Verifique se o e-mail já existe.', 'error');
+      showToast(message("entregadores.nao.foi.possivel.criar.o.acesso.verifique.se.o.e.mail.ja.existe"), 'error');
     }
   }
 
@@ -149,7 +152,7 @@ export function EntregadoresPage() {
         <div className="filterSearch">
           <Search size={17} color="#ABA89B" />
           <input
-            placeholder="Pesquisar por nome ou telefone"
+            placeholder={message("entregadores.pesquisar.por.nome.ou.telefone")}
             value={busca}
             onChange={(event) => setBusca(event.target.value)}
             onKeyDown={(event) => event.key === 'Enter' && carregarEntregadores()}
@@ -157,11 +160,9 @@ export function EntregadoresPage() {
         </div>
         <span style={{ flex: 1 }} />
         <button className="secondaryButton accessButton" onClick={() => { setAccessForm({ entregadorId: '', email: '', senha: '' }); setAccessModalOpen(true); }} type="button">
-          <KeyRound size={17} /> Criar acesso
-        </button>
+          <KeyRound size={17} /> {message("entregadores.criar.acesso")} </button>
         <button className="primaryButton" onClick={abrirNovo} type="button">
-          <Plus size={17} /> Novo entregador
-        </button>
+          <Plus size={17} /> {message("entregadores.novo.entregador")} </button>
       </div>
 
       <div className="adminList" style={{ overflow: 'visible' }}>
@@ -169,25 +170,25 @@ export function EntregadoresPage() {
           <table className="responsiveTable">
             <thead>
               <tr>
-                <th>Entregador</th>
-                <th>Telefone</th>
-                <th>Veículo</th>
-                <th>Disponibilidade</th>
-                <th>Status</th>
-                <th style={{ textAlign: 'right' }}>Ações</th>
+                <th>{message("entregadores.entregador")}</th>
+                <th>{message("entregadores.telefone")}</th>
+                <th>{message("entregadores.veiculo")}</th>
+                <th>{message("entregadores.disponibilidade")}</th>
+                <th>{message("entregadores.status")}</th>
+                <th style={{ textAlign: 'right' }}>{message("entregadores.acoes")}</th>
               </tr>
             </thead>
             <tbody>
               {entregadores.map((entregador) => {
                 const menuItems: TableAction[] = [
-                  { label: 'Editar entregador', icon: <Pencil size={16} />, onClick: () => editar(entregador) },
+                  { label: message("entregadores.editar.entregador"), icon: <Pencil size={16} />, onClick: () => editar(entregador) },
                 ];
                 if (!entregador.possuiAcesso) {
-                  menuItems.push({ label: 'Vincular minha conta de proprietário', icon: <UserPlus size={16} />, onClick: () => { if (!window.confirm('Vincular este cadastro à sua conta de proprietário?')) return; void api.post(`/entregadores/${entregador.id}/vincular-proprietario`).then(() => { showToast('Vínculo criado. Recarregue a página para alternar o modo.', 'success'); void carregarEntregadores(); }).catch(r => showToast(apiErrorMessage(r, 'Não foi possível vincular.'), 'error')); } });
-                  menuItems.push({ label: 'Criar acesso', icon: <UserPlus size={16} />, onClick: () => prepararAcesso(entregador) });
+                  menuItems.push({ label: message("entregadores.vincular.minha.conta.de.proprietario"), icon: <UserPlus size={16} />, onClick: () => { if (!window.confirm(message("entregadores.vincular.este.cadastro.a.sua.conta.de.proprietario"))) return; void api.post(`/entregadores/${entregador.id}/vincular-proprietario`).then(() => { showToast(message("entregadores.vinculo.criado.recarregue.a.pagina.para.alternar.o.modo"), 'success'); void carregarEntregadores(); }).catch(r => showToast(apiErrorMessage(r, message("entregadores.nao.foi.possivel.vincular")), 'error')); } });
+                  menuItems.push({ label: message("entregadores.criar.acesso"), icon: <UserPlus size={16} />, onClick: () => prepararAcesso(entregador) });
                 }
                 menuItems.push({
-                  label: entregador.ativo ? 'Desativar' : 'Ativar',
+                  label: entregador.ativo ? message("entregadores.desativar") : message("entregadores.ativar"),
                   icon: entregador.ativo ? <ToggleLeft size={16} /> : <ToggleRight size={16} />,
                   onClick: () => alterarStatus(entregador),
                   danger: entregador.ativo,
@@ -195,101 +196,92 @@ export function EntregadoresPage() {
 
                 return (
                   <tr key={entregador.id}>
-                    <td data-label="Entregador">
+                    <td data-label={message("entregadores.entregador")}>
                       <div className="nameCell">
                         <span className="avatarTile tone-yellow">{iniciais(entregador.nome)}</span>
                         <div>
                           <div>{titleCase(entregador.nome)}</div>
-                          <div className="cellSub">{entregador.possuiAcesso ? 'Acesso criado' : 'Sem acesso'}</div>
+                          <div className="cellSub">{entregador.possuiAcesso ? message("entregadores.acesso.criado") : message("entregadores.sem.acesso")}</div>
                         </div>
                       </div>
                     </td>
-                    <td data-label="Telefone">{formatPhone(entregador.telefone)}</td>
-                    <td data-label="Veículo" style={{ fontSize: 13, color: 'var(--body-2)' }}>{sentenceCase(entregador.tipoVeiculo)}{entregador.placaVeiculo ? ` · ${entregador.placaVeiculo}` : ''}</td>
-                    <td data-label="Disponibilidade"><span className={entregador.disponivel ? 'statusBadge active dot' : 'statusBadge dot'}>{entregador.disponivel ? 'Disponível' : 'Ocupado'}</span></td>
-                    <td data-label="Status"><span className={entregador.ativo ? 'statusBadge active' : 'statusBadge danger'}>{entregador.ativo ? 'Ativo' : 'Inativo'}</span></td>
-                    <td data-label="Ações">
+                    <td data-label={message("entregadores.telefone")}>{formatPhone(entregador.telefone)}</td>
+                    <td data-label={message("entregadores.veiculo")} style={{ fontSize: 13, color: 'var(--body-2)' }}>{domainLabel(entregador.tipoVeiculo)}{entregador.placaVeiculo ? ` · ${entregador.placaVeiculo}` : ''}</td>
+                    <td data-label={message("entregadores.disponibilidade")}><span className={entregador.disponivel ? 'statusBadge active dot' : 'statusBadge dot'}>{entregador.disponivel ? message("entregadores.disponivel") : message("entregadores.ocupado")}</span></td>
+                    <td data-label={message("entregadores.status")}><span className={entregador.ativo ? 'statusBadge active' : 'statusBadge danger'}>{entregador.ativo ? message("entregadores.ativo") : message("entregadores.inativo")}</span></td>
+                    <td data-label={message("entregadores.acoes")}>
                       <TableActions actions={menuItems} />
                     </td>
                   </tr>
                 );
               })}
-              {entregadores.length === 0 ? <tr><td className="responsiveTableEmpty" colSpan={6}>Nenhum entregador encontrado.</td></tr> : null}
+              {entregadores.length === 0 ? <tr><td className="responsiveTableEmpty" colSpan={6}>{message("entregadores.nenhum.entregador.encontrado")}</td></tr> : null}
             </tbody>
           </table>
         </div>
       </div>
 
-      <Modal open={accessModalOpen} onClose={() => setAccessModalOpen(false)} title="Criar acesso" eyebrow="ACESSO DO ENTREGADOR" maxWidth={540}>
+      <Modal open={accessModalOpen} onClose={() => setAccessModalOpen(false)} title={message("entregadores.criar.acesso")} eyebrow={message("entregadores.acesso.do.entregador")} maxWidth={540}>
         <form className="settingsForm compactForm" onSubmit={criarAcesso}>
           <label>
-            Entregador
-            <select value={accessForm.entregadorId} onChange={(event) => setAccessForm({ ...accessForm, entregadorId: event.target.value })} required>
-              <option value="">Selecione um entregador</option>
+            {message("entregadores.entregador")} <select value={accessForm.entregadorId} onChange={(event) => setAccessForm({ ...accessForm, entregadorId: event.target.value })} required>
+              <option value="">{message("entregadores.selecione.um.entregador")}</option>
               {entregadores.filter((entregador) => !entregador.possuiAcesso).map((entregador) => (
                 <option key={entregador.id} value={entregador.id}>{titleCase(entregador.nome)}</option>
               ))}
             </select>
           </label>
           <label>
-            E-mail de login
-            <input type="email" inputMode="email" autoComplete="email" placeholder="nome@exemplo.com" value={accessForm.email} onChange={(event) => setAccessForm({ ...accessForm, email: formatEmailInput(event.target.value) })} required />
+            {message("entregadores.e.mail.de.login")} <input type="email" inputMode="email" autoComplete="email" placeholder={message("comum.email.exemplo")} value={accessForm.email} onChange={(event) => setAccessForm({ ...accessForm, email: formatEmailInput(event.target.value) })} required />
           </label>
-          <p className="formHelp">O entregador define sua senha pelo link de uso único enviado ao e-mail. O convite expira em 20 minutos.</p>
-          <button className="primaryButton" type="submit"><KeyRound size={17} /> Criar acesso</button>
+          <p className="formHelp">{message("entregadores.o.entregador.define.sua.senha.pelo.link.de.uso.unico.enviado.ao.e.ma")}</p>
+          <button className="primaryButton" type="submit"><KeyRound size={17} /> {message("entregadores.criar.acesso")}</button>
         </form>
       </Modal>
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editingId ? 'Editar entregador' : 'Novo entregador'}
+        title={editingId ? message("entregadores.editar.entregador") : message("entregadores.novo.entregador")}
         maxWidth={560}
       >
         <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 14 }}>
           <label style={{ display: 'grid', gap: 7 }}>
-            Nome
-            <input value={form.nome} onChange={(event) => setForm({ ...form, nome: event.target.value })} required />
+            {message("entregadores.nome")} <input value={form.nome} onChange={(event) => setForm({ ...form, nome: event.target.value })} required />
           </label>
           <div className="modalFormGrid" style={{ marginBottom: 0 }}>
             <label>
-              CPF
-              <input inputMode="numeric" autoComplete="off" maxLength={14} placeholder="000.000.000-00" value={form.cpf} onChange={(event) => setForm({ ...form, cpf: formatCpf(event.target.value) })} required />
+              {message("entregadores.cpf")} <input inputMode="numeric" autoComplete="off" maxLength={14} placeholder="000.000.000-00" value={form.cpf} onChange={(event) => setForm({ ...form, cpf: formatCpf(event.target.value) })} required />
             </label>
             <label>
-              Telefone
-              <input type="tel" inputMode="tel" autoComplete="tel" maxLength={15} placeholder="(00) 00000-0000" value={form.telefone} onChange={(event) => setForm({ ...form, telefone: formatPhone(event.target.value) })} required />
+              {message("entregadores.telefone")} <input type="tel" inputMode="tel" autoComplete="tel" maxLength={15} placeholder="(00) 00000-0000" value={form.telefone} onChange={(event) => setForm({ ...form, telefone: formatPhone(event.target.value) })} required />
             </label>
           </div>
           <label style={{ display: 'grid', gap: 7 }}>
-            E-mail
-            <input type="email" inputMode="email" autoComplete="email" placeholder="nome@exemplo.com" value={form.email} onChange={(event) => setForm({ ...form, email: formatEmailInput(event.target.value) })} />
+            {message("entregadores.e.mail")} <input type="email" inputMode="email" autoComplete="email" placeholder={message("comum.email.exemplo")} value={form.email} onChange={(event) => setForm({ ...form, email: formatEmailInput(event.target.value) })} />
           </label>
           <div className="modalFormGrid" style={{ marginBottom: 0 }}>
             <label>
-              Tipo de veiculo
-              <select value={form.tipoVeiculo} onChange={(event) => setForm({ ...form, tipoVeiculo: event.target.value as TipoVeiculo })}>
-                {vehicleOptions.map((option) => <option key={option} value={option}>{sentenceCase(option)}</option>)}
+              {message("entregadores.tipo.de.veiculo")} <select value={form.tipoVeiculo} onChange={(event) => setForm({ ...form, tipoVeiculo: event.target.value as TipoVeiculo })}>
+                {vehicleOptions.map((option) => <option key={option} value={option}>{domainLabel(option)}</option>)}
               </select>
             </label>
             <label>
-              Placa
-              <input autoCapitalize="characters" maxLength={8} placeholder="ABC-1D23" value={form.placaVeiculo} onChange={(event) => setForm({ ...form, placaVeiculo: formatVehiclePlate(event.target.value) })} />
+              {message("entregadores.placa")} <input autoCapitalize="characters" maxLength={8} placeholder="ABC-1D23" value={form.placaVeiculo} onChange={(event) => setForm({ ...form, placaVeiculo: formatVehiclePlate(event.target.value) })} />
             </label>
           </div>
           <label className="checkboxLine">
             <input type="checkbox" checked={form.disponivel} onChange={(event) => setForm({ ...form, disponivel: event.target.checked })} />
-            Disponível para entregas
-          </label>
+            {message("entregadores.disponivel.para.entregas")} </label>
           <fieldset className="settingsForm">
-            <legend>Pix direto do entregador</legend>
-            <label>Tipo de chave<select value={form.tipoChavePix} onChange={e => setForm({ ...form, tipoChavePix: e.target.value as TipoChavePix | '' })}>
-              <option value="">Ainda não configurado</option><option value="CPF">CPF</option><option value="TELEFONE">Telefone</option><option value="EMAIL">E-mail</option><option value="ALEATORIA">Aleatória</option>
+            <legend>{message("entregadores.pix.direto.do.entregador")}</legend>
+            <label>{message("entregadores.tipo.de.chave")}<select value={form.tipoChavePix} onChange={e => setForm({ ...form, tipoChavePix: e.target.value as TipoChavePix | '' })}>
+              <option value="">{message("entregadores.ainda.nao.configurado")}</option><option value="CPF">{message("entregadores.cpf")}</option><option value="TELEFONE">{message("entregadores.telefone")}</option><option value="EMAIL">{message("entregadores.e.mail")}</option><option value="ALEATORIA">{message("entregadores.aleatoria")}</option>
             </select></label>
-            <label>Chave Pix<input required={!!form.tipoChavePix} maxLength={180} value={form.chavePix} onChange={e => setForm({ ...form, chavePix: e.target.value })} /></label>
-            <label>Nome do titular<input required={!!form.tipoChavePix} maxLength={140} value={form.titularPix} onChange={e => setForm({ ...form, titularPix: e.target.value })} /></label>
-            <p className="formHelp">O cliente deve conferir o destinatário no aplicativo do banco. Telefone aceita +55 e DDD; e-mail e chave aleatória não usam máscara numérica.</p>
+            <label>{message("entregadores.chave.pix")}<input required={!!form.tipoChavePix} maxLength={180} value={form.chavePix} onChange={e => setForm({ ...form, chavePix: e.target.value })} /></label>
+            <label>{message("entregadores.nome.do.titular")}<input required={!!form.tipoChavePix} maxLength={140} value={form.titularPix} onChange={e => setForm({ ...form, titularPix: e.target.value })} /></label>
+            <p className="formHelp">{message("entregadores.o.cliente.deve.conferir.o.destinatario.no.aplicativo.do.banco.telefo")}</p>
           </fieldset>
-          <button className="primaryButton" disabled={carregando} type="submit">{editingId ? 'Salvar' : 'Cadastrar'}</button>
+          <button className="primaryButton" disabled={carregando} type="submit">{editingId ? message("entregadores.salvar") : message("entregadores.cadastrar")}</button>
         </form>
       </Modal>
     </main>

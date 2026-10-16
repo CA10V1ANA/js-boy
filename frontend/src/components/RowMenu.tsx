@@ -1,3 +1,4 @@
+import { message, useLocale } from '../i18n';
 import { MoreHorizontal } from 'lucide-react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 
@@ -13,6 +14,7 @@ type RowMenuProps = {
 };
 
 export function RowMenu({ items }: RowMenuProps) {
+  useLocale();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -29,7 +31,7 @@ export function RowMenu({ items }: RowMenuProps) {
 
   return (
     <div className="rowMenu" ref={ref}>
-      <button className="rowMenuButton" onClick={() => setOpen((value) => !value)} type="button" aria-label="Mais ações">
+      <button className="rowMenuButton" onClick={() => setOpen((value) => !value)} type="button" aria-label={message("registro.menu.mais.acoes")}>
         <MoreHorizontal size={16} />
       </button>
       {open ? (

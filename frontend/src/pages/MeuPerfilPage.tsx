@@ -1,3 +1,5 @@
+import { domainLabel } from '../i18n/domain';
+import { message, useLocale } from '../i18n';
 import { useEffect, useState } from "react";
 import { BadgeCheck, Bike, CircleAlert, Mail, Phone, UserRound, WalletCards } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -13,6 +15,7 @@ function iniciais(nome: string) {
 }
 
 export function MeuPerfilPage() {
+  useLocale();
   const [perfil, setPerfil] = useState<Entregador | null>(null);
   const [telefone, setTelefone] = useState("");
   const [error, setError] = useState("");
@@ -25,7 +28,7 @@ export function MeuPerfilPage() {
         setPerfil(r.data);
         setTelefone(formatPhone(r.data.telefone));
       })
-      .catch((r) => setError(apiErrorMessage(r, "Perfil indisponível.")));
+      .catch((r) => setError(apiErrorMessage(r, message("entregador.perfil.perfil.indisponivel"))));
   }, []);
 
   const telefoneValido = onlyDigits(telefone).length >= 10;
@@ -36,8 +39,8 @@ export function MeuPerfilPage() {
       <main className="page profilePage">
         <div className="asyncState" role="status">
           <span className="profileLoadingMark" aria-hidden="true" />
-          <strong>Carregando seu perfil</strong>
-          <span>Estamos buscando seus dados de acesso e operação.</span>
+          <strong>{message("entregador.perfil.carregando.seu.perfil")}</strong>
+          <span>{message("entregador.perfil.estamos.buscando.seus.dados.de.acesso.e.operacao")}</span>
         </div>
       </main>
     );
@@ -47,13 +50,13 @@ export function MeuPerfilPage() {
     <main className="page profilePage">
       <header className="profilePageIntro">
         <div>
-          <span className="profileEyebrow">CONTA DO ENTREGADOR</span>
-          <h1>Meu perfil</h1>
-          <p>Confira seus dados e mantenha seu contato atualizado para a operação do dia.</p>
+          <span className="profileEyebrow">{message("entregador.perfil.conta.do.entregador")}</span>
+          <h1>{message("entregador.perfil.meu.perfil")}</h1>
+          <p>{message("entregador.perfil.confira.seus.dados.e.mantenha.seu.contato.atualizado.para.a.operacao")}</p>
         </div>
         <span className={`profileAvailability ${perfil?.disponivel ? "isAvailable" : ""}`}>
           <span aria-hidden="true" />
-          {perfil?.disponivel ? "Disponível para entregas" : "Indisponível no momento"}
+          {perfil?.disponivel ? message("entregador.perfil.disponivel.para.entregas") : message("entregador.perfil.indisponivel.no.momento")}
         </span>
       </header>
 
@@ -66,13 +69,13 @@ export function MeuPerfilPage() {
           <section className="panelCard profileIdentityCard" aria-labelledby="profile-name">
             <div className="profileAvatar" aria-hidden="true">{iniciais(perfil.nome)}</div>
             <div className="profileIdentityText">
-              <div className="profileRole"><BadgeCheck size={15} /> Entregador</div>
+              <div className="profileRole"><BadgeCheck size={15} /> {message("entregador.perfil.entregador")}</div>
               <h2 id="profile-name">{titleCase(perfil.nome)}</h2>
-              <p><Mail size={16} /> {perfil.email || "E-mail não informado"}</p>
+              <p><Mail size={16} /> {perfil.email || message("entregador.perfil.e.mail.nao.informado")}</p>
             </div>
             <div className="profileIdentityHint">
               <UserRound size={18} />
-              <span>Nome e e-mail são protegidos. Para alterá-los, fale com o proprietário.</span>
+              <span>{message("entregador.perfil.nome.e.e.mail.sao.protegidos.para.altera.los.fale.com.o.proprietario")}</span>
             </div>
           </section>
 
@@ -80,7 +83,7 @@ export function MeuPerfilPage() {
             <section className="panelCard profileSection" aria-labelledby="contact-heading">
               <div className="profileSectionHeader">
                 <span className="profileSectionIcon"><Phone size={19} /></span>
-                <div><h2 id="contact-heading">Telefone de contato</h2><p>Usado pela equipe durante coletas e entregas.</p></div>
+                <div><h2 id="contact-heading">{message("entregador.perfil.telefone.de.contato")}</h2><p>{message("entregador.perfil.usado.pela.equipe.durante.coletas.e.entregas")}</p></div>
               </div>
               <form
                 className="profileContactForm"
@@ -94,15 +97,15 @@ export function MeuPerfilPage() {
                     setPerfil(atualizado);
                     setTelefone(formatPhone(atualizado.telefone));
                     setError("");
-                    setFeedback("Telefone atualizado com sucesso.");
+                    setFeedback(message("entregador.perfil.telefone.atualizado.com.sucesso"));
                   } catch (r) {
-                    setError(apiErrorMessage(r, "Não foi possível atualizar contato."));
+                    setError(apiErrorMessage(r, message("entregador.perfil.nao.foi.possivel.atualizar.contato")));
                   } finally {
                     setBusy(false);
                   }
                 }}
               >
-                <label htmlFor="profile-phone">Seu telefone</label>
+                <label htmlFor="profile-phone">{message("entregador.perfil.seu.telefone")}</label>
                 <div className="profilePhoneField">
                   <Phone size={18} aria-hidden="true" />
                   <input
@@ -124,10 +127,10 @@ export function MeuPerfilPage() {
                   />
                 </div>
                 <p id="profile-phone-help" className={`profileFieldHelp ${telefone.length > 0 && !telefoneValido ? "error" : ""}`}>
-                  {telefone.length > 0 && !telefoneValido ? "Informe o DDD e um telefone válido." : "Digite apenas números; a formatação é automática."}
+                  {telefone.length > 0 && !telefoneValido ? message("entregador.perfil.informe.o.ddd.e.um.telefone.valido") : message("entregador.perfil.digite.apenas.numeros.a.formatacao.e.automatica")}
                 </p>
                 <button className="primaryButton" disabled={busy || !telefoneAlterado || !telefoneValido}>
-                  {busy ? "Salvando..." : telefoneAlterado ? "Salvar telefone" : "Telefone atualizado"}
+                  {busy ? message("comum.salvando") : telefoneAlterado ? message("entregador.perfil.salvar.telefone") : message("entregador.perfil.telefone.atualizado")}
                 </button>
                 {feedback ? <p className="profileMessage success" role="status"><BadgeCheck size={18} /> {feedback}</p> : null}
               </form>
@@ -136,23 +139,23 @@ export function MeuPerfilPage() {
             <section className="panelCard profileSection" aria-labelledby="operation-heading">
               <div className="profileSectionHeader">
                 <span className="profileSectionIcon"><Bike size={19} /></span>
-                <div><h2 id="operation-heading">Dados operacionais</h2><p>Informações usadas para organizar suas entregas e recebimentos.</p></div>
+                <div><h2 id="operation-heading">{message("entregador.perfil.dados.operacionais")}</h2><p>{message("entregador.perfil.informacoes.usadas.para.organizar.suas.entregas.e.recebimentos")}</p></div>
               </div>
               <dl className="profileOperationalList">
                 <div>
-                  <dt><Bike size={17} /> Veículo</dt>
-                  <dd>{sentenceCase(perfil.tipoVeiculo)}</dd>
-                  <span>{perfil.placaVeiculo || "Placa não informada"}</span>
+                  <dt><Bike size={17} /> {message("entregador.perfil.veiculo")}</dt>
+                  <dd>{domainLabel(perfil.tipoVeiculo)}</dd>
+                  <span>{perfil.placaVeiculo || message("entregador.perfil.placa.nao.informada")}</span>
                 </div>
                 <div>
-                  <dt><WalletCards size={17} /> Recebimento via Pix</dt>
-                  <dd>{perfil.chavePix ? "Pix configurado" : "Pix ainda não configurado"}</dd>
-                  <span>{perfil.chavePix ? `${perfil.titularPix || "Titular não informado"} · ${perfil.chavePix}` : "Peça ao proprietário para cadastrar sua chave."}</span>
+                  <dt><WalletCards size={17} /> {message("entregador.perfil.recebimento.via.pix")}</dt>
+                  <dd>{perfil.chavePix ? message("entregador.perfil.pix.configurado") : message("entregador.perfil.pix.ainda.nao.configurado")}</dd>
+                  <span>{perfil.chavePix ? `${perfil.titularPix || message("entregador.perfil.titular.nao.informado")} · ${perfil.chavePix}` : message("entregador.perfil.peca.ao.proprietario.para.cadastrar.sua.chave")}</span>
                 </div>
               </dl>
               <div className="profileReadOnlyNotice">
                 <CircleAlert size={18} />
-                <p>Veículo e Pix são alterados pelo proprietário para proteger os recebimentos. <Link to="/operacional/ajuda">Preciso de ajuda</Link></p>
+                <p>{message("entregador.perfil.veiculo.e.pix.sao.alterados.pelo.proprietario.para.proteger.os.receb")} <Link to="/operacional/ajuda">{message("entregador.perfil.preciso.de.ajuda")}</Link></p>
               </div>
             </section>
           </div>

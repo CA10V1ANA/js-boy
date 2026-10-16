@@ -1,3 +1,4 @@
+import { message, useLocale } from '../i18n';
 import { useEffect, useState } from "react";
 import { api } from "../services/api";
 import { apiErrorMessage } from "../services/apiError";
@@ -6,6 +7,7 @@ import { useAreaOperacional } from "../hooks/useAreaOperacional";
 import { ConfiguracaoEmpresa } from "../types";
 
 export function AjudaPage() {
+  useLocale();
   const { usuario } = useAuth();
   const operacional = useAreaOperacional();
   const [contato, setContato] = useState<ConfiguracaoEmpresa | null>(null);
@@ -22,18 +24,16 @@ export function AjudaPage() {
       .then((r) => setContato(r.data))
       .catch((r) =>
         setError(
-          apiErrorMessage(r, "Não foi possível consultar o atendimento."),
+          apiErrorMessage(r, message("ajuda.nao.foi.possivel.consultar.o.atendimento")),
         ),
       );
   }, [usuario?.perfil, operacional]);
   return (
     <main className="page">
       <section className="panelCard notificationPanel">
-        <h1>Ajuda e contato</h1>
+        <h1>{message("ajuda.ajuda.e.contato")}</h1>
         <p>
-          Para dúvidas sobre uma entrega, use Conversar. Mensagens não alteram
-          pagamentos nem a execução das paradas.
-        </p>
+          {message("ajuda.para.duvidas.sobre.uma.entrega.use.conversar.mensagens.nao.alteram.p")} </p>
         {error ? <p role="alert">{error}</p> : null}
         {contato ? (
           <>
@@ -42,7 +42,7 @@ export function AjudaPage() {
             <div className="quickLinks">
               {contato.telefone ? (
                 <a className="secondaryButton" href={`tel:${contato.telefone}`}>
-                  Ligar para {contato.telefone}
+                  {message("ajuda.ligar.para")} {contato.telefone}
                 </a>
               ) : null}
               {contato.whatsapp ? (
@@ -52,8 +52,7 @@ export function AjudaPage() {
                   rel="noopener noreferrer"
                   href={`https://wa.me/${contato.whatsapp.replace(/\D/g, "")}`}
                 >
-                  WhatsApp de atendimento
-                </a>
+                  {message("ajuda.whatsapp.de.atendimento")} </a>
               ) : null}
               {contato.email ? (
                 <a className="secondaryButton" href={`mailto:${contato.email}`}>
@@ -62,7 +61,7 @@ export function AjudaPage() {
               ) : null}
             </div>
             {!contato.telefone && !contato.whatsapp && !contato.email ? (
-              <p>Canal de atendimento ainda não configurado pela empresa.</p>
+              <p>{message("ajuda.canal.de.atendimento.ainda.nao.configurado.pela.empresa")}</p>
             ) : null}
           </>
         ) : null}

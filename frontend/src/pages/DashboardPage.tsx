@@ -1,3 +1,6 @@
+import { domainLabel } from '../i18n/domain';
+import { getLocale } from '../preferences';
+import { message, useLocale } from '../i18n';
 import {
   BarChart3,
   CheckCircle2,
@@ -56,11 +59,11 @@ const emAndamentoStatus: StatusEntrega[] = [
 ];
 
 function money(value: number) {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  return new Intl.NumberFormat(getLocale(), { style: 'currency', currency: 'BRL' }).format(value);
 }
 
 function labelStatus(status: StatusEntrega) {
-  return status.replace(/_/g, ' ').toLowerCase().replace(/(^|\s)\S/g, (letter: string) => letter.toUpperCase());
+  return domainLabel(status);
 }
 
 function toneStatus(status: StatusEntrega) {
@@ -72,7 +75,7 @@ function toneStatus(status: StatusEntrega) {
 }
 
 function labelForma(forma: FormaPagamento) {
-  return forma.replace(/_/g, ' ').toLowerCase().replace(/(^|\s)\S/g, (letter: string) => letter.toUpperCase());
+  return domainLabel(forma);
 }
 
 function iniciais(nome: string) {
@@ -81,7 +84,7 @@ function iniciais(nome: string) {
 }
 
 function horaCurta(iso: string) {
-  return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  return new Date(iso).toLocaleTimeString(getLocale(), { hour: '2-digit', minute: '2-digit' });
 }
 
 type EventoTimeline = {
@@ -92,6 +95,7 @@ type EventoTimeline = {
 };
 
 export function DashboardPage() {
+  const locale = useLocale();
   const { usuario } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -121,7 +125,7 @@ export function DashboardPage() {
       const response = await api.get<DashboardResumo>('/dashboard/resumo');
       setResumo(response.data);
     } catch {
-      showToast('Não foi possível carregar o painel.', 'error');
+      showToast(message("painel.nao.foi.possivel.carregar.o.painel"), 'error');
     }
   }
 
@@ -136,7 +140,7 @@ export function DashboardPage() {
       setEntregas(entregasResponse.data);
       setPagamentos(pagamentosResponse.data);
     } catch {
-      showToast('Não foi possível carregar os dados da operação.', 'error');
+      showToast(message("painel.nao.foi.possivel.carregar.os.dados.da.operacao"), 'error');
     }
   }
 
@@ -157,19 +161,19 @@ export function DashboardPage() {
 
     entregas.forEach((entrega) => {
       entrega.historico.forEach((item) => {
-        let texto = `Entrega de ${titleCase(entrega.destinatarioNome)} atualizada para ${labelStatus(item.novoStatus).toLowerCase()}`;
+        let texto = message("painel.entrega.de.value.atualizada.para.value", { value1: titleCase(entrega.destinatarioNome), value2: labelStatus(item.novoStatus).toLowerCase() });
         let cor = '#B47A12';
         if (item.novoStatus === 'ENTREGUE') {
-          texto = `Entrega de ${titleCase(entrega.destinatarioNome)} marcada como entregue`;
+          texto = message("painel.entrega.de.value.marcada.como.entregue", { value1: titleCase(entrega.destinatarioNome) });
           cor = '#2E8B57';
         } else if (item.novoStatus === 'EM_ROTA' || item.novoStatus === 'COLETADA') {
-          texto = `Entrega de ${titleCase(entrega.destinatarioNome)} saiu para rota`;
+          texto = message("painel.entrega.de.value.saiu.para.rota", { value1: titleCase(entrega.destinatarioNome) });
           cor = '#1B8079';
         } else if (item.novoStatus === 'SOLICITADA') {
-          texto = 'Nova entrega registrada · aguardando entregador';
+          texto = message("painel.nova.entrega.registrada.aguardando.entregador");
           cor = '#B47A12';
         } else if (item.novoStatus === 'CANCELADA') {
-          texto = `Entrega de ${titleCase(entrega.destinatarioNome)} cancelada`;
+          texto = message("painel.entrega.de.value.cancelada", { value1: titleCase(entrega.destinatarioNome) });
           cor = '#C0503F';
         }
         eventos.push({
@@ -184,7 +188,7 @@ export function DashboardPage() {
     pagamentos.forEach((pagamento) => {
       eventos.push({
         quando: new Date(pagamento.criadoEm),
-        texto: `Pagamento de ${money(pagamento.valor)} recebido em ${labelForma(pagamento.formaPagamento).toLowerCase()}`,
+        texto: message("painel.pagamento.de.value.recebido.em.value", { value1: money(pagamento.valor), value2: labelForma(pagamento.formaPagamento).toLowerCase() }),
         meta: pagamento.clienteNome,
         cor: '#1B8079',
       });
@@ -193,84 +197,84 @@ export function DashboardPage() {
     return eventos
       .sort((a, b) => b.quando.getTime() - a.quando.getTime())
       .slice(0, 4);
-  }, [entregas, pagamentos]);
+  }, [entregas, pagamentos, locale]);
 
   const kpis = [
     {
-      label: 'Entregas',
+      label: message("painel.entregas"),
       value: String(resumo.totalEntregas).padStart(2, '0'),
       icon: Package,
       tone: 'yellow',
-      delta: `${resumo.entregues} entregues`,
+      delta: message("painel.value.entregues", { value1: resumo.entregues }),
       deltaTone: 'up',
     },
     {
-      label: 'Em andamento',
+      label: message("painel.em.andamento"),
       value: String(resumo.emAndamento).padStart(2, '0'),
       icon: Truck,
       tone: 'green',
-      delta: 'agora',
+      delta: message('painel.agora'),
       deltaTone: 'vs',
     },
     {
-      label: 'Aguardando',
+      label: message("painel.aguardando"),
       value: String(resumo.solicitadas).padStart(2, '0'),
       icon: Clock,
       tone: 'red',
-      delta: resumo.solicitadas > 0 ? 'sem entregador' : 'em dia',
+      delta: resumo.solicitadas > 0 ? message("painel.sem.entregador") : message("painel.em.dia"),
       deltaTone: resumo.solicitadas > 0 ? 'warn' : 'vs',
     },
     {
-      label: 'Recebido acumulado',
+      label: message("painel.recebido.acumulado"),
       value: money(relatorio.valorRecebido),
       icon: DollarSign,
       tone: 'blue',
-      delta: relatorio.valorPendente > 0 ? `${money(relatorio.valorPendente)} pendente` : 'tudo recebido',
+      delta: relatorio.valorPendente > 0 ? message("painel.value.pendente", { value1: money(relatorio.valorPendente) }) : message("painel.tudo.recebido"),
       deltaTone: relatorio.valorPendente > 0 ? 'warn' : 'up',
       smaller: true,
     },
   ] as const;
 
   const quickActions = [
-    { label: 'Nova entrega', sub: 'Cadastrar', icon: Plus, tone: 'yellow', to: '/entregas', perfil: 'PROPRIETARIO' },
-    { label: 'Registrar pagamento', sub: 'Recebimento', icon: DollarSign, tone: 'green', to: '/pagamentos', perfil: 'PROPRIETARIO' },
-    { label: 'Novo cliente', sub: 'Cadastrar', icon: UserPlus, tone: 'slate', to: '/clientes', perfil: 'TODOS' },
-    { label: 'Relatórios', sub: 'Visualizar', icon: BarChart3, tone: 'navy', to: '/relatorios', perfil: 'PROPRIETARIO' },
+    { label: message("painel.nova.entrega"), sub: message("painel.cadastrar"), icon: Plus, tone: 'yellow', to: '/entregas', perfil: 'PROPRIETARIO' },
+    { label: message("painel.registrar.pagamento"), sub: message("painel.recebimento"), icon: DollarSign, tone: 'green', to: '/pagamentos', perfil: 'PROPRIETARIO' },
+    { label: message("painel.novo.cliente"), sub: message("painel.cadastrar"), icon: UserPlus, tone: 'slate', to: '/clientes', perfil: 'TODOS' },
+    { label: message("painel.relatorios"), sub: message("painel.visualizar"), icon: BarChart3, tone: 'navy', to: '/relatorios', perfil: 'PROPRIETARIO' },
   ].filter((acao) => acao.perfil === 'TODOS' || ehProprietario);
 
   const prioridade = resumo.solicitadas > 0
     ? {
         icon: Clock,
         tone: 'warning',
-        title: `${resumo.solicitadas} ${resumo.solicitadas === 1 ? 'solicitação precisa' : 'solicitações precisam'} de atenção`,
-        description: 'Revise o pedido, confirme os dados e designe o entregador quando estiver pronto.',
-        action: 'Revisar entregas',
+        title: message("painel.value.value.de.atencao", { value1: resumo.solicitadas, value2: message(resumo.solicitadas === 1 ? 'painel.solicitacao.precisa' : 'painel.solicitacoes.precisam') }),
+        description: message("painel.revise.o.pedido.confirme.os.dados.e.designe.o.entregador.quando.esti"),
+        action: message("painel.revisar.entregas"),
         to: '/entregas',
       }
     : relatorio.valorPendente > 0
       ? {
           icon: DollarSign,
           tone: 'warning',
-          title: `${money(relatorio.valorPendente)} ainda pendente`,
-          description: 'Acompanhe os recebimentos. O entregador designado pode confirmar a própria entrega.',
-          action: 'Ver pagamentos',
+          title: message("painel.value.ainda.pendente", { value1: money(relatorio.valorPendente) }),
+          description: message("painel.acompanhe.os.recebimentos.o.entregador.designado.pode.confirmar.a.pr"),
+          action: message("painel.ver.pagamentos"),
           to: '/pagamentos',
         }
       : resumo.emAndamento > 0
         ? {
             icon: Truck,
             tone: 'active',
-            title: `${resumo.emAndamento} ${resumo.emAndamento === 1 ? 'entrega em andamento' : 'entregas em andamento'}`,
-            description: 'A operação está seguindo. Entre apenas se houver atraso, ocorrência ou pedido de ajuda.',
-            action: 'Acompanhar entregas',
+            title: `${resumo.emAndamento} ${message(resumo.emAndamento === 1 ? 'painel.entrega.em.andamento' : 'painel.entregas.em.andamento')}`,
+            description: message("painel.a.operacao.esta.seguindo.entre.apenas.se.houver.atraso.ocorrencia.ou"),
+            action: message("painel.acompanhar.entregas"),
             to: '/entregas',
           }
         : {
             icon: CheckCircle2,
             tone: 'done',
-            title: 'Operação em dia',
-            description: 'Nenhuma pendência exige sua ação agora.',
-            action: 'Ver entregas',
+            title: message("painel.operacao.em.dia"),
+            description: message("painel.nenhuma.pendencia.exige.sua.acao.agora"),
+            action: message("painel.ver.entregas"),
             to: '/entregas',
           };
   const PrioridadeIcon = prioridade.icon;
@@ -278,18 +282,18 @@ export function DashboardPage() {
   return (
     <main className="page">
       <div className="statusRibbon">
-        <span className="ribbonLive">OPERAÇÃO ATIVA</span>
+        <span className="ribbonLive">{message("painel.operacao.ativa")}</span>
         <div className="ribbonItem">
           <Package size={17} />
           <div>
-            <small>ENTREGAS</small>
+            <small>{message("painel.entregas")}</small>
             <strong>{String(resumo.totalEntregas).padStart(2, '0')}</strong>
           </div>
         </div>
         <div className="ribbonItem">
           <Truck size={17} />
           <div>
-            <small>EM ANDAMENTO</small>
+            <small>{message("painel.em.andamento.2")}</small>
             <strong className="green">{String(resumo.emAndamento).padStart(2, '0')}</strong>
           </div>
         </div>
@@ -298,14 +302,14 @@ export function DashboardPage() {
             <div className="ribbonItem">
               <Truck size={17} />
               <div>
-                <small>EM TRÂNSITO</small>
+                <small>{message("painel.em.transito")}</small>
                 <strong>{money(valorEmTransito)}</strong>
               </div>
             </div>
             <div className="ribbonItem">
               <DollarSign size={17} />
               <div>
-                <small>RECEBIDO ACUMULADO</small>
+                <small>{message("painel.recebido.acumulado.2")}</small>
                 <strong className="amber">{money(relatorio.valorRecebido)}</strong>
               </div>
             </div>
@@ -313,7 +317,7 @@ export function DashboardPage() {
         ) : null}
         <div className="ribbonClock">
           <MapPin size={15} />
-          <strong>{agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</strong>
+          <strong>{agora.toLocaleTimeString(getLocale(), { hour: '2-digit', minute: '2-digit' })}</strong>
         </div>
       </div>
 
@@ -321,7 +325,7 @@ export function DashboardPage() {
         <section className={`ownerDailyFocus ${prioridade.tone}`} aria-labelledby="owner-daily-focus-title">
           <span className="ownerDailyFocusIcon"><PrioridadeIcon size={22} /></span>
           <div>
-            <small>PRIORIDADE AGORA</small>
+            <small>{message("painel.prioridade.agora")}</small>
             <h2 id="owner-daily-focus-title">{prioridade.title}</h2>
             <p>{prioridade.description}</p>
           </div>
@@ -333,7 +337,7 @@ export function DashboardPage() {
 
       <div className={ehProprietario ? 'dashGrid' : undefined}>
         <div>
-          <h2 className="sectionTitle">Resumo da operação</h2>
+          <h2 className="sectionTitle">{message("painel.resumo.da.operacao")}</h2>
 
           <section className="metricGrid">
             {kpis.map((kpi) => (
@@ -353,16 +357,16 @@ export function DashboardPage() {
           {ehProprietario ? (
             <div className="panelCard">
               <div className="panelCardHeader">
-                <h2>Entregas em andamento</h2>
-                <button className="smallButton" type="button" onClick={() => navigate('/entregas')}>Ver todas</button>
+                <h2>{message("painel.entregas.em.andamento")}</h2>
+                <button className="smallButton" type="button" onClick={() => navigate('/entregas')}>{message("painel.ver.todas")}</button>
               </div>
               <div className="ownerDeliveryList">
                 {entregasEmAndamento.map(entrega => <button className="ownerDeliveryCard" key={entrega.id} type="button" onClick={() => navigate('/entregas?busca=' + encodeURIComponent(entrega.codigo))}>
                   <div><strong>{entrega.codigo}</strong><span>{entrega.destinatarioNome}</span><small>{entrega.bairroOrigem} → {entrega.bairroDestino}</small></div>
-                  <div><small>Entregador</small><span>{entrega.entregadorNome || 'Aguardando designação'}</span></div>
+                  <div><small>{message("painel.entregador")}</small><span>{entrega.entregadorNome || message("painel.aguardando.designacao")}</span></div>
                   <div><span className={toneStatus(entrega.status)}>{labelStatus(entrega.status)}</span><strong>{money(entrega.valorFinal)}</strong></div>
                 </button>)}
-                {entregasEmAndamento.length === 0 ? <p className="emptyNote">Nenhuma entrega em andamento.</p> : null}
+                {entregasEmAndamento.length === 0 ? <p className="emptyNote">{message("painel.nenhuma.entrega.em.andamento")}</p> : null}
               </div>
             </div>
           ) : null}
@@ -372,8 +376,8 @@ export function DashboardPage() {
           <div className="dashSide">
             <div className="panelCard">
               <div className="panelCardHeader" style={{ paddingBottom: 6 }}>
-                <h2>Atividade recente</h2>
-                <button className="linkButton" type="button" onClick={() => navigate('/relatorios')}>Ver tudo</button>
+                <h2>{message("painel.atividade.recente")}</h2>
+                <button className="linkButton" type="button" onClick={() => navigate('/relatorios')}>{message("painel.ver.tudo")}</button>
               </div>
               <div className="timeline">
                 {timeline.map((evento, index) => (
@@ -389,12 +393,12 @@ export function DashboardPage() {
                     </div>
                   </div>
                 ))}
-                {timeline.length === 0 ? <p style={{ color: 'var(--faint)', fontSize: 13, padding: '8px 0' }}>Sem atividade registrada ainda.</p> : null}
+                {timeline.length === 0 ? <p style={{ color: 'var(--faint)', fontSize: 13, padding: '8px 0' }}>{message("painel.sem.atividade.registrada.ainda")}</p> : null}
               </div>
             </div>
 
             <div className="panelCard" style={{ padding: '18px 20px 20px' }}>
-              <h2 style={{ margin: '0 0 15px', fontSize: 15, fontWeight: 700 }}>Ações rápidas</h2>
+              <h2 style={{ margin: '0 0 15px', fontSize: 15, fontWeight: 700 }}>{message("painel.acoes.rapidas")}</h2>
               <div className="quickGrid">
                 {quickActions.map((acao) => (
                   <button className="quickTile" key={acao.label} type="button" onClick={() => navigate(acao.to)}>

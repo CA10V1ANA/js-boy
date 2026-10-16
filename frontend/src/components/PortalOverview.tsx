@@ -1,3 +1,5 @@
+import { getLocale } from '../preferences';
+import { message, useLocale } from '../i18n';
 import {
   CheckCircle2,
   ChevronRight,
@@ -14,11 +16,11 @@ import { api } from "../services/api";
 import { apiErrorMessage } from "../services/apiError";
 
 export const portalMoney = (value: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
+  new Intl.NumberFormat(getLocale(), { style: "currency", currency: "BRL" }).format(
     value,
   );
 export const portalDate = (value: string) =>
-  new Date(value).toLocaleString("pt-BR", {
+  new Date(value).toLocaleString(getLocale(), {
     timeZone: "America/Fortaleza",
     dateStyle: "short",
     timeStyle: "short",
@@ -34,22 +36,23 @@ export function operationalDay(value: string | Date) {
     .map((key) => parts.find((p) => p.type === key)?.value)
     .join("-");
 }
-const statusNames: Record<StatusEntrega, string> = {
-  SOLICITADA: "Aguardando orçamento",
-  CONFIRMADA: "Confirmada",
-  AGENDADA: "Agendada",
-  AGUARDANDO_ENTREGADOR: "Aguardando entregador",
-  ENTREGADOR_DESIGNADO: "Aguardando coleta",
-  COLETADA: "Coleta realizada",
-  EM_ROTA: "Em rota",
-  TENTATIVA_FALHOU: "Tentativa falhou",
-  EM_DEVOLUCAO: "Em devolução",
-  ENTREGUE: "Entregue",
-  DEVOLVIDA: "Devolvida",
-  FALHA_OPERACIONAL: "Falha operacional",
-  CANCELADA: "Cancelada",
-};
+const getStatusNames = (): Record<StatusEntrega, string> => ({
+  SOLICITADA: message("portal.resumo.aguardando.orcamento"),
+  CONFIRMADA: message("portal.resumo.confirmada"),
+  AGENDADA: message("portal.resumo.agendada"),
+  AGUARDANDO_ENTREGADOR: message("portal.resumo.aguardando.entregador"),
+  ENTREGADOR_DESIGNADO: message("portal.resumo.aguardando.coleta"),
+  COLETADA: message("portal.resumo.coleta.realizada"),
+  EM_ROTA: message("portal.resumo.em.rota"),
+  TENTATIVA_FALHOU: message("portal.resumo.tentativa.falhou"),
+  EM_DEVOLUCAO: message("portal.resumo.em.devolucao"),
+  ENTREGUE: message("portal.resumo.entregue"),
+  DEVOLVIDA: message("portal.resumo.devolvida"),
+  FALHA_OPERACIONAL: message("portal.resumo.falha.operacional"),
+  CANCELADA: message("portal.resumo.cancelada"),
+});
 export function PortalStatus({ status }: { status: StatusEntrega }) {
+  useLocale();
   const tone =
     status === "ENTREGUE"
       ? "green"
@@ -58,7 +61,7 @@ export function PortalStatus({ status }: { status: StatusEntrega }) {
         : ["CANCELADA", "FALHA_OPERACIONAL"].includes(status)
           ? "red"
           : "amber";
-  return <span className={`portalStatus ${tone}`}>{statusNames[status]}</span>;
+  return <span className={`portalStatus ${tone}`}>{getStatusNames()[status]}</span>;
 }
 export function PortalMetric({
   icon: Icon,
@@ -73,6 +76,7 @@ export function PortalMetric({
   value: string | number;
   hint: string;
 }) {
+  useLocale();
   return (
     <article className="portalMetric">
       <span className={`portalIcon ${tone}`}>
@@ -109,7 +113,7 @@ export function useOverviewRoute(id?: string, operacional = false) {
         })
         .catch((r) => {
           if (active)
-            setError(apiErrorMessage(r, "Não foi possível carregar a rota."));
+            setError(apiErrorMessage(r, message("portal.resumo.nao.foi.possivel.carregar.a.rota")));
         });
     return () => {
       active = false;
@@ -126,6 +130,7 @@ export function PortalRoute({
   bairros: { origem: string; destino: string };
   compact?: boolean;
 }) {
+  useLocale();
   return (
     <ol className={compact ? "portalRoute compact" : "portalRoute"}>
       {paradas.map((p, index) => (
@@ -138,10 +143,10 @@ export function PortalRoute({
           <div>
             <strong>
               {p.tipo === "COLETA"
-                ? "Coleta"
+                ? message("portal.resumo.coleta")
                 : p.tipo === "ENTREGA"
-                  ? "Entrega"
-                  : "Parada intermediária"}
+                  ? message("portal.resumo.entrega")
+                  : message("portal.resumo.parada.intermediaria")}
             </strong>
             <p>{p.endereco}</p>
             <small>
@@ -162,15 +167,14 @@ export function AcompanhamentoResumo({
 }: {
   entrega: EntregaCliente | undefined;
 }) {
+  useLocale();
   const { paradas, error } = useOverviewRoute(entrega?.id);
   if (!entrega)
     return (
       <section className="portalPanel">
-        <h2>Acompanhe sua entrega</h2>
+        <h2>{message("portal.resumo.acompanhe.sua.entrega")}</h2>
         <p className="portalEmpty">
-          Nenhuma entrega em andamento. Suas próximas solicitações aparecerão
-          aqui.
-        </p>
+          {message("portal.resumo.nenhuma.entrega.em.andamento.suas.proximas.solicitacoes.aparecerao.a")} </p>
       </section>
     );
   const coleta = [...entrega.historico]
@@ -185,12 +189,12 @@ export function AcompanhamentoResumo({
   return (
     <section className="portalPanel trackingPanel">
       <div className="portalPanelHeading">
-        <h2>Acompanhe sua entrega</h2>
+        <h2>{message("portal.resumo.acompanhe.sua.entrega")}</h2>
         <Link
           className="portalOutlineButton"
           to={`/portal/entregas?entrega=${entrega.id}`}
         >
-          Ver detalhes <ChevronRight size={18} />
+          {message("portal.resumo.ver.detalhes")} <ChevronRight size={18} />
         </Link>
       </div>
       <div className="trackingColumns">
@@ -200,19 +204,19 @@ export function AcompanhamentoResumo({
             <PortalStatus status={entrega.status} />
           </div>
           <p className="portalMuted">
-            Solicitada em {portalDate(entrega.criadoEm)}
+            {message("portal.resumo.solicitada.em")} {portalDate(entrega.criadoEm)}
           </p>
           <ol className="portalTrackingTimeline">
             <li className={coletada ? "done" : "current"}>
               <span>{coletada ? <CheckCircle2 size={21} /> : null}</span>
               <div>
-                <strong>{coletada ? "Coleta realizada" : "Coleta"}</strong>
+                <strong>{coletada ? message("portal.resumo.coleta.realizada") : message("portal.resumo.coleta")}</strong>
                 <p>
                   {coleta
                     ? portalDate(coleta.alteradoEm)
                     : coletada
-                      ? "Coleta concluída."
-                      : "Aguardando coleta."}
+                      ? message("portal.resumo.coleta.concluida")
+                      : message("portal.resumo.aguardando.coleta.2")}
                 </p>
               </div>
             </li>
@@ -220,22 +224,22 @@ export function AcompanhamentoResumo({
               <span />
               <div>
                 <strong>
-                  {emRota ? statusNames[entrega.status] : "Em rota"}
+                  {emRota ? getStatusNames()[entrega.status] : message("portal.resumo.em.rota")}
                 </strong>
                 <p>
                   {emRota
                     ? entrega.status === "TENTATIVA_FALHOU"
-                      ? "Consulte o histórico para acompanhar a retomada."
-                      : "Sua entrega está em trânsito."
-                    : "Aguardando início da rota."}
+                      ? message("portal.resumo.consulte.o.historico.para.acompanhar.a.retomada")
+                      : message("portal.resumo.sua.entrega.esta.em.transito")
+                    : message("portal.resumo.aguardando.inicio.da.rota")}
                 </p>
               </div>
             </li>
             <li className="pending">
               <span />
               <div>
-                <strong>Entregue</strong>
-                <p>Aguardando conclusão.</p>
+                <strong>{message("portal.resumo.entregue")}</strong>
+                <p>{message("portal.resumo.aguardando.conclusao")}</p>
               </div>
             </li>
           </ol>
@@ -245,14 +249,13 @@ export function AcompanhamentoResumo({
             <span className="portalIcon neutral">
               <Route size={23} />
             </span>
-            Rota da entrega
-          </h3>
+            {message("portal.resumo.rota.da.entrega")} </h3>
           {error ? (
             <p role="alert" className="errorMessage">
               {error}
             </p>
           ) : paradas === null ? (
-            <p role="status">Carregando rota...</p>
+            <p role="status">{message("portal.resumo.carregando.rota")}</p>
           ) : paradas.length ? (
             <PortalRoute
               compact
@@ -263,17 +266,17 @@ export function AcompanhamentoResumo({
               }}
             />
           ) : (
-            <p className="portalEmpty">Rota ainda não cadastrada.</p>
+            <p className="portalEmpty">{message("portal.resumo.rota.ainda.nao.cadastrada")}</p>
           )}
           <div className="trackingValue">
             <span className="portalIcon amber">
               <Package size={25} />
             </span>
             <div>
-              <span>Valor da entrega</span>
+              <span>{message("portal.resumo.valor.da.entrega")}</span>
               <strong>
                 {entrega.status === "SOLICITADA" && !entrega.valorFinal
-                  ? "A confirmar"
+                  ? message("portal.resumo.a.confirmar")
                   : portalMoney(entrega.valorFinal)}
               </strong>
             </div>

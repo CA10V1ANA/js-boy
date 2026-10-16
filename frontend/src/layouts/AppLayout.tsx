@@ -1,3 +1,5 @@
+import { message, useLocale } from '../i18n';
+import { AppearancePreferences } from '../components/AppearancePreferences';
 import {
   Bell,
   HelpCircle,
@@ -38,160 +40,160 @@ import { useAuth } from "../contexts/AuthContext";
 import { normalizePerfil } from "../routes/roleHome";
 import { PerfilAcesso } from "../types";
 
-const items: Array<{
+const getItems = (): Array<{
   to: string;
   label: string;
   icon: typeof Home;
   perfis: PerfilAcesso[];
-}> = [
+}> => ([
   {
     to: "/dashboard",
-    label: "Visão geral",
+    label: message("navegacao.visao.geral"),
     icon: Home,
     perfis: ["PROPRIETARIO"],
   },
   {
     to: "/conversas",
-    label: "Conversas",
+    label: message("navegacao.conversas"),
     icon: MessageCircle,
     perfis: ["PROPRIETARIO"],
   },
   {
     to: "/notificacoes",
-    label: "Notificações",
+    label: message("navegacao.notificacoes"),
     icon: Bell,
     perfis: ["PROPRIETARIO"],
   },
-  { to: "/entregas", label: "Entregas", icon: Truck, perfis: ["PROPRIETARIO"] },
+  { to: "/entregas", label: message("appLayout.entregas"), icon: Truck, perfis: ["PROPRIETARIO"] },
   {
     to: "/entregadores",
-    label: "Entregadores",
+    label: message("navegacao.entregadores"),
     icon: User,
     perfis: ["PROPRIETARIO"],
   },
-  { to: "/clientes", label: "Clientes", icon: Users, perfis: ["PROPRIETARIO"] },
+  { to: "/clientes", label: message("navegacao.clientes"), icon: Users, perfis: ["PROPRIETARIO"] },
   {
     to: "/pagamentos",
-    label: "Pagamentos",
+    label: message("pagamento.aba.esquerda"),
     icon: CreditCard,
     perfis: ["PROPRIETARIO"],
   },
   {
     to: "/relatorios",
-    label: "Relatórios",
+    label: message("navegacao.relatorios"),
     icon: BarChart3,
     perfis: ["PROPRIETARIO"],
   },
   {
     to: "/auditoria",
-    label: "Auditoria",
+    label: message("appLayout.auditoria"),
     icon: FileClock,
     perfis: ["PROPRIETARIO"],
   },
   {
     to: "/usuarios",
-    label: "Usuários",
+    label: message("navegacao.usuarios"),
     icon: UserCog,
     perfis: ["PROPRIETARIO"],
   },
   {
     to: "/configuracoes/preco",
-    label: "Preços",
+    label: message("navegacao.precos"),
     icon: Settings,
     perfis: ["PROPRIETARIO"],
   },
   {
     to: "/configuracoes/empresa",
-    label: "Empresa",
+    label: message("navegacao.empresa"),
     icon: Building2,
     perfis: ["PROPRIETARIO"],
   },
   {
     to: "/financeiro",
-    label: "Razão financeira",
+    label: message("navegacao.razao.financeira"),
     icon: Landmark,
     perfis: ["PROPRIETARIO"],
   },
   {
     to: "/privacidade",
-    label: "Privacidade",
+    label: message("appLayout.privacidade"),
     icon: ShieldCheck,
     perfis: ["PROPRIETARIO"],
   },
   {
     to: "/operacional",
-    label: "Visão geral",
+    label: message("navegacao.visao.geral"),
     icon: Home,
     perfis: ["ENTREGADOR", "FUNCIONARIO"],
   },
   {
     to: "/minhas-entregas",
-    label: "Minhas entregas",
+    label: message("navegacao.minhas.entregas"),
     icon: Truck,
     perfis: ["ENTREGADOR", "FUNCIONARIO"],
   },
   {
     to: "/conversas",
-    label: "Conversas",
+    label: message("navegacao.conversas"),
     icon: MessageCircle,
     perfis: ["ENTREGADOR", "FUNCIONARIO"],
   },
   {
     to: "/meu-faturamento",
-    label: "Meu faturamento",
+    label: message("navegacao.meu.faturamento"),
     icon: BarChart3,
     perfis: ["ENTREGADOR", "FUNCIONARIO"],
   },
   {
     to: "/notificacoes",
-    label: "Notificações",
+    label: message("navegacao.notificacoes"),
     icon: Bell,
     perfis: ["ENTREGADOR", "FUNCIONARIO"],
   },
   {
     to: "/meu-perfil",
-    label: "Meu perfil",
+    label: message("navegacao.meu.perfil"),
     icon: User,
     perfis: ["ENTREGADOR", "FUNCIONARIO"],
   },
-  { to: "/portal", label: "Visão geral", icon: Home, perfis: ["CLIENTE"] },
+  { to: "/portal", label: message("navegacao.visao.geral"), icon: Home, perfis: ["CLIENTE"] },
   {
     to: "/portal/entregas",
-    label: "Minhas entregas",
+    label: message("navegacao.minhas.entregas"),
     icon: Package,
     perfis: ["CLIENTE"],
   },
   {
     to: "/conversas",
-    label: "Conversas",
+    label: message("navegacao.conversas"),
     icon: MessageCircle,
     perfis: ["CLIENTE"],
   },
   {
     to: "/portal/enderecos",
-    label: "Endereços e contatos",
+    label: message("navegacao.enderecos.e.contatos"),
     icon: MapPin,
     perfis: ["CLIENTE"],
   },
   {
     to: "/portal/pagamentos",
-    label: "Pagamentos",
+    label: message("pagamento.aba.esquerda"),
     icon: CreditCard,
     perfis: ["CLIENTE"],
   },
   {
     to: "/notificacoes",
-    label: "Notificações",
+    label: message("navegacao.notificacoes"),
     icon: Bell,
     perfis: ["CLIENTE"],
   },
   {
     to: "/portal/conta",
-    label: "Minha conta",
+    label: message("navegacao.minha.conta"),
     icon: User,
     perfis: ["CLIENTE"],
   },
-];
+]);
 
 function iniciais(nome?: string) {
   const partes = (nome || "").trim().split(/\s+/);
@@ -199,15 +201,16 @@ function iniciais(nome?: string) {
 }
 function saudacao() {
   const hora = new Date().getHours();
-  return hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
+  return hora < 12 ? message("navegacao.bom.dia") : hora < 18 ? message("navegacao.boa.tarde") : message("navegacao.boa.noite");
 }
 function profileLabel(perfil?: PerfilAcesso) {
-  if (perfil === "PROPRIETARIO") return "Proprietário";
-  if (perfil === "CLIENTE") return "Cliente";
-  return "Entregador";
+  if (perfil === "PROPRIETARIO") return message("navegacao.proprietario");
+  if (perfil === "CLIENTE") return message("navegacao.cliente");
+  return message("navegacao.entregador");
 }
 
 export function AppLayout() {
+  const locale = useLocale();
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -219,7 +222,7 @@ export function AppLayout() {
     if (profileMenu.current) profileMenu.current.open = false;
   }, [location.pathname]);
   const perfilMenu = operacional ? "ENTREGADOR" : usuario?.perfil;
-  const visibleItems = items
+  const visibleItems = getItems()
     .filter(
       (item) =>
         usuario &&
@@ -275,21 +278,24 @@ export function AppLayout() {
     ? "/operacional/notificacoes"
     : "/notificacoes";
   const current = visibleItems.find((item) => location.pathname === item.to);
+  useEffect(() => {
+    document.title = `${current?.label || 'JS Boy'} | JS Boy`;
+  }, [current?.label, locale]);
   const title =
     isDashboard || isCourierPortal
-      ? `${saudacao()}, ${(usuario?.nome || "").split(" ")[0]}.`
+      ? message("navegacao.value.value", { value1: saudacao(), value2: (usuario?.nome || "").split(" ")[0] })
       : isClientOverview
-        ? `Olá, ${(usuario?.nome || "").split(" ")[0]}.`
+        ? message("navegacao.ola.value", { value1: (usuario?.nome || "").split(" ")[0] })
         : current?.label || "JS BOY";
   const subtitle = isDashboard
-    ? "Visão geral da operação."
+    ? message("navegacao.visao.geral.da.operacao")
     : isCourierPortal
-      ? "Seu trabalho de hoje, em um só lugar."
+      ? message("navegacao.seu.trabalho.de.hoje.em.um.so.lugar")
       : isClientOverview
-        ? "Solicite e acompanhe os serviços da sua empresa."
+        ? message("navegacao.solicite.e.acompanhe.os.servicos.da.sua.empresa")
         : isClientPortal
-          ? "Solicitações, acompanhamento e conta."
-          : "Painel de entregas";
+          ? message("navegacao.solicitacoes.acompanhamento.e.conta")
+          : message("navegacao.painel.de.entregas");
 
   function handleLogout() {
     logout();
@@ -302,7 +308,7 @@ export function AppLayout() {
         <button
           className="sidebarBackdrop"
           type="button"
-          aria-label="Fechar menu"
+          aria-label={message("navegacao.fechar.menu")}
           onClick={() => setMenuOpen(false)}
         />
       ) : null}
@@ -317,18 +323,18 @@ export function AppLayout() {
           </span>
           <span>
             <strong>JS BOY</strong>
-            <small>DESPACHO</small>
+            <small>{message("navegacao.despacho")}</small>
           </span>
           <button
             className="sidebarClose"
             type="button"
-            aria-label="Fechar menu"
+            aria-label={message("navegacao.fechar.menu")}
             onClick={() => setMenuOpen(false)}
           >
             <X size={20} />
           </button>
         </div>
-        <nav className="sideNav" aria-label="Menu principal">
+        <nav className="sideNav" aria-label={message("navegacao.menu.principal")}>
           {visibleItems.map((item) => (
             <NavLink
               end
@@ -338,9 +344,9 @@ export function AppLayout() {
             >
               <item.icon size={roleShell ? 24 : 19} aria-hidden="true" />
               <span>{item.label}</span>
-              {item.label === "Conversas" && counts.conversas > 0 ? (
+              {item.to.endsWith('/conversas') && counts.conversas > 0 ? (
                 <b className="navBadge">{counts.conversas}</b>
-              ) : item.label === "Notificações" && counts.notificacoes > 0 ? (
+              ) : item.to.endsWith('/notificacoes') && counts.notificacoes > 0 ? (
                 <b className="navBadge">{counts.notificacoes}</b>
               ) : null}
             </NavLink>
@@ -350,15 +356,14 @@ export function AppLayout() {
           className="sideHelp"
           to={operacional ? "/operacional/ajuda" : "/ajuda"}
         >
-          <HelpCircle size={19} /> Ajuda e contato
-        </NavLink>
+          <HelpCircle size={19} /> {message("navegacao.ajuda.e.contato")} </NavLink>
         {usuario?.perfil === "PROPRIETARIO" &&
         usuario.vinculoOperacionalAtivo ? (
           <NavLink
             className="sideHelp"
             to={operacional ? "/dashboard" : "/operacional"}
           >
-            {operacional ? "Voltar ao modo proprietário" : "Modo entregador"}
+            {operacional ? message("navegacao.voltar.ao.modo.proprietario") : message("navegacao.modo.entregador")}
           </NavLink>
         ) : null}
         {roleShell ? (
@@ -381,8 +386,7 @@ export function AppLayout() {
               onClick={handleLogout}
             >
               <LogOut size={25} />
-              Sair
-            </button>
+              {message("navegacao.sair")} </button>
           </>
         ) : (
           <div className="sideUser">
@@ -394,8 +398,8 @@ export function AppLayout() {
             <button
               className="sideLogout"
               onClick={handleLogout}
-              aria-label="Sair"
-              title="Sair"
+              aria-label={message("navegacao.sair")}
+              title={message("navegacao.sair")}
               type="button"
             >
               <LogOut size={16} />
@@ -404,10 +408,11 @@ export function AppLayout() {
         )}
       </aside>
       <div className="contentArea">
+        <div className="appPreferencesBar"><AppearancePreferences /></div>
         <header className="appHeader">
           <button
             className="iconButton"
-            aria-label="Abrir menu"
+            aria-label={message("navegacao.abrir.menu")}
             type="button"
             onClick={() => setMenuOpen(true)}
           >
@@ -432,8 +437,7 @@ export function AppLayout() {
                   to={location.pathname + "?solicitar=1"}
                 >
                   <Plus size={22} />
-                  Solicitar entrega
-                </Link>
+                  {message("navegacao.solicitar.entrega")} </Link>
               ) : null}
               {!isClientOverview ? (
                 <>
@@ -441,9 +445,9 @@ export function AppLayout() {
                     className="headerNotification"
                     to={noticesPath}
                     aria-label={
-                      "Notificações" +
+                      message("navegacao.notificacoes") +
                       (counts.notificacoes
-                        ? ": " + counts.notificacoes + " não lidas"
+                        ? ": " + counts.notificacoes + (" " + message("navegacao.nao.lidas"))
                         : "")
                     }
                   >
@@ -453,7 +457,7 @@ export function AppLayout() {
                     ) : null}
                   </Link>
                   <details className="roleProfileMenu" ref={profileMenu}>
-                    <summary aria-label="Menu da conta">
+                    <summary aria-label={message("navegacao.menu.da.conta")}>
                       <span className="roleHeaderAvatar">
                         {iniciais(usuario?.nome)}
                       </span>
@@ -461,12 +465,11 @@ export function AppLayout() {
                     </summary>
                     <div>
                       <Link to={accountPath}>
-                        {operacional ? "Meu perfil" : "Minha conta"}
+                        {operacional ? message("navegacao.meu.perfil") : message("navegacao.minha.conta")}
                       </Link>
                       <button type="button" onClick={handleLogout}>
                         <LogOut size={17} />
-                        Sair
-                      </button>
+                        {message("navegacao.sair")} </button>
                     </div>
                   </details>
                 </>
@@ -476,13 +479,13 @@ export function AppLayout() {
             <div className="headerAvatarPill">
               <span className="headerAvatar">{iniciais(usuario?.nome)}</span>
               <button
-                aria-label="Sair"
+                aria-label={message("navegacao.sair")}
                 className="headerLogoutButton"
                 type="button"
                 onClick={handleLogout}
               >
                 <LogOut size={16} />
-                <span>Sair</span>
+                <span>{message("navegacao.sair")}</span>
               </button>
             </div>
           )}

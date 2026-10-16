@@ -1,3 +1,6 @@
+import { domainLabel } from '../i18n/domain';
+import { getLocale } from '../preferences';
+import { message, useLocale } from '../i18n';
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { MessageCircle, Phone, Search } from "lucide-react";
@@ -10,6 +13,7 @@ import { EntregaOperacional, StatusEntrega } from "../types";
 
 const finais = ["ENTREGUE", "CANCELADA", "DEVOLVIDA", "FALHA_OPERACIONAL"];
 export function MinhasEntregasPage() {
+  useLocale();
   const { items, loading, error, load } = useOperacao();
   const [params, setParams] = useSearchParams();
   const busca = params.get("busca") || "";
@@ -56,7 +60,7 @@ export function MinhasEntregasPage() {
       await load();
     } catch (r) {
       setActionError(
-        apiErrorMessage(r, "Não foi possível atualizar a entrega."),
+        apiErrorMessage(r, message("entregador.entregas.nao.foi.possivel.atualizar.a.entrega")),
       );
     } finally {
       setBusy(false);
@@ -73,18 +77,17 @@ export function MinhasEntregasPage() {
       <section className="panelCard">
         <div className="panelCardHeader">
           <div>
-            <h1>Minhas entregas</h1>
+            <h1>{message("entregador.entregas.minhas.entregas")}</h1>
             <p>
-              Execute as paradas na ordem planejada e confira o recebimento.
-            </p>
+              {message("entregador.entregas.execute.as.paradas.na.ordem.planejada.e.confira.o.recebimento")} </p>
           </div>
         </div>
         <div className="roleFilters">
           <label className="filterSearch">
             <Search size={18} />
             <input
-              aria-label="Buscar entrega"
-              placeholder="Cliente, destinatário, bairro ou identificador"
+              aria-label={message("entregador.entregas.buscar.entrega")}
+              placeholder={message("entregador.entregas.cliente.destinatario.bairro.ou.identificador")}
               value={busca}
               onChange={(e) => atualizar("busca", e.target.value)}
             />
@@ -98,10 +101,10 @@ export function MinhasEntregasPage() {
                 onClick={() => atualizar("filtro", f)}
               >
                 {f === "CONCLUIDAS"
-                  ? "Concluídas"
+                  ? message("entregador.entregas.concluidas")
                   : f === "ATIVAS"
-                    ? "Ativas"
-                    : "Todas"}
+                    ? message("entregador.entregas.ativas")
+                    : message("entregador.entregas.todas")}
               </button>
             ))}
           </div>
@@ -116,8 +119,8 @@ export function MinhasEntregasPage() {
         ) : null}
         {!visible.length ? (
           <EmptyState
-            title="Nenhuma entrega encontrada"
-            description="Confira os filtros escolhidos."
+            title={message("entregador.entregas.nenhuma.entrega.encontrada")}
+            description={message("entregador.entregas.confira.os.filtros.escolhidos")}
           />
         ) : null}
         <div className="roleDeliveryList">
@@ -146,13 +149,13 @@ export function MinhasEntregasPage() {
                 <span>{e.clienteNome}</span>
                 <span>{e.enderecoDestino}</span>
                 <strong>
-                  {new Intl.NumberFormat("pt-BR", {
+                  {new Intl.NumberFormat(getLocale(), {
                     style: "currency",
                     currency: "BRL",
                   }).format(e.valorFinal)}
                 </strong>
                 <span className="statusBadge progress">
-                  {e.status.replace(/_/g, " ")}
+                  {domainLabel(e.status)}
                 </span>
               </summary>
               {params.get("entrega") === e.id ? (
@@ -166,15 +169,13 @@ export function MinhasEntregasPage() {
                       className="secondaryButton"
                       to={"/operacional/conversas?entrega=" + e.id}
                     >
-                      <MessageCircle size={16} /> Conversar
-                    </Link>
+                      <MessageCircle size={16} /> {message("entregador.entregas.conversar")} </Link>
                     {e.destinatarioTelefone ? (
                       <a
                         className="secondaryButton"
                         href={"tel:" + e.destinatarioTelefone}
                       >
-                        <Phone size={16} /> Ligar
-                      </a>
+                        <Phone size={16} /> {message("entregador.entregas.ligar")} </a>
                     ) : null}
                   </div>
                   <OperacaoEntrega
@@ -189,8 +190,7 @@ export function MinhasEntregasPage() {
                       disabled={busy}
                       onClick={() => void avancar(e, "COLETADA")}
                     >
-                      Confirmar etapa de coleta
-                    </button>
+                      {message("entregador.entregas.confirmar.etapa.de.coleta")} </button>
                   ) : null}
                   {e.status === "COLETADA" ||
                   e.status === "TENTATIVA_FALHOU" ? (
@@ -200,8 +200,8 @@ export function MinhasEntregasPage() {
                       onClick={() => void avancar(e, "EM_ROTA")}
                     >
                       {e.status === "COLETADA"
-                        ? "Iniciar rota"
-                        : "Retomar rota"}
+                        ? message("entregador.entregas.iniciar.rota")
+                        : message("entregador.entregas.retomar.rota")}
                     </button>
                   ) : null}
                 </div>

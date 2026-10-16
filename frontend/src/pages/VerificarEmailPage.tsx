@@ -1,17 +1,21 @@
+import { message, useLocale } from '../i18n';
+import { AppearancePreferences } from '../components/AppearancePreferences';
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../services/api";
 import { apiErrorMessage } from "../services/apiError";
 
 export function VerificarEmailPage() {
+  useLocale();
   const [params] = useSearchParams();
   const [feedback, setFeedback] = useState("");
   const [busy, setBusy] = useState(false);
   const [email, setEmail] = useState("");
   return (
     <main className="page cadastroPage">
+      <AppearancePreferences />
       <section className="panelCard notificationPanel">
-        <h1>Verificar e-mail</h1>
+        <h1>{message("email.verificar.verificar.e.mail")}</h1>
         {params.get("token") ? (
           <button
             className="primaryButton"
@@ -22,18 +26,17 @@ export function VerificarEmailPage() {
                 await api.post("/auth/verificar-email", {
                   token: params.get("token"),
                 });
-                setFeedback("E-mail confirmado. Você já pode entrar.");
+                setFeedback(message("email.verificar.e.mail.confirmado.voce.ja.pode.entrar"));
               } catch (r) {
                 setFeedback(
-                  apiErrorMessage(r, "Não foi possível verificar este link."),
+                  apiErrorMessage(r, message("email.verificar.nao.foi.possivel.verificar.este.link")),
                 );
               } finally {
                 setBusy(false);
               }
             }}
           >
-            Confirmar meu e-mail
-          </button>
+            {message("email.verificar.confirmar.meu.e.mail")} </button>
         ) : (
           <form
             className="settingsForm"
@@ -44,11 +47,11 @@ export function VerificarEmailPage() {
               try {
                 await api.post("/auth/reenviar-verificacao", { email });
                 setFeedback(
-                  "Se houver cadastro pendente, as instruções serão enviadas.",
+                  message("email.verificar.se.houver.cadastro.pendente.as.instrucoes.serao.enviadas"),
                 );
               } catch (r) {
                 setFeedback(
-                  apiErrorMessage(r, "Não foi possível solicitar verificação."),
+                  apiErrorMessage(r, message("email.verificar.nao.foi.possivel.solicitar.verificacao")),
                 );
               } finally {
                 setBusy(false);
@@ -56,8 +59,7 @@ export function VerificarEmailPage() {
             }}
           >
             <label>
-              E-mail
-              <input
+              {message("email.verificar.e.mail")} <input
                 required
                 type="email"
                 value={email}
@@ -65,12 +67,11 @@ export function VerificarEmailPage() {
               />
             </label>
             <button className="primaryButton" disabled={busy}>
-              Reenviar verificação
-            </button>
+              {message("email.verificar.reenviar.verificacao")} </button>
           </form>
         )}
         {feedback ? <p role="status">{feedback}</p> : null}
-        <Link to="/login">Entrar</Link>
+        <Link to="/login">{message("email.verificar.entrar")}</Link>
       </section>
     </main>
   );

@@ -1,3 +1,6 @@
+import { domainLabel } from '../i18n/domain';
+import { getLocale } from '../preferences';
+import { message, useLocale } from '../i18n';
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Inbox, MessageCircle, Search, Send } from "lucide-react";
@@ -41,7 +44,7 @@ type Mensagem = {
   envioId?: string;
 };
 const hora = (v: string) =>
-  new Date(v).toLocaleString("pt-BR", {
+  new Date(v).toLocaleString(getLocale(), {
     timeZone: "America/Fortaleza",
     dateStyle: "short",
     timeStyle: "short",
@@ -54,6 +57,7 @@ const iniciais = (nome: string) =>
     .map((parte) => parte[0]?.toUpperCase())
     .join("") || "JS";
 export function ConversasPage() {
+  useLocale();
   const { usuario } = useAuth();
   const operacional = useAreaOperacional();
   const base = operacional ? "/operacao-entregador/conversas" : "/conversas";
@@ -100,7 +104,7 @@ export function ConversasPage() {
     carregarLista()
       .catch((r) => {
         if (active)
-          setError(apiErrorMessage(r, "Não foi possível carregar conversas."));
+          setError(apiErrorMessage(r, message("conversas.nao.foi.possivel.carregar.conversas")));
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -120,7 +124,7 @@ export function ConversasPage() {
       .catch((r) => {
         if (active)
           setError(
-            apiErrorMessage(r, "Conversa indisponível para esta entrega."),
+            apiErrorMessage(r, message("conversas.conversa.indisponivel.para.esta.entrega")),
           );
       });
     return () => {
@@ -190,7 +194,7 @@ export function ConversasPage() {
           setError(
             apiErrorMessage(
               r,
-              "Conexão interrompida. A recuperação será tentada novamente.",
+              message("conversas.conexao.interrompida.a.recuperacao.sera.tentada.novamente"),
             ),
           );
           const status = (r as { response?: { status?: number } }).response
@@ -231,7 +235,7 @@ export function ConversasPage() {
       if (payload.conteudo !== draft.trim()) {
         setDraft(payload.conteudo);
         throw new Error(
-          "Repita o envio pendente antes de escrever outra mensagem.",
+          message("conversas.repita.o.envio.pendente.antes.de.escrever.outra.mensagem"),
         );
       }
       sessionStorage.setItem(key, JSON.stringify(payload));
@@ -256,7 +260,7 @@ export function ConversasPage() {
       setError(
         apiErrorMessage(
           r,
-          "Mensagem ainda não confirmada. Tente novamente com o mesmo texto.",
+          message("conversas.mensagem.ainda.nao.confirmada.tente.novamente.com.o.mesmo.texto"),
         ),
       );
     } finally {
@@ -273,7 +277,7 @@ export function ConversasPage() {
       });
       setMensagens((old) => [...r.data, ...old]);
     } catch (r) {
-      setError(apiErrorMessage(r, "Não foi possível recuperar o histórico."));
+      setError(apiErrorMessage(r, message("conversas.nao.foi.possivel.recuperar.o.historico")));
     } finally {
       setBusy(false);
     }
@@ -286,16 +290,16 @@ export function ConversasPage() {
         <header className="conversationInboxHeader">
           <span className="conversationInboxIcon" aria-hidden="true"><Inbox size={19} /></span>
           <div>
-            <span className="conversationEyebrow">ATENDIMENTO</span>
-            <h1>Caixa de entrada</h1>
-            <p>Converse sobre suas entregas.</p>
+            <span className="conversationEyebrow">{message("conversas.atendimento")}</span>
+            <h1>{message("conversas.caixa.de.entrada")}</h1>
+            <p>{message("conversas.converse.sobre.suas.entregas")}</p>
           </div>
         </header>
         <label className="conversationSearch">
           <Search size={16} aria-hidden="true" />
           <input
-            aria-label="Buscar conversa"
-            placeholder="Buscar por cliente ou entrega"
+            aria-label={message("conversas.buscar.conversa")}
+            placeholder={message("conversas.buscar.por.cliente.ou.entrega")}
             value={busca}
             onChange={(e) => filtro("busca", e.target.value)}
           />
@@ -305,21 +309,19 @@ export function ConversasPage() {
             aria-pressed={!naoLidas}
             onClick={() => filtro("naoLidas", "false")}
           >
-            Todas
-          </button>
+            {message("conversas.todas")} </button>
           <button
             aria-pressed={naoLidas}
             onClick={() => filtro("naoLidas", "true")}
           >
-            Não lidas
-          </button>
+            {message("conversas.nao.lidas")} </button>
         </div>
         {loading ? (
-          <p role="status">Carregando conversas...</p>
+          <p role="status">{message("conversas.carregando.conversas")}</p>
         ) : !lista.length ? (
           <div className="conversationListEmpty">
             <MessageCircle size={20} />
-            <p>Abra “Conversar” no detalhe de uma entrega para começar.</p>
+            <p>{message("conversas.abra.conversar.no.detalhe.de.uma.entrega.para.comecar")}</p>
           </div>
         ) : null}
         {lista.map((c) => (
@@ -332,12 +334,12 @@ export function ConversasPage() {
             <span className="conversationItemBody">
               <span className="conversationItemTop">
                 <strong>{c.clienteNome}</strong>
-                {c.naoLida ? <span className="conversationUnread">Nova</span> : null}
+                {c.naoLida ? <span className="conversationUnread">{message("conversas.nova")}</span> : null}
               </span>
               <small className="conversationCode">{c.codigo}</small>
-              <span className="conversationPreview">{c.ultimaMensagem || "Nenhuma mensagem"}</span>
+              <span className="conversationPreview">{c.ultimaMensagem || message("conversas.nenhuma.mensagem")}</span>
               <span className="conversationMeta">
-                <span>{titleCase(c.status.replace(/_/g, " "))}</span>
+                <span>{domainLabel(c.status)}</span>
                 <span>{hora(c.atualizadaEm)}</span>
               </span>
             </span>
@@ -349,15 +351,13 @@ export function ConversasPage() {
             disabled={pagina === 0}
             onClick={() => filtro("pagina", String(Math.max(0, pagina - 1)))}
           >
-            Anterior
-          </button>
+            {message("conversas.anterior")} </button>
           <button
             className="secondaryButton"
             disabled={lista.length < 30}
             onClick={() => filtro("pagina", String(pagina + 1))}
           >
-            Próxima
-          </button>
+            {message("conversas.proxima")} </button>
         </div>
       </aside>
       <section className="panelCard conversationThread">
@@ -365,8 +365,7 @@ export function ConversasPage() {
           className="secondaryButton mobileBack"
           onClick={() => setParams({})}
         >
-          <ArrowLeft size={16} /> Voltar
-        </button>
+          <ArrowLeft size={16} /> {message("conversas.voltar")} </button>
         {error ? (
           <p className="errorMessage" role="alert">
             {error}
@@ -375,12 +374,11 @@ export function ConversasPage() {
               className="smallButton"
               onClick={() =>
                 void carregarLista().catch((r) =>
-                  setError(apiErrorMessage(r, "Conexão indisponível.")),
+                  setError(apiErrorMessage(r, message("conversas.conexao.indisponivel"))),
                 )
               }
             >
-              Tentar novamente
-            </button>
+              {message("conversas.tentar.novamente")} </button>
           </p>
         ) : null}
         {detalhe ? (
@@ -389,7 +387,7 @@ export function ConversasPage() {
               <div>
                 <h2>{detalhe.codigo}</h2>
                 <span className="statusBadge progress">
-                  {detalhe.status.replace(/_/g, " ")}
+                  {domainLabel(detalhe.status)}
                 </span>
               </div>
               <Link
@@ -402,11 +400,10 @@ export function ConversasPage() {
                       : `/entregas?busca=${detalhe.codigo}`
                 }
               >
-                Ver entrega
-              </Link>
+                {message("conversas.ver.entrega")} </Link>
             </header>
             <p className="conversationParticipants">
-              Conversa compartilhada: {detalhe.participantes.join(" · ")}
+              {message("conversas.conversa.compartilhada")} {detalhe.participantes.join(" · ")}
             </p>
             <div
               className="messageViewport"
@@ -426,7 +423,7 @@ export function ConversasPage() {
                       setError(
                         apiErrorMessage(
                           r,
-                          "Não foi possível registrar leitura.",
+                          message("conversas.nao.foi.possivel.registrar.leitura"),
                         ),
                       );
                     });
@@ -439,11 +436,10 @@ export function ConversasPage() {
                   disabled={busy}
                   onClick={() => void antigas()}
                 >
-                  Carregar mensagens anteriores
-                </button>
+                  {message("conversas.carregar.mensagens.anteriores")} </button>
               ) : null}
               {!mensagens.length ? (
-                <p>Nenhuma mensagem nesta entrega.</p>
+                <p>{message("conversas.nenhuma.mensagem.nesta.entrega")}</p>
               ) : null}
               {mensagens.map((m) => (
                 <article
@@ -452,13 +448,13 @@ export function ConversasPage() {
                 >
                   <small>
                     {m.tipo === "SISTEMA"
-                      ? "Evento da entrega"
+                      ? message("conversas.evento.da.entrega")
                       : `${m.autorNome} (${m.contexto.toLowerCase()})`}
                   </small>
                   <p>{m.conteudo}</p>
                   <time dateTime={m.criadaEm}>
                     {hora(m.criadaEm)}
-                    {m.autorId === usuario?.id ? " · Enviada" : ""}
+                    {m.autorId === usuario?.id ? (" " + message("conversas.enviada")) : ""}
                   </time>
                 </article>
               ))}
@@ -472,18 +468,17 @@ export function ConversasPage() {
                   setNovas(false);
                 }}
               >
-                Novas mensagens ↓
-              </button>
+                {message("conversas.novas.mensagens")} </button>
             ) : null}
             {detalhe.podeEnviar ? (
               <form className="messageComposer" onSubmit={enviar}>
                 <textarea
-                  aria-label="Mensagem"
+                  aria-label={message("conversas.mensagem")}
                   maxLength={2000}
                   rows={2}
                   value={draft}
                   disabled={busy}
-                  placeholder="Digite uma mensagem..."
+                  placeholder={message("conversas.digite.uma.mensagem")}
                   onChange={(e) => setDraft(e.target.value)}
                 />
                 <button
@@ -491,13 +486,12 @@ export function ConversasPage() {
                   disabled={busy || !draft.trim()}
                 >
                   <Send size={18} />
-                  {busy ? "Enviando..." : "Enviar"}
+                  {busy ? message("comum.enviando") : message("conversas.enviar")}
                 </button>
               </form>
             ) : (
               <p role="status">
-                Somente leitura. O prazo de envio desta conversa foi encerrado.
-              </p>
+                {message("conversas.somente.leitura.o.prazo.de.envio.desta.conversa.foi.encerrado")} </p>
             )}
             {usuario?.perfil === "PROPRIETARIO" &&
             !operacional &&
@@ -506,30 +500,24 @@ export function ConversasPage() {
                 className="secondaryButton"
                 onClick={() => setReabrir(true)}
               >
-                Reabrir conversa
-              </button>
+                {message("conversas.reabrir.conversa")} </button>
             ) : null}
             <p className="chatNotice">
-              Pagamentos e status são confirmados pelos controles da entrega.
-              Responda quando estiver em segurança; para urgências, use Ajuda e
-              contato.
-            </p>
+              {message("conversas.pagamentos.e.status.sao.confirmados.pelos.controles.da.entrega.respo")} </p>
           </>
         ) : (
           <div className="conversationEmpty">
             <MessageCircle size={40} />
-            <h2>Conversas sobre suas entregas</h2>
+            <h2>{message("conversas.conversas.sobre.suas.entregas")}</h2>
             <p>
-              Selecione uma conversa ou use o atalho Conversar no detalhe da
-              entrega.
-            </p>
+              {message("conversas.selecione.uma.conversa.ou.use.o.atalho.conversar.no.detalhe.da.entre")} </p>
           </div>
         )}
       </section>
       <Modal
         open={reabrir}
         onClose={() => !busy && setReabrir(false)}
-        title="Reabrir conversa"
+        title={message("conversas.reabrir.conversa")}
       >
         <form
           className="settingsForm"
@@ -547,15 +535,14 @@ export function ConversasPage() {
               );
               setReabrir(false);
             } catch (r) {
-              setError(apiErrorMessage(r, "Não foi possível reabrir."));
+              setError(apiErrorMessage(r, message("conversas.nao.foi.possivel.reabrir")));
             } finally {
               setBusy(false);
             }
           }}
         >
           <label>
-            Motivo
-            <input
+            {message("conversas.motivo")} <input
               required
               maxLength={500}
               value={motivo}
@@ -563,8 +550,7 @@ export function ConversasPage() {
             />
           </label>
           <label>
-            Prazo de envio
-            <input
+            {message("conversas.prazo.de.envio")} <input
               required
               type="datetime-local"
               value={ate}
@@ -572,8 +558,7 @@ export function ConversasPage() {
             />
           </label>
           <button className="primaryButton" disabled={busy}>
-            Reabrir com auditoria
-          </button>
+            {message("conversas.reabrir.com.auditoria")} </button>
         </form>
       </Modal>
     </main>

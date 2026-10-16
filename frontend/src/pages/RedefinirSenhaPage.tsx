@@ -1,3 +1,4 @@
+import { message, useLocale } from '../i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -8,22 +9,23 @@ import axios from 'axios';
 import { api } from '../services/api';
 import { PublicHeader, SiteFooter } from './LandingPage';
 
-const schema = z.object({
+const getSchema = () => (z.object({
   novaSenha: z
     .string()
-    .min(12, 'A senha deve ter pelo menos 12 caracteres')
-    .regex(/[A-Z]/, 'A senha deve ter uma letra maiúscula')
-    .regex(/[a-z]/, 'A senha deve ter uma letra minúscula')
-    .regex(/\d/, 'A senha deve ter um número'),
+    .min(12, message("senha.redefinir.a.senha.deve.ter.pelo.menos.12.caracteres"))
+    .regex(/[A-Z]/, message("senha.redefinir.a.senha.deve.ter.uma.letra.maiuscula"))
+    .regex(/[a-z]/, message("senha.redefinir.a.senha.deve.ter.uma.letra.minuscula"))
+    .regex(/\d/, message("senha.redefinir.a.senha.deve.ter.um.numero")),
   confirmarSenha: z.string(),
 }).refine((data) => data.novaSenha === data.confirmarSenha, {
-  message: 'As senhas não coincidem',
+  message: message("senha.redefinir.as.senhas.nao.coincidem"),
   path: ['confirmarSenha'],
-});
+}));
 
-type FormData = z.infer<typeof schema>;
+type FormData = z.infer<ReturnType<typeof getSchema>>;
 
 export function RedefinirSenhaPage() {
+  useLocale();
   const [params] = useSearchParams();
   const token = params.get('token');
   const [sucesso, setSucesso] = useState(false);
@@ -34,7 +36,7 @@ export function RedefinirSenhaPage() {
     register, handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(getSchema()),
     defaultValues: { novaSenha: '', confirmarSenha: '' },
   });
 
@@ -48,7 +50,7 @@ export function RedefinirSenhaPage() {
   async function onSubmit(data: FormData) {
     setErro('');
     if (!token) {
-      setErro('Link de redefinição inválido.');
+      setErro(message("senha.redefinir.link.de.redefinicao.invalido"));
       return;
     }
     try {
@@ -56,14 +58,14 @@ export function RedefinirSenhaPage() {
       setSucesso(true);
     } catch (reason) {
       if (axios.isAxiosError(reason)) {
-        const message = reason.response?.data?.message;
-        if (typeof message === 'string' && message.trim()) {
-          setErro(message);
+        const serverMessage = reason.response?.data?.message;
+        if (typeof serverMessage === 'string' && serverMessage.trim()) {
+          setErro(serverMessage);
         } else {
-          setErro('Não foi possível redefinir a senha. O link pode ter expirado.');
+          setErro(message("senha.redefinir.nao.foi.possivel.redefinir.a.senha.o.link.pode.ter.expirado"));
         }
       } else {
-        setErro('Erro inesperado. Tente novamente.');
+        setErro(message("senha.redefinir.erro.inesperado.tente.novamente"));
       }
     }
   }
@@ -74,15 +76,13 @@ export function RedefinirSenhaPage() {
         <PublicHeader />
         <section className="clientArea">
           <div className="siteContainer">
-            <h1>Redefinir senha</h1>
+            <h1>{message("senha.redefinir.redefinir.senha")}</h1>
             <section className="clientLoginCard">
               <div className="clientLoginForm" style={{ textAlign: 'center' }}>
                 <p style={{ marginBottom: '1.5rem', lineHeight: 1.5 }}>
-                  Link de redefinição inválido ou expirado.
-                </p>
+                  {message("senha.redefinir.link.de.redefinicao.invalido.ou.expirado")} </p>
                 <Link to="/esqueci-senha" className="primaryButton" style={{ display: 'inline-block', textDecoration: 'none' }}>
-                  Solicitar novo link
-                </Link>
+                  {message("senha.redefinir.solicitar.novo.link")} </Link>
               </div>
             </section>
           </div>
@@ -97,36 +97,32 @@ export function RedefinirSenhaPage() {
       <PublicHeader />
       <section className="clientArea">
         <div className="siteContainer">
-          <h1>Redefinir senha</h1>
+          <h1>{message("senha.redefinir.redefinir.senha")}</h1>
           <section className="clientLoginCard">
             {sucesso ? (
               <div className="clientLoginForm" style={{ textAlign: 'center' }}>
                 <p style={{ marginBottom: '1.5rem', lineHeight: 1.5 }}>
-                  Senha redefinida com sucesso!
-                </p>
+                  {message("senha.redefinir.senha.redefinida.com.sucesso")} </p>
                 <Link to="/login" className="primaryButton" style={{ display: 'inline-block', textDecoration: 'none' }}>
-                  Entrar com a nova senha
-                </Link>
+                  {message("senha.redefinir.entrar.com.a.nova.senha")} </Link>
               </div>
             ) : (
               <form className="clientLoginForm" onSubmit={handleSubmit(onSubmit)} noValidate>
                 <p style={{ marginBottom: '1rem', lineHeight: 1.5, fontSize: '0.9rem' }}>
-                  Crie sua nova senha. Ela deve ter pelo menos 12 caracteres, uma letra maiúscula, uma minúscula e um número.
-                </p>
+                  {message("senha.redefinir.crie.sua.nova.senha.ela.deve.ter.pelo.menos.12.caracteres.uma.letra.")} </p>
                 <label>
-                  Nova senha
-                  <span className="passwordInputWrap">
+                  {message("senha.redefinir.nova.senha")} <span className="passwordInputWrap">
                     <input
                       type={senhaVisivel ? 'text' : 'password'}
                       autoComplete="new-password"
-                      placeholder="Digite a nova senha"
+                      placeholder={message("senha.redefinir.digite.a.nova.senha")}
                       {...register('novaSenha')}
                     />
                     <button
                       className="passwordVisibilityButton"
                       type="button"
-                      aria-label={senhaVisivel ? 'Ocultar senha' : 'Mostrar senha'}
-                      title={senhaVisivel ? 'Ocultar senha' : 'Mostrar senha'}
+                      aria-label={senhaVisivel ? message("senha.redefinir.ocultar.senha") : message("senha.redefinir.mostrar.senha")}
+                      title={senhaVisivel ? message("senha.redefinir.ocultar.senha") : message("senha.redefinir.mostrar.senha")}
                       aria-pressed={senhaVisivel}
                       onClick={() => setSenhaVisivel((v) => !v)}
                     >
@@ -136,18 +132,17 @@ export function RedefinirSenhaPage() {
                   {errors.novaSenha ? <span className="fieldError">{errors.novaSenha.message}</span> : null}
                 </label>
                 <label>
-                  Confirmar senha
-                  <input
+                  {message("senha.redefinir.confirmar.senha")} <input
                     type="password"
                     autoComplete="new-password"
-                    placeholder="Repita a nova senha"
+                    placeholder={message("senha.redefinir.repita.a.nova.senha")}
                     {...register('confirmarSenha')}
                   />
                   {errors.confirmarSenha ? <span className="fieldError">{errors.confirmarSenha.message}</span> : null}
                 </label>
                 {erro ? <p className="errorMessage">{erro}</p> : null}
                 <button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'Redefinindo...' : 'Redefinir senha'}
+                  {isSubmitting ? message("comum.redefinindo") : message("senha.redefinir.redefinir.senha")}
                 </button>
               </form>
             )}

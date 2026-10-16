@@ -1,3 +1,5 @@
+import { getLocale } from '../preferences';
+import { message, useLocale } from '../i18n';
 import { useEffect, useState } from "react";
 import { OperacaoEntrega } from "../components/OperacaoEntrega";
 import { api } from "../services/api";
@@ -6,6 +8,7 @@ import { EntregaCliente, Pagamento } from "../types";
 import { LoadingState } from "../components/AsyncState";
 
 export function ClientePagamentosPage() {
+  useLocale();
   const [entregas, setEntregas] = useState<EntregaCliente[]>([]);
   const [pagamentos, setPagamentos] = useState<Pagamento[]>([]);
   const [error, setError] = useState("");
@@ -28,7 +31,7 @@ export function ClientePagamentosPage() {
       })
       .catch((r) => {
         if (active)
-          setError(apiErrorMessage(r, "Não foi possível carregar pagamentos."));
+          setError(apiErrorMessage(r, message("cliente.pagamentos.nao.foi.possivel.carregar.pagamentos")));
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -38,7 +41,7 @@ export function ClientePagamentosPage() {
     };
   }, []);
   const money = (v: number) =>
-    new Intl.NumberFormat("pt-BR", {
+    new Intl.NumberFormat(getLocale(), {
       style: "currency",
       currency: "BRL",
     }).format(v);
@@ -69,34 +72,29 @@ export function ClientePagamentosPage() {
   return (
     <main className="page">
       <section className="panelCard notificationPanel">
-        <h1>Pagamentos</h1>
+        <h1>{message("cliente.pagamentos.pagamentos")}</h1>
         <p>
-          Recebimentos confirmados pela JS Boy. Pix é destinado ao entregador
-          responsável.
-        </p>
+          {message("cliente.pagamentos.recebimentos.confirmados.pela.js.boy.pix.e.destinado.ao.entregador.r")} </p>
         <div className="deliveryFilters">
           <label>
-            Situação
-            <select
+            {message("cliente.pagamentos.situacao")} <select
               value={situacao}
               onChange={(e) => setSituacao(e.target.value)}
             >
-              <option value="TODAS">Todas</option>
-              <option value="PENDENTES">Pendentes</option>
-              <option value="QUITADAS">Quitadas</option>
+              <option value="TODAS">{message("cliente.pagamentos.todas")}</option>
+              <option value="PENDENTES">{message("cliente.pagamentos.pendentes")}</option>
+              <option value="QUITADAS">{message("cliente.pagamentos.quitadas")}</option>
             </select>
           </label>
           <label>
-            Solicitada a partir de
-            <input
+            {message("cliente.pagamentos.solicitada.a.partir.de")} <input
               type="date"
               value={inicio}
               onChange={(e) => setInicio(e.target.value)}
             />
           </label>
           <label>
-            Até
-            <input
+            {message("cliente.pagamentos.ate")} <input
               type="date"
               value={fim}
               onChange={(e) => setFim(e.target.value)}
@@ -108,7 +106,7 @@ export function ClientePagamentosPage() {
         ) : error ? (
           <p role="alert">{error}</p>
         ) : !items.length ? (
-          <p>Nenhuma entrega neste filtro.</p>
+          <p>{message("cliente.pagamentos.nenhuma.entrega.neste.filtro")}</p>
         ) : (
           items.map(({ e, registros, recebido, saldo }) => (
             <article className="paymentDetails" key={e.id}>
@@ -119,9 +117,9 @@ export function ClientePagamentosPage() {
                 onClick={() => setAberta(aberta === e.id ? null : e.id)}
               >
                 <strong>{e.codigo}</strong>
-                <span>Devido: {money(e.valorFinal)}</span>
-                <span>Recebido: {money(recebido)}</span>
-                <span>Saldo: {money(saldo)}</span>
+                <span>{message("cliente.pagamentos.devido")} {money(e.valorFinal)}</span>
+                <span>{message("cliente.pagamentos.recebido")} {money(recebido)}</span>
+                <span>{message("cliente.pagamentos.saldo")} {money(saldo)}</span>
               </button>
               {aberta === e.id ? (
                 <>
@@ -129,9 +127,9 @@ export function ClientePagamentosPage() {
                   <ul>
                     {registros.map((p) => (
                       <li key={p.id}>
-                        {p.tipo === "ESTORNO" ? "Estorno · " : ""}
+                        {p.tipo === "ESTORNO" ? (message("cliente.pagamentos.estorno") + " ") : ""}
                         {p.formaPagamento} · {money(p.valor)} ·{" "}
-                        {new Date(p.pagoEm).toLocaleString("pt-BR")}
+                        {new Date(p.pagoEm).toLocaleString(getLocale())}
                       </li>
                     ))}
                   </ul>

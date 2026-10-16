@@ -1,3 +1,4 @@
+import { message, useLocale } from '../i18n';
 import {
   BarChart3,
   CheckCircle2,
@@ -24,6 +25,7 @@ import { useOperacao } from "../hooks/useOperacao";
 
 const finais = ["ENTREGUE", "CANCELADA", "DEVOLVIDA", "FALHA_OPERACIONAL"];
 export function EntregadorOverviewPage() {
+  useLocale();
   const { items, summary, loading, error, load } = useOperacao();
   const proxima = items.find((e) => !finais.includes(e.status));
   const { paradas, error: routeError } = useOverviewRoute(proxima?.id, true);
@@ -42,23 +44,23 @@ export function EntregadorOverviewPage() {
   const proximaAcao = !proxima
     ? null
     : proxima.status === "ENTREGADOR_DESIGNADO"
-      ? "Abra a entrega e confirme a coleta quando chegar ao endereço."
+      ? message("entregador.resumo.abra.a.entrega.e.confirme.a.coleta.quando.chegar.ao.endereco")
       : proxima.status === "COLETADA"
-        ? "Abra a entrega e inicie a rota para seguir ao destino."
+        ? message("entregador.resumo.abra.a.entrega.e.inicie.a.rota.para.seguir.ao.destino")
         : proxima.status === "TENTATIVA_FALHOU"
-          ? "Abra a entrega e retome a rota quando puder continuar."
+          ? message("entregador.resumo.abra.a.entrega.e.retome.a.rota.quando.puder.continuar")
           : proximaParada
-            ? `Siga para ${proximaParada.endereco} e conclua esta parada.`
-            : "A rota terminou. Confirme o recebimento e finalize a entrega.";
+            ? message("entregador.resumo.siga.para.value.e.conclua.esta.parada", { value1: proximaParada.endereco })
+            : message("entregador.resumo.a.rota.terminou.confirme.o.recebimento.e.finalize.a.entrega");
   const textoAcao = !proxima
-    ? "Ver histórico"
+    ? message("entregador.resumo.ver.historico")
     : !proximaParada && proxima.status === "EM_ROTA"
-      ? "Receber e finalizar"
+      ? message("entregador.resumo.receber.e.finalizar")
       : proxima.status === "ENTREGADOR_DESIGNADO"
-        ? "Ir para coleta"
+        ? message("entregador.resumo.ir.para.coleta")
         : proxima.status === "COLETADA"
-          ? "Iniciar rota"
-          : "Abrir entrega";
+          ? message("entregador.resumo.iniciar.rota")
+          : message("entregador.resumo.abrir.entrega");
   if (loading)
     return (
       <main className="page">
@@ -76,9 +78,9 @@ export function EntregadorOverviewPage() {
       <section className="portalPanel nextDeliveryPanel dailyPriorityPanel">
         <div className="portalPanelHeading">
           <div>
-            <span className="dailyPriorityEyebrow">AGORA</span>
-            <h2>{proxima ? "Próxima ação" : "Trabalho em dia"}</h2>
-            <p>{proximaAcao || "Não há nenhuma entrega pendente."}</p>
+            <span className="dailyPriorityEyebrow">{message("entregador.resumo.agora")}</span>
+            <h2>{proxima ? message("entregador.resumo.proxima.acao") : message("entregador.resumo.trabalho.em.dia")}</h2>
+            <p>{proximaAcao || message("entregador.resumo.nao.ha.nenhuma.entrega.pendente")}</p>
           </div>
           {proxima ? <PortalStatus status={proxima.status} /> : null}
         </div>
@@ -90,7 +92,7 @@ export function EntregadorOverviewPage() {
                   {routeError}
                 </p>
               ) : paradas === null ? (
-                <p role="status">Carregando rota...</p>
+                <p role="status">{message("entregador.resumo.carregando.rota")}</p>
               ) : paradas.length ? (
                 <PortalRoute
                   paradas={paradas}
@@ -100,13 +102,13 @@ export function EntregadorOverviewPage() {
                   }}
                 />
               ) : (
-                <p className="portalEmpty">Rota ainda não cadastrada.</p>
+                <p className="portalEmpty">{message("entregador.resumo.rota.ainda.nao.cadastrada")}</p>
               )}
             </div>
             <div className="nextDeliveryMeta">
-              <span>Cliente</span>
+              <span>{message("entregador.resumo.cliente")}</span>
               <strong>{proxima.clienteNome}</strong>
-              <span>Valor da entrega</span>
+              <span>{message("entregador.resumo.valor.da.entrega")}</span>
               <strong>{portalMoney(proxima.valorFinal)}</strong>
             </div>
             <div className="nextDeliveryActions">
@@ -128,56 +130,55 @@ export function EntregadorOverviewPage() {
                   }
                 >
                   <Map size={22} />
-                  Abrir endereço
-                </a>
+                  {message("entregador.resumo.abrir.endereco")} </a>
               ) : (
-                <p className="portalMuted">Confira as paradas no detalhe.</p>
+                <p className="portalMuted">{message("entregador.resumo.confira.as.paradas.no.detalhe")}</p>
               )}
             </div>
           </div>
         ) : (
           <Link className="portalOutlineButton" to="/minhas-entregas">
-            Ver histórico <ChevronRight size={18} />
+            {message("entregador.resumo.ver.historico")} <ChevronRight size={18} />
           </Link>
         )}
       </section>
-      <section className="portalMetrics" aria-label="Resumo das entregas">
+      <section className="portalMetrics" aria-label={message("entregador.resumo.resumo.das.entregas")}>
         <PortalMetric
           icon={Package}
           tone="amber"
-          label="Entregas hoje"
+          label={message("entregador.resumo.entregas.hoje")}
           value={doDia.length}
-          hint="atribuídas ou concluídas hoje"
+          hint={message("entregador.resumo.atribuidas.ou.concluidas.hoje")}
         />
         <PortalMetric
           icon={Truck}
           tone="green"
-          label="Em andamento"
+          label={message("entregador.resumo.em.andamento")}
           value={summary.emRota}
-          hint="em deslocamento agora"
+          hint={message("entregador.resumo.em.deslocamento.agora")}
         />
         <PortalMetric
           icon={CheckCircle2}
           tone="blue"
-          label="Concluídas"
+          label={message("entregador.resumo.concluidas")}
           value={summary.concluidasHoje}
-          hint="finalizadas hoje"
+          hint={message("entregador.resumo.finalizadas.hoje")}
         />
         <PortalMetric
           icon={DollarSign}
           tone="violet"
           label={
             summary.valorRecebidoHoje === undefined
-              ? "Valor movimentado hoje"
-              : "Recebido hoje"
+              ? message("entregador.resumo.valor.movimentado.hoje")
+              : message("entregador.resumo.recebido.hoje")
           }
           value={portalMoney(
             summary.valorRecebidoHoje ?? summary.valorMovimentadoHoje,
           )}
           hint={
             summary.valorRecebidoHoje === undefined
-              ? "valor dos serviços; não é comissão"
-              : "recebimentos líquidos do dia"
+              ? message("entregador.resumo.valor.dos.servicos.nao.e.comissao")
+              : message("entregador.resumo.recebimentos.liquidos.do.dia")
           }
         />
       </section>
@@ -186,11 +187,11 @@ export function EntregadorOverviewPage() {
           <section className="portalPanel">
             <div className="portalPanelHeading">
               <div>
-                <h2>Entregas de hoje</h2>
-                <p>Acompanhe o andamento das suas entregas.</p>
+                <h2>{message("entregador.resumo.entregas.de.hoje")}</h2>
+                <p>{message("entregador.resumo.acompanhe.o.andamento.das.suas.entregas")}</p>
               </div>
               <Link className="portalTextLink" to="/minhas-entregas">
-                Ver todas <ChevronRight size={18} />
+                {message("entregador.resumo.ver.todas")} <ChevronRight size={18} />
               </Link>
             </div>
             <div className="portalDeliveryRows">
@@ -218,8 +219,7 @@ export function EntregadorOverviewPage() {
                 ))
               ) : (
                 <p className="portalEmpty">
-                  Nenhuma entrega atribuída ou concluída hoje.
-                </p>
+                  {message("entregador.resumo.nenhuma.entrega.atribuida.ou.concluida.hoje")} </p>
               )}
             </div>
           </section>
@@ -229,16 +229,15 @@ export function EntregadorOverviewPage() {
           <section className="portalPanel quickActionsPanel">
             <h2>
               <Zap size={28} />
-              Ações rápidas
-            </h2>
+              {message("entregador.resumo.acoes.rapidas")} </h2>
             <Link className="portalQuickAction" to="/meu-faturamento">
               <BarChart3 size={25} />
-              <strong>Ver meu faturamento</strong>
+              <strong>{message("entregador.resumo.ver.meu.faturamento")}</strong>
               <ChevronRight size={20} />
             </Link>
             <Link className="portalQuickAction" to="/meu-perfil">
               <User size={25} />
-              <strong>Atualizar meu contato</strong>
+              <strong>{message("entregador.resumo.atualizar.meu.contato")}</strong>
               <ChevronRight size={20} />
             </Link>
           </section>

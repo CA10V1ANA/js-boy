@@ -1,3 +1,5 @@
+import { message } from '../i18n';
+import { serverMessage } from '../i18n/server';
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import {
   clearStoredAuth, getStoredToken, getStoredUser, updateStoredTokens,
@@ -34,7 +36,7 @@ function authEndpoint(url?: string) {
 
 async function refreshAccessToken() {
   // If no user is stored, we don't have a session to refresh
-  if (!getStoredUser()) throw new Error('Sessão sem renovação');
+  if (!getStoredUser()) throw new Error(message("api.sessao.sem.renovacao"));
   
   const response = await axios.post<{ token: string }>(
     `${apiBaseUrl()}/auth/refresh`,
@@ -57,7 +59,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-api.interceptors.response.use((response) => response, async (reason: AxiosError<{ message?: string }>) => {
+api.interceptors.response.use((response) => response, async (reason: AxiosError<{ message?: string; code?: string }>) => {
   const status = reason.response?.status;
   const config = reason.config as RetryConfig | undefined;
   
@@ -81,7 +83,7 @@ api.interceptors.response.use((response) => response, async (reason: AxiosError<
     if (window.location.pathname !== '/login') window.location.assign('/login');
   }
   
-  const message = reason.response?.data?.message || reason.message || 'Erro inesperado. Tente novamente mais tarde.';
-  emitToast(message, 'error');
+  const errorMessage = reason.response?.data?.message || reason.message || message("api.erro.inesperado.tente.novamente.mais.tarde");
+  emitToast(serverMessage(errorMessage, reason.response?.data?.code), 'error');
   return Promise.reject(reason);
 });

@@ -1,3 +1,4 @@
+import { message, useLocale } from '../i18n';
 import { useEffect, useState } from "react";
 import { ChevronRight, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -6,6 +7,7 @@ import { api } from "../services/api";
 import { apiErrorMessage } from "../services/apiError";
 
 export function EnderecosResumo() {
+  useLocale();
   const [items, setItems] = useState<Endereco[] | null>(null);
   const [error, setError] = useState("");
   useEffect(() => {
@@ -17,7 +19,7 @@ export function EnderecosResumo() {
       })
       .catch((r) => {
         if (active)
-          setError(apiErrorMessage(r, "Não foi possível carregar endereços."));
+          setError(apiErrorMessage(r, message("enderecos.resumo.nao.foi.possivel.carregar.enderecos")));
       });
     return () => {
       active = false;
@@ -26,9 +28,9 @@ export function EnderecosResumo() {
   return (
     <section className="portalPanel overviewAddresses">
       <div className="portalPanelHeading">
-        <h2>Endereços frequentes</h2>
+        <h2>{message("enderecos.resumo.enderecos.frequentes")}</h2>
         <Link className="portalTextLink" to="/portal/enderecos">
-          Gerenciar endereços <ChevronRight size={17} />
+          {message("enderecos.resumo.gerenciar.enderecos")} <ChevronRight size={17} />
         </Link>
       </div>
       {error ? (
@@ -37,8 +39,7 @@ export function EnderecosResumo() {
         </p>
       ) : !items ? (
         <p role="status" className="portalEmpty">
-          Carregando endereços...
-        </p>
+          {message("enderecos.resumo.carregando.enderecos")} </p>
       ) : items.length ? (
         <div className="portalAddressList">
           {items.slice(0, 2).map((e, index) => (
@@ -61,8 +62,7 @@ export function EnderecosResumo() {
         </div>
       ) : (
         <p className="portalEmpty">
-          Cadastre os locais que usa com frequência.
-        </p>
+          {message("enderecos.resumo.cadastre.os.locais.que.usa.com.frequencia")} </p>
       )}
     </section>
   );

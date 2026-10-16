@@ -1,3 +1,4 @@
+import { message } from '../i18n';
 import { z } from 'zod';
 import { idempotencyKey } from './apiError';
 
@@ -64,14 +65,14 @@ export function pendingRefund(usuarioId: string) {
 }
 
 export function createPaymentIntent(usuarioId: string, payload: PaymentPayload): PendingPayment {
-  if (pendingPayment(usuarioId)) throw new Error('Existe um pagamento pendente de confirmação.');
+  if (pendingPayment(usuarioId)) throw new Error(message("financeiro.tentativa.existe.um.pagamento.pendente.de.confirmacao"));
   const intent = paymentIntentSchema.parse({ usuarioId, chave: idempotencyKey('payment'), payload });
   localStorage.setItem(PAYMENT_KEY, JSON.stringify(intent));
   return intent;
 }
 
 export function createRefundIntent(usuarioId: string, pagamentoId: string, payload: RefundPayload): PendingRefund {
-  if (pendingRefund(usuarioId)) throw new Error('Existe um estorno pendente de confirmação.');
+  if (pendingRefund(usuarioId)) throw new Error(message("financeiro.tentativa.existe.um.estorno.pendente.de.confirmacao"));
   const intent = refundIntentSchema.parse({ usuarioId, pagamentoId, chave: idempotencyKey('refund'), payload });
   localStorage.setItem(REFUND_KEY, JSON.stringify(intent));
   return intent;

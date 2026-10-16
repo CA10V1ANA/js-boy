@@ -1,3 +1,5 @@
+import { message, useLocale } from '../i18n';
+import { AppearancePreferences } from '../components/AppearancePreferences';
 import {
   Bike,
   Building2,
@@ -21,61 +23,61 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { ContactForm } from '../components/ContactForm';
 import { businessConfig, BusinessContact } from '../config/business';
 
-const navItems = [
-  ['/', 'Início'],
-  ['/servicos', 'Serviços'],
-  ['/como-funciona', 'Como funciona'],
-  ['/para-empresas', 'Para clientes'],
-  ['/contato', 'Contato'],
-];
+const getNavItems = () => ([
+  ['/', message("site.inicio")],
+  ['/servicos', message("site.servicos")],
+  ['/como-funciona', message("site.como.funciona")],
+  ['/para-empresas', message("site.para.clientes")],
+  ['/contato', message("site.contato")],
+]);
 
-const benefits = [
+const getBenefits = () => ([
   {
     icon: Route,
-    title: 'Operação organizada',
-    text: 'Entregas, designações e status reunidos no sistema operacional da JS Boy.',
+    title: message("site.operacao.organizada"),
+    text: message("site.entregas.designacoes.e.status.reunidos.no.sistema.operacional.da.js."),
   },
   {
     icon: LockKeyhole,
-    title: 'Acesso por perfil',
-    text: 'Proprietário, entregadores e clientes acessam apenas as informações autorizadas.',
+    title: message("site.acesso.por.perfil"),
+    text: message("site.proprietario.entregadores.e.clientes.acessam.apenas.as.informacoes.a"),
   },
   {
     icon: History,
-    title: 'Histórico',
-    text: 'As mudanças de status ficam registradas para consulta no sistema.',
+    title: message("site.historico"),
+    text: message("site.as.mudancas.de.status.ficam.registradas.para.consulta.no.sistema"),
   },
   {
     icon: UserRoundCheck,
-    title: 'Contato direto',
-    text: 'A contratação começa por uma solicitação de contato enviada para a JS Boy.',
+    title: message("site.contato.direto"),
+    text: message("site.a.contratacao.comeca.por.uma.solicitacao.de.contato.enviada.para.a.j"),
   },
-];
+]);
 
-const services = [
+const getServices = () => ([
   {
     icon: Bike,
-    title: 'Coleta e entrega',
-    text: 'Operação de entregas conforme a necessidade analisada e confirmada pela JS Boy.',
+    title: message("site.coleta.e.entrega"),
+    text: message("site.operacao.de.entregas.conforme.a.necessidade.analisada.e.confirmada.p"),
   },
   {
     icon: Building2,
-    title: 'Atendimento a clientes',
-    text: 'Pessoas e empresas contratantes podem receber acesso protegido aos próprios dados.',
+    title: message("site.atendimento.a.clientes"),
+    text: message("site.pessoas.e.empresas.contratantes.podem.receber.acesso.protegido.aos.p"),
   },
   {
     icon: PackageCheck,
-    title: 'Acompanhamento operacional',
-    text: 'O sistema registra responsável, andamento e histórico das entregas cadastradas.',
+    title: message("site.acompanhamento.operacional"),
+    text: message("site.o.sistema.registra.responsavel.andamento.e.historico.das.entregas.ca"),
   },
-];
+]);
 
-const steps = [
-  ['Contato', 'Envie a necessidade pelo formulário disponível neste site.'],
-  ['Análise', 'A JS Boy avalia as informações e combina as condições diretamente com você.'],
-  ['Cadastro', 'Quando aprovado, o proprietário cria o cliente e o acesso protegido.'],
-  ['Operação', 'As entregas contratadas passam a ser acompanhadas no sistema.'],
-];
+const getSteps = () => ([
+  [message("site.contato"), message("site.envie.a.necessidade.pelo.formulario.disponivel.neste.site")],
+  [message("site.analise"), message("site.a.js.boy.avalia.as.informacoes.e.combina.as.condicoes.diretamente.co")],
+  [message("landing.cadastro"), message("site.quando.aprovado.o.proprietario.cria.o.cliente.e.o.acesso.protegido")],
+  [message("site.operacao"), message("site.as.entregas.contratadas.passam.a.ser.acompanhadas.no.sistema")],
+]);
 
 function contactIcon(contact: BusinessContact) {
   if (contact.label === 'WhatsApp') return <MessageCircle size={18} aria-hidden="true" />;
@@ -94,28 +96,40 @@ function configuredContacts() {
 }
 
 export function Brand() {
+  useLocale();
   return (
-    <Link className="siteBrand" to="/" aria-label="JS Boy Início">
+    <Link className="siteBrand" to="/" aria-label={message("site.js.boy.inicio")}>
       <span className="siteBrandMark">
         <img src="/assets/js-boy-logo-oficial.jpg" alt="" aria-hidden="true" />
       </span>
       <span>
         <strong>JS BOY</strong>
-        <small>ENTREGAS</small>
+        <small>{message("site.entregas")}</small>
       </span>
     </Link>
   );
 }
 
 export function PublicHeader() {
+  const locale = useLocale();
+  const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => {
+    const titles: Record<string, string> = {
+      '/login': 'login.acesso.a.js.boy',
+      '/cadastro': 'cliente.cadastro.criar.conta.como.cliente',
+      '/esqueci-senha': 'senha.recuperar.recuperar.senha',
+      '/redefinir-senha': 'senha.redefinir.redefinir.senha',
+    };
+    if (titles[pathname]) document.title = `${message(titles[pathname])} | JS Boy`;
+  }, [pathname, locale]);
 
   return (
     <header className="siteHeader">
       <div className="siteContainer siteHeaderInner">
         <Brand />
-        <nav className={menuOpen ? 'siteNav mobileOpen' : 'siteNav'} id="site-navigation" aria-label="Navegação do site">
-          {navItems.map(([to, label]) => (
+        <nav className={menuOpen ? 'siteNav mobileOpen' : 'siteNav'} id="site-navigation" aria-label={message("site.navegacao.do.site")}>
+          {getNavItems().map(([to, label]) => (
             <NavLink
               className={({ isActive }: { isActive: boolean }) => (isActive ? 'active' : '')}
               end={to === '/'}
@@ -128,13 +142,14 @@ export function PublicHeader() {
           ))}
         </nav>
         <div className="siteActions">
-          <Link className="siteGhostButton" to="/contato">Solicitar contato</Link>
-          <Link className="siteYellowButton small" to="/login">Entrar</Link>
+          <AppearancePreferences />
+          <Link className="siteGhostButton" to="/contato">{message("site.solicitar.contato")}</Link>
+          <Link className="siteYellowButton small" to="/login">{message("site.entrar")}</Link>
         </div>
         <button
           className="siteMenuButton"
           type="button"
-          aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'}
+          aria-label={menuOpen ? message("site.fechar.menu") : message("site.abrir.menu")}
           aria-controls="site-navigation"
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen((open) => !open)}
@@ -147,6 +162,7 @@ export function PublicHeader() {
 }
 
 export function SiteFooter() {
+  useLocale();
   const contacts = configuredContacts();
 
   return (
@@ -154,24 +170,24 @@ export function SiteFooter() {
       <div className="siteContainer footerGrid">
         <div>
           <Brand />
-          <p>Operação de entregas da JS Boy.</p>
+          <p>{message("site.operacao.de.entregas.da.js.boy")}</p>
         </div>
         <div>
-          <h3>Navegação</h3>
-          {navItems.map(([to, label]) => (
+          <h3>{message("site.navegacao")}</h3>
+          {getNavItems().map(([to, label]) => (
             <Link key={to} to={to}>{label}</Link>
           ))}
         </div>
         <div>
-          <h3>Acesso</h3>
-          <Link to="/login">Entrar no sistema</Link>
-          <Link to="/contato">Solicitar contato</Link>
-          <Link to="/politica-de-privacidade">Política de Privacidade</Link>
+          <h3>{message("site.acesso")}</h3>
+          <Link to="/login">{message("site.entrar.no.sistema")}</Link>
+          <Link to="/contato">{message("site.solicitar.contato")}</Link>
+          <Link to="/politica-de-privacidade">{message("site.politica.de.privacidade")}</Link>
         </div>
         <div>
-          <h3>Contato</h3>
+          <h3>{message("site.contato")}</h3>
           {contacts.length === 0 ? (
-            <Link to="/contato">Formulário de contato</Link>
+            <Link to="/contato">{message("site.formulario.de.contato")}</Link>
           ) : contacts.map((contact) => (
             <a key={contact.label} href={contact.href} target={contact.href?.startsWith('https://') ? '_blank' : undefined} rel="noreferrer">
               {contactIcon(contact)} {contact.value}
@@ -185,17 +201,18 @@ export function SiteFooter() {
 }
 
 export function PublicLayout() {
+  const locale = useLocale();
   const whatsapp = businessConfig.whatsapp;
   const { pathname } = useLocation();
   const [showTop, setShowTop] = useState(false);
   useEffect(() => {
     const pages: Record<string, [string, string]> = {
-      '/': ['JS BOY - Entregas Empresariais', 'Gestão de entregas empresariais com acompanhamento, Pix direto e controle financeiro.'],
-      '/servicos': ['Serviços de entrega | JS BOY', 'Conheça os serviços de coleta, entrega e acompanhamento operacional da JS Boy.'],
-      '/como-funciona': ['Como funciona | JS BOY', 'Entenda como contratar e acompanhar entregas com a JS Boy.'],
-      '/para-empresas': ['Soluções para clientes | JS BOY', 'Operação de entregas para pessoas e empresas com acesso protegido.'],
-      '/contato': ['Contato | JS BOY', 'Fale com a JS Boy e solicite uma avaliação da sua necessidade de entrega.'],
-      '/politica-de-privacidade': ['Política de Privacidade | JS BOY', 'Saiba como a JS Boy trata e protege dados pessoais.'],
+      '/': [message("site.js.boy.entregas.empresariais"), message("site.gestao.de.entregas.empresariais.com.acompanhamento.pix.direto.e.cont")],
+      '/servicos': [message("site.servicos.de.entrega.js.boy"), message("site.conheca.os.servicos.de.coleta.entrega.e.acompanhamento.operacional.d")],
+      '/como-funciona': [message("site.como.funciona.js.boy"), message("site.entenda.como.contratar.e.acompanhar.entregas.com.a.js.boy")],
+      '/para-empresas': [message("site.solucoes.para.clientes.js.boy"), message("site.operacao.de.entregas.para.pessoas.e.empresas.com.acesso.protegido")],
+      '/contato': [message("site.contato.js.boy"), message("site.fale.com.a.js.boy.e.solicite.uma.avaliacao.da.sua.necessidade.de.ent")],
+      '/politica-de-privacidade': [message("site.politica.de.privacidade.js.boy"), message("site.saiba.como.a.js.boy.trata.e.protege.dados.pessoais")],
     };
     const [title, description] = pages[pathname] || pages['/'];
     document.title = title;
@@ -203,7 +220,7 @@ export function PublicLayout() {
     let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
     canonical.href = `${window.location.origin}${pathname}`;
-  }, [pathname]);
+  }, [pathname, locale]);
   useEffect(() => {
     const update = () => setShowTop(window.scrollY > 480);
     update(); window.addEventListener('scroll', update, { passive: true });
@@ -211,17 +228,18 @@ export function PublicLayout() {
   }, []);
   return (
     <div className="sitePage">
-      <a className="skipLink" href="#conteudo-principal">Pular para o conteúdo</a>
+      <a className="skipLink" href="#conteudo-principal">{message("site.pular.para.o.conteudo")}</a>
       <PublicHeader />
       <main id="conteudo-principal"><Outlet /></main>
       <SiteFooter />
-      {whatsapp?.href ? <a className="floatingAction floatingWhatsapp" href={whatsapp.href} target="_blank" rel="noreferrer" aria-label="Falar com a JS Boy pelo WhatsApp"><MessageCircle size={22} aria-hidden="true" /></a> : null}
-      {showTop ? <button className="floatingAction floatingTop" type="button" aria-label="Voltar ao topo" onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}>↑</button> : null}
+      {whatsapp?.href ? <a className="floatingAction floatingWhatsapp" href={whatsapp.href} target="_blank" rel="noreferrer" aria-label={message("site.falar.com.a.js.boy.pelo.whatsapp")}><MessageCircle size={22} aria-hidden="true" /></a> : null}
+      {showTop ? <button className="floatingAction floatingTop" type="button" aria-label={message("site.voltar.ao.topo")} onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}>↑</button> : null}
     </div>
   );
 }
 
 export function LandingPage() {
+  useLocale();
   const whatsapp = businessConfig.whatsapp;
 
   return (
@@ -230,27 +248,25 @@ export function LandingPage() {
         <div className="siteContainer siteHeroInner">
           <div className="siteHeroText">
             <span className="sitePill"><Bike size={14} /> JS BOY</span>
-            <h1>Entregas <mark>organizadas</mark>, com responsabilidade.</h1>
+            <h1>{message("landing.entregas")} <mark>{message("landing.organizadas")}</mark>{message("site.com.responsabilidade")}</h1>
             <p>
-              A JS Boy administra clientes, entregadores e entregas em um sistema com acessos separados por perfil.
-            </p>
+              {message("site.a.js.boy.administra.clientes.entregadores.e.entregas.em.um.sistema.c")} </p>
             <div className="siteHeroActions">
-              <Link className="siteYellowButton" to="/contato">Solicitar contato <span>→</span></Link>
+              <Link className="siteYellowButton" to="/contato">{message("site.solicitar.contato")} <span>→</span></Link>
               {whatsapp ? (
                 <a className="siteOutlineButton" href={whatsapp.href} target="_blank" rel="noreferrer">
-                  <MessageCircle size={17} /> WhatsApp
-                </a>
+                  <MessageCircle size={17} /> {message("site.whatsapp")} </a>
               ) : null}
             </div>
           </div>
           <div className="siteHeroVisual">
             {whatsapp ? (
-              <a className="siteBikeBadge officialLogoLink" href={whatsapp.href} target="_blank" rel="noreferrer" aria-label="Conversar com a JS Boy pelo WhatsApp">
-                <img src="/assets/js-boy-logo-oficial.jpg" alt="Logo oficial da JS Boy Entregas" />
+              <a className="siteBikeBadge officialLogoLink" href={whatsapp.href} target="_blank" rel="noreferrer" aria-label={message("site.conversar.com.a.js.boy.pelo.whatsapp")}>
+                <img src="/assets/js-boy-logo-oficial.jpg" alt={message("site.logo.oficial.da.js.boy.entregas")} />
               </a>
             ) : (
               <div className="siteBikeBadge">
-                <img src="/assets/js-boy-logo-oficial.jpg" alt="Logo oficial da JS Boy Entregas" />
+                <img src="/assets/js-boy-logo-oficial.jpg" alt={message("site.logo.oficial.da.js.boy.entregas")} />
               </div>
             )}
           </div>
@@ -260,11 +276,11 @@ export function LandingPage() {
       <section className="siteSection compact">
         <div className="siteContainer">
           <div className="siteSectionTitle centered">
-            <h2>Uma operação clara para cada perfil</h2>
-            <p>O sistema apoia o trabalho diário sem expor dados de outros usuários.</p>
+            <h2>{message("site.uma.operacao.clara.para.cada.perfil")}</h2>
+            <p>{message("site.o.sistema.apoia.o.trabalho.diario.sem.expor.dados.de.outros.usuarios")}</p>
           </div>
           <div className="benefitGrid">
-            {benefits.map((benefit, index) => (
+            {getBenefits().map((benefit, index) => (
               <article className={index === 0 ? 'benefitCard featured' : 'benefitCard'} key={benefit.title}>
                 <benefit.icon size={37} />
                 <h3>{benefit.title}</h3>
@@ -281,15 +297,16 @@ export function LandingPage() {
 }
 
 export function ServicesPage() {
+  useLocale();
   return (
     <section className="siteSection publicStandalone">
       <div className="siteContainer">
         <div className="siteSectionTitle">
-          <h1>Serviços</h1>
-          <p>O escopo de cada entrega é confirmado diretamente pela JS Boy.</p>
+          <h1>{message("site.servicos")}</h1>
+          <p>{message("site.o.escopo.de.cada.entrega.e.confirmado.diretamente.pela.js.boy")}</p>
         </div>
         <div className="servicesGrid">
-          {services.map((service) => (
+          {getServices().map((service) => (
             <article className="serviceTile" key={service.title}>
               <span><service.icon size={23} /></span>
               <h3>{service.title}</h3>
@@ -303,15 +320,16 @@ export function ServicesPage() {
 }
 
 export function HowItWorksPage() {
+  useLocale();
   return (
     <section className="siteSection publicStandalone">
       <div className="siteContainer">
         <div className="siteSectionTitle">
-          <h1>Como funciona</h1>
-          <p>O cadastro não é público: a JS Boy confirma cada novo acesso.</p>
+          <h1>{message("site.como.funciona")}</h1>
+          <p>{message("site.o.cadastro.nao.e.publico.a.js.boy.confirma.cada.novo.acesso")}</p>
         </div>
         <div className="stepsGrid">
-          {steps.map(([title, text], index) => (
+          {getSteps().map(([title, text], index) => (
             <article className="stepCard" key={title}>
               <span>{index + 1}</span>
               <h3>{title}</h3>
@@ -325,33 +343,33 @@ export function HowItWorksPage() {
 }
 
 export function CompaniesPage() {
+  useLocale();
   return (
     <section className="siteSection publicStandalone">
       <div className="siteContainer">
         <div className="siteSectionTitle">
-          <h1>Para clientes</h1>
-          <p>A JS Boy atende pessoas e empresas conforme avaliação da necessidade.</p>
+          <h1>{message("site.para.clientes")}</h1>
+          <p>{message("site.a.js.boy.atende.pessoas.e.empresas.conforme.avaliacao.da.necessidade")}</p>
         </div>
         <div className="companiesGrid">
           <div>
-            <h3>Antes de começar</h3>
+            <h3>{message("site.antes.de.comecar")}</h3>
             <p>
-              Envie a solicitação de contato. O proprietário confirma a contratação e cria o cadastro quando aplicável.
-            </p>
+              {message("site.envie.a.solicitacao.de.contato.o.proprietario.confirma.a.contratacao")} </p>
           </div>
           <div>
-            <h3>Acesso protegido</h3>
+            <h3>{message("site.acesso.protegido")}</h3>
             <ul className="advantageList">
-              <li><Check size={18} /> Cadastro criado pela JS Boy</li>
-              <li><Check size={18} /> Consulta apenas das próprias entregas</li>
-              <li><Check size={18} /> Consulta dos próprios pagamentos</li>
+              <li><Check size={18} /> {message("site.cadastro.criado.pela.js.boy")}</li>
+              <li><Check size={18} /> {message("site.consulta.apenas.das.proprias.entregas")}</li>
+              <li><Check size={18} /> {message("site.consulta.dos.proprios.pagamentos")}</li>
             </ul>
           </div>
         </div>
         <div className="companyCta">
-          <h3>Quer conversar com a JS Boy?</h3>
-          <p>Use o formulário para informar sua necessidade.</p>
-          <Link to="/contato" className="siteYellowButton">Solicitar contato</Link>
+          <h3>{message("site.quer.conversar.com.a.js.boy")}</h3>
+          <p>{message("site.use.o.formulario.para.informar.sua.necessidade")}</p>
+          <Link to="/contato" className="siteYellowButton">{message("site.solicitar.contato")}</Link>
         </div>
       </div>
     </section>
@@ -359,6 +377,7 @@ export function CompaniesPage() {
 }
 
 export function ContactPage() {
+  useLocale();
   const contacts = configuredContacts();
 
   return (
@@ -366,8 +385,8 @@ export function ContactPage() {
       <div className="siteContainer contactGrid">
         <div>
           <div className="siteSectionTitle">
-            <h1>Fale com a JS Boy</h1>
-            <p>Envie uma solicitação para a equipe avaliar sua necessidade.</p>
+            <h1>{message("site.fale.com.a.js.boy")}</h1>
+            <p>{message("site.envie.uma.solicitacao.para.a.equipe.avaliar.sua.necessidade")}</p>
           </div>
           <div className="contactList">
             {contacts.map((contact) => (
@@ -382,13 +401,13 @@ export function ContactPage() {
               </article>
             ))}
             {businessConfig.city ? (
-              <article><MapPin size={23} /><span>CIDADE</span><strong>{businessConfig.city}</strong></article>
+              <article><MapPin size={23} /><span>{message("landing.cidade")}</span><strong>{businessConfig.city}</strong></article>
             ) : null}
             {businessConfig.hours ? (
-              <article><Clock3 size={23} /><span>HORÁRIO</span><strong>{businessConfig.hours}</strong></article>
+              <article><Clock3 size={23} /><span>{message("site.horario")}</span><strong>{businessConfig.hours}</strong></article>
             ) : null}
             {contacts.length === 0 && !businessConfig.city && !businessConfig.hours ? (
-              <p className="contactFallback">O formulário ao lado é o canal de contato disponível.</p>
+              <p className="contactFallback">{message("site.o.formulario.ao.lado.e.o.canal.de.contato.disponivel")}</p>
             ) : null}
           </div>
         </div>
@@ -399,14 +418,15 @@ export function ContactPage() {
 }
 
 function SiteCta() {
+  useLocale();
   return (
     <section className="siteCta">
       <div className="siteContainer">
-        <h2>Precisa conversar sobre uma entrega?</h2>
-        <p>Envie as informações para a JS Boy analisar.</p>
+        <h2>{message("site.precisa.conversar.sobre.uma.entrega")}</h2>
+        <p>{message("site.envie.as.informacoes.para.a.js.boy.analisar")}</p>
         <div className="siteCtaActions">
-          <Link to="/contato">Solicitar contato</Link>
-          <Link to="/login">Já tenho acesso</Link>
+          <Link to="/contato">{message("site.solicitar.contato")}</Link>
+          <Link to="/login">{message("site.ja.tenho.acesso")}</Link>
         </div>
       </div>
     </section>

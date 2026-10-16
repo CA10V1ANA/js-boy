@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { serverMessage } from '../i18n/server';
 
 export interface ApiError {
   message: string;
@@ -9,9 +10,9 @@ export interface ApiError {
 export function extractApiError(error: unknown, fallback: string): ApiError {
   if (!axios.isAxiosError(error)) return { message: fallback };
   const data = error.response?.data;
-  const message = typeof data?.message === 'string' && data.message.trim() ? data.message : fallback;
+  const rawMessage = typeof data?.message === 'string' && data.message.trim() ? data.message : fallback;
   const code = typeof data?.code === 'string' ? data.code : undefined;
-  return { message, code, status: error.response?.status };
+  return { message: serverMessage(rawMessage, code), code, status: error.response?.status };
 }
 
 export function apiErrorMessage(error: unknown, fallback: string) {

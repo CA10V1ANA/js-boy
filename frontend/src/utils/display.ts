@@ -1,6 +1,7 @@
+import { message } from '../i18n';
 export function sentenceCase(value?: string | null) {
   const normalized = (value || '').replace(/_/g, ' ').trim().toLocaleLowerCase('pt-BR');
-  return normalized ? normalized.charAt(0).toLocaleUpperCase('pt-BR') + normalized.slice(1) : 'Não informado';
+  return normalized ? normalized.charAt(0).toLocaleUpperCase('pt-BR') + normalized.slice(1) : message("exibicao.nao.informado");
 }
 
 export function titleCase(value?: string | null) {
