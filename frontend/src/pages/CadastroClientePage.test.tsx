@@ -29,7 +29,7 @@ describe("CadastroClientePage", () => {
       usuario: null,
       token: null,
       entrarGoogle: vi.fn(),
-      logout: vi.fn(),
+      atualizarPerfil: vi.fn(), logout: vi.fn(),
     });
   });
 

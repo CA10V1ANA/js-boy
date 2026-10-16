@@ -3,6 +3,8 @@ import { message } from './index';
 // Explicit system messages from RecebimentoService and GlobalExceptionHandler.
 // Do not apply this mapping to names, addresses, chat content or free-form notes.
 const serverKeys: Readonly<Record<string, string>> = {
+  'E-mail já cadastrado': 'conta.edicao.email.invalid',
+  'Placa inválida. Informe o padrão ABC1234 ou ABC1D23': 'conta.edicao.placa.invalida',
   'Entrega cancelada': 'servidor.entrega.cancelada',
   'Designe um entregador para finalizar': 'servidor.finalizacao.designacao',
   'Concilie a cobrança legada pendente': 'servidor.finalizacao.legado',

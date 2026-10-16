@@ -11,6 +11,7 @@ type AuthContextValue = {
   token: string | null; usuario: UsuarioAutenticado | null; autenticado: boolean;
   entrarGoogle: (credencial: string, cliente?: unknown) => Promise<void>;
   carregando: boolean; login: (email: string, senha: string) => Promise<void>; logout: () => void;
+  atualizarPerfil: (dados: Pick<UsuarioAutenticado, 'nome' | 'email'>) => void;
 };
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -34,6 +35,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AuthContextValue>(() => ({
     token, usuario, autenticado: Boolean(token && usuario), carregando,
+    atualizarPerfil(dados) {
+      if (!usuario) return;
+      const atualizado = { ...usuario, ...dados };
+      storeUser(atualizado);
+      setUsuario(atualizado);
+    },
     async login(email, senha) {
       const response = await api.post<LoginResponse>('/auth/login', { email, senha });
       storeAuth(response.data.token, response.data.usuario);

@@ -1,0 +1,35 @@
+.accountEditForm, .accountEditor { min-width: 0; }
+.accountEditForm { display: grid; gap: 20px; }
+.accountSection { min-width: 0; padding: 24px; }
+.accountEditor > .accountEditForm > .accountSection { padding: 24px 0; border-top: 1px solid var(--card-border); }
+.accountSectionHeader { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 24px; }
+.accountSectionHeader > span { display: grid; place-items: center; width: 40px; height: 40px; flex: 0 0 40px; color: var(--amber-text); background: var(--icon-tile-neutral); border-radius: 12px; }
+.accountSectionHeader h2 { margin: 0 0 5px; color: var(--ink); font: 700 18px/1.3 var(--font-ui); }
+.accountSectionHeader p { margin: 0; color: var(--body-2); font: 400 14px/1.5 var(--font-ui); }
+.accountFields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 16px; }
+.accountFields > label, .accountField { display: grid; gap: 8px; align-content: start; min-width: 0; color: var(--ink); font: 600 14px/1.4 var(--font-ui); }
+.accountWide { grid-column: 1 / -1; }
+.accountFields input, .accountFields select, .accountEditor .settingsForm input, .accountEditor .settingsForm textarea { width: 100%; min-width: 0; min-height: 46px; padding: 11px 13px; border: 1px solid var(--input-border); border-radius: 10px; background: var(--surface); color: var(--ink); font: 400 15px/1.4 var(--font-ui); transition: border-color .15s, box-shadow .15s; }
+.accountFields input:focus, .accountFields select:focus, .accountEditor .settingsForm input:focus, .accountEditor .settingsForm textarea:focus { border-color: var(--yellow-strong); box-shadow: 0 0 0 3px color-mix(in srgb, var(--yellow-strong) 18%, transparent); }
+.accountFields input:disabled { color: var(--muted); background: var(--surface-input); cursor: not-allowed; }
+.accountFields small, .accountHint { margin: 0; color: var(--body-2); font: 400 13px/1.5 var(--font-ui); }
+.accountHint { display: flex; align-items: flex-start; gap: 8px; }
+.accountHint svg { flex-shrink: 0; margin-top: 2px; }
+.accountFields .accountCheckbox, .accountCheckbox { display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--body-text); font: 400 14px/1.5 var(--font-ui); }
+.accountCheckbox input[type="checkbox"] { flex: 0 0 18px; width: 18px; height: 18px; min-height: 18px; margin: 0; accent-color: var(--yellow-strong); }
+.accountSaveBar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0 0; border-top: 1px solid var(--card-border); }
+.accountSaveBar > span { max-width: 400px; color: var(--body-2); font-size: 13px; line-height: 1.5; }
+.accountSaveBar .primaryButton { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 46px; flex-shrink: 0; }
+.accountEditor > .accountSection { padding: 28px 0; margin-top: 28px; border-top: 1px solid var(--card-border); }
+.accountNotificationForm { display: grid; justify-items: start; gap: 18px; }
+.accountEditor > h2 { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--card-border); font-size: 18px; }
+.accountEditor > p { color: var(--body-2); line-height: 1.5; }
+.accountEditor > .settingsForm { margin-top: 18px; }
+.accountEditor .settingsForm textarea { resize: vertical; min-height: 100px; }
+@media (max-width: 600px) {
+  .accountSection { padding: 20px 16px; }
+  .accountFields { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .accountSaveBar { align-items: stretch; }
+  .accountSaveBar > span, .accountSaveBar > button { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .accountFields input, .accountFields select { transition: none; } }

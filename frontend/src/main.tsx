@@ -12,6 +12,7 @@ import './price.css';
 import './portal.css';
 import './overview.css';
 import './themes.css';
+import './account.css';
 import './services/authToken';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';

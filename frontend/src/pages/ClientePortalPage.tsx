@@ -58,7 +58,7 @@ import {
 } from "../types";
 import type { Comprovante, Parada, SolicitacaoEntrega } from "../types/p2";
 import { titleCase } from "../utils/display";
-import { formatCpfOrCnpj, formatPhone } from "../utils/inputMasks";
+import { formatPhone } from "../utils/inputMasks";
 
 type PortalData = {
   cliente: Cliente;
@@ -436,15 +436,6 @@ export function ClientePortalPage() {
         />
       </main>
     );
-  const address = [
-    data.cliente.logradouro || data.cliente.endereco,
-    data.cliente.numero,
-    data.cliente.bairro,
-    data.cliente.cidade,
-    data.cliente.estado,
-  ]
-    .filter(Boolean)
-    .join(", ");
   const companyAddress = [
     data.contato.logradouro,
     data.contato.numero,
@@ -780,31 +771,9 @@ export function ClientePortalPage() {
               </div>
               <Building2 size={23} />
             </div>
-            <dl className="portalDetails">
-              <div>
-                <dt>{message("portal.cliente.e.mail")}</dt>
-                <dd>{data.cliente.email || message("portal.cliente.nao.informado")}</dd>
-              </div>
-              <div>
-                <dt>{message("portal.cliente.telefone")}</dt>
-                <dd>{formatPhone(data.cliente.telefone)}</dd>
-              </div>
-              <div>
-                <dt>{message("portal.cliente.documento")}</dt>
-                <dd>
-                  {data.cliente.documento
-                    ? formatCpfOrCnpj(data.cliente.documento)
-                    : message("portal.cliente.nao.informado")}
-                </dd>
-              </div>
-              <div>
-                <dt>{message("portal.cliente.endereco")}</dt>
-                <dd>{address || message("portal.cliente.nao.informado")}</dd>
-              </div>
-            </dl>
             <ContaClienteEdicao
               cliente={data.cliente}
-              onChange={() => void load()}
+              onChange={cliente => setData(current => current ? { ...current, cliente } : current)}
             />
             <SegurancaConta />
           </section>

@@ -1,168 +1,88 @@
-import { domainLabel } from '../i18n/domain';
+import { useEffect, useState } from 'react';
+import { BadgeCheck, Bike, CircleAlert, Mail, Save, UserRound, WalletCards } from 'lucide-react';
 import { message, useLocale } from '../i18n';
-import { useEffect, useState } from "react";
-import { BadgeCheck, Bike, CircleAlert, Mail, Phone, UserRound, WalletCards } from "lucide-react";
-import { Link } from "react-router-dom";
-import { SegurancaConta } from "../components/SegurancaConta";
-import { api } from "../services/api";
-import { apiErrorMessage } from "../services/apiError";
-import { Entregador } from "../types";
-import { sentenceCase, titleCase } from "../utils/display";
-import { formatPhone, onlyDigits } from "../utils/inputMasks";
+import { useAuth } from '../contexts/AuthContext';
+import { SegurancaConta } from '../components/SegurancaConta';
+import { api } from '../services/api';
+import { apiErrorMessage } from '../services/apiError';
+import type { Entregador, TipoChavePix } from '../types';
+import { domainLabel } from '../i18n/domain';
+import { titleCase } from '../utils/display';
+import { formatCpf, formatEmailInput, formatPhone, formatVehiclePlate, normalizeVehiclePlate, onlyDigits } from '../utils/inputMasks';
 
-function iniciais(nome: string) {
-  return titleCase(nome).split(" ").filter(Boolean).slice(0, 2).map((parte) => parte[0]).join("");
+function draft(perfil: Entregador) {
+  return { nome: perfil.nome, email: perfil.email || '', telefone: formatPhone(perfil.telefone),
+    placaVeiculo: formatVehiclePlate(perfil.placaVeiculo), tipoChavePix: (perfil.tipoChavePix || '') as TipoChavePix | '',
+    chavePix: perfil.chavePix || '', titularPix: perfil.titularPix || '' };
 }
 
 export function MeuPerfilPage() {
   useLocale();
+  const { atualizarPerfil } = useAuth();
   const [perfil, setPerfil] = useState<Entregador | null>(null);
-  const [telefone, setTelefone] = useState("");
-  const [error, setError] = useState("");
-  const [feedback, setFeedback] = useState("");
+  const [form, setForm] = useState<ReturnType<typeof draft> | null>(null);
+  const [error, setError] = useState('');
+  const [feedback, setFeedback] = useState('');
   const [busy, setBusy] = useState(false);
-
   useEffect(() => {
-    api.get<Entregador>("/operacao-entregador/perfil")
-      .then((r) => {
-        setPerfil(r.data);
-        setTelefone(formatPhone(r.data.telefone));
-      })
-      .catch((r) => setError(apiErrorMessage(r, message("entregador.perfil.perfil.indisponivel"))));
+    api.get<Entregador>('/operacao-entregador/perfil').then(({ data }) => { setPerfil(data); setForm(draft(data)); })
+      .catch(reason => setError(apiErrorMessage(reason, message('entregador.perfil.perfil.indisponivel'))));
   }, []);
 
-  const telefoneValido = onlyDigits(telefone).length >= 10;
-  const telefoneAlterado = perfil !== null && onlyDigits(telefone) !== onlyDigits(perfil.telefone);
-
-  if (!perfil && !error) {
-    return (
-      <main className="page profilePage">
-        <div className="asyncState" role="status">
-          <span className="profileLoadingMark" aria-hidden="true" />
-          <strong>{message("entregador.perfil.carregando.seu.perfil")}</strong>
-          <span>{message("entregador.perfil.estamos.buscando.seus.dados.de.acesso.e.operacao")}</span>
-        </div>
-      </main>
-    );
-  }
-
+  if (!perfil || !form) return <main className="page profilePage"><div className={`asyncState ${error ? 'error' : ''}`} role={error ? 'alert' : 'status'}>{error || message('entregador.perfil.carregando.seu.perfil')}</div></main>;
+  const changed = JSON.stringify(form) !== JSON.stringify(draft(perfil));
+  const phoneValid = onlyDigits(form.telefone).length >= 10;
+  const setField = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => {
+    setForm({ ...form, [key]: value }); setError(''); setFeedback('');
+  };
   return (
     <main className="page profilePage">
-      <header className="profilePageIntro">
-        <div>
-          <span className="profileEyebrow">{message("entregador.perfil.conta.do.entregador")}</span>
-          <h1>{message("entregador.perfil.meu.perfil")}</h1>
-          <p>{message("entregador.perfil.confira.seus.dados.e.mantenha.seu.contato.atualizado.para.a.operacao")}</p>
-        </div>
-        <span className={`profileAvailability ${perfil?.disponivel ? "isAvailable" : ""}`}>
-          <span aria-hidden="true" />
-          {perfil?.disponivel ? message("entregador.perfil.disponivel.para.entregas") : message("entregador.perfil.indisponivel.no.momento")}
-        </span>
-      </header>
-
-      {error ? (
-        <div className="profileMessage error" role="alert"><CircleAlert size={18} /><span>{error}</span></div>
-      ) : null}
-
-      {perfil ? (
-        <>
-          <section className="panelCard profileIdentityCard" aria-labelledby="profile-name">
-            <div className="profileAvatar" aria-hidden="true">{iniciais(perfil.nome)}</div>
-            <div className="profileIdentityText">
-              <div className="profileRole"><BadgeCheck size={15} /> {message("entregador.perfil.entregador")}</div>
-              <h2 id="profile-name">{titleCase(perfil.nome)}</h2>
-              <p><Mail size={16} /> {perfil.email || message("entregador.perfil.e.mail.nao.informado")}</p>
-            </div>
-            <div className="profileIdentityHint">
-              <UserRound size={18} />
-              <span>{message("entregador.perfil.nome.e.e.mail.sao.protegidos.para.altera.los.fale.com.o.proprietario")}</span>
+      <header className="profilePageIntro"><div><span className="profileEyebrow">{message('entregador.perfil.conta.do.entregador')}</span><h1>{message('entregador.perfil.meu.perfil')}</h1><p>{message('conta.edicao.descricao.entregador')}</p></div>
+        <span className={`profileAvailability ${perfil.disponivel ? 'isAvailable' : ''}`}><span />{message(perfil.disponivel ? 'entregador.perfil.disponivel.para.entregas' : 'entregador.perfil.indisponivel.no.momento')}</span></header>
+      <section className="panelCard profileIdentityCard"><div className="profileAvatar" aria-hidden="true">{perfil.nome.split(/\s+/).filter(Boolean).slice(0, 2).map(name => name[0]).join('').toUpperCase()}</div>
+        <div className="profileIdentityText"><div className="profileRole"><BadgeCheck size={15} />{message('entregador.perfil.entregador')}</div><h2>{titleCase(perfil.nome)}</h2><p><Mail size={16} />{perfil.email}</p></div></section>
+      <form className="accountEditForm" onSubmit={async event => {
+        event.preventDefault(); if (busy || !changed || !phoneValid) return;
+        setBusy(true); setError(''); setFeedback('');
+        try {
+          const { data } = await api.patch<Entregador>('/operacao-entregador/perfil', {
+            ...form, nome: form.nome.trim(), email: formatEmailInput(form.email), telefone: onlyDigits(form.telefone),
+            placaVeiculo: normalizeVehiclePlate(form.placaVeiculo), tipoChavePix: form.tipoChavePix || null,
+            chavePix: form.tipoChavePix ? form.chavePix.trim() : '', titularPix: form.tipoChavePix ? form.titularPix.trim() : '',
+          }, { headers: { 'If-Match': perfil.versao } });
+          setPerfil(data); setForm(draft(data)); atualizarPerfil({ nome: data.nome, email: data.email || form.email });
+          setFeedback(message('conta.edicao.salvo'));
+        } catch (reason) { setError(apiErrorMessage(reason, message('conta.edicao.erro'))); }
+        finally { setBusy(false); }
+      }}>
+        <div className="profileContentGrid">
+          <section className="panelCard accountSection" aria-labelledby="account-contact-title">
+            <div className="accountSectionHeader"><span><UserRound size={20} /></span><div><h2 id="account-contact-title">{message('conta.edicao.dados.contato')}</h2><p>{message('conta.edicao.contato.descricao')}</p></div></div>
+            <div className="accountFields">
+              <label className="accountWide">{message('conta.edicao.nome')}<input required name="nome" autoComplete="name" maxLength={140} value={form.nome} onChange={e => setField('nome', e.target.value)} /></label>
+              <div className="accountField accountWide"><label htmlFor="profile-email">{message('conta.edicao.email')}</label><input id="profile-email" aria-describedby="profile-email-help" required type="email" name="email" autoComplete="email" maxLength={180} value={form.email} onChange={e => setField('email', formatEmailInput(e.target.value))} /><small id="profile-email-help">{message('conta.edicao.email.descricao')}</small></div>
+              <label className="accountWide">{message('conta.edicao.telefone')}<input required type="tel" name="telefone" autoComplete="tel" maxLength={15} placeholder="(00) 00000-0000" value={form.telefone} aria-invalid={!!form.telefone && !phoneValid} onChange={e => setField('telefone', formatPhone(e.target.value))} /></label>
+              {form.telefone && !phoneValid ? <p className="accountWide fieldError" role="alert">{message('entregador.perfil.informe.o.ddd.e.um.telefone.valido')}</p> : null}
             </div>
           </section>
-
-          <div className="profileContentGrid">
-            <section className="panelCard profileSection" aria-labelledby="contact-heading">
-              <div className="profileSectionHeader">
-                <span className="profileSectionIcon"><Phone size={19} /></span>
-                <div><h2 id="contact-heading">{message("entregador.perfil.telefone.de.contato")}</h2><p>{message("entregador.perfil.usado.pela.equipe.durante.coletas.e.entregas")}</p></div>
-              </div>
-              <form
-                className="profileContactForm"
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  if (busy || !telefoneAlterado || !telefoneValido) return;
-                  setBusy(true);
-                  setFeedback("");
-                  try {
-                    const atualizado = (await api.patch<Entregador>("/operacao-entregador/perfil", { telefone: onlyDigits(telefone) })).data;
-                    setPerfil(atualizado);
-                    setTelefone(formatPhone(atualizado.telefone));
-                    setError("");
-                    setFeedback(message("entregador.perfil.telefone.atualizado.com.sucesso"));
-                  } catch (r) {
-                    setError(apiErrorMessage(r, message("entregador.perfil.nao.foi.possivel.atualizar.contato")));
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
-              >
-                <label htmlFor="profile-phone">{message("entregador.perfil.seu.telefone")}</label>
-                <div className="profilePhoneField">
-                  <Phone size={18} aria-hidden="true" />
-                  <input
-                    id="profile-phone"
-                    required
-                    type="tel"
-                    inputMode="tel"
-                    autoComplete="tel"
-                    maxLength={15}
-                    placeholder="(00) 00000-0000"
-                    value={telefone}
-                    aria-describedby="profile-phone-help"
-                    aria-invalid={telefone.length > 0 && !telefoneValido}
-                    onChange={(e) => {
-                      setTelefone(formatPhone(e.target.value));
-                      setFeedback("");
-                      setError("");
-                    }}
-                  />
-                </div>
-                <p id="profile-phone-help" className={`profileFieldHelp ${telefone.length > 0 && !telefoneValido ? "error" : ""}`}>
-                  {telefone.length > 0 && !telefoneValido ? message("entregador.perfil.informe.o.ddd.e.um.telefone.valido") : message("entregador.perfil.digite.apenas.numeros.a.formatacao.e.automatica")}
-                </p>
-                <button className="primaryButton" disabled={busy || !telefoneAlterado || !telefoneValido}>
-                  {busy ? message("comum.salvando") : telefoneAlterado ? message("entregador.perfil.salvar.telefone") : message("entregador.perfil.telefone.atualizado")}
-                </button>
-                {feedback ? <p className="profileMessage success" role="status"><BadgeCheck size={18} /> {feedback}</p> : null}
-              </form>
-            </section>
-
-            <section className="panelCard profileSection" aria-labelledby="operation-heading">
-              <div className="profileSectionHeader">
-                <span className="profileSectionIcon"><Bike size={19} /></span>
-                <div><h2 id="operation-heading">{message("entregador.perfil.dados.operacionais")}</h2><p>{message("entregador.perfil.informacoes.usadas.para.organizar.suas.entregas.e.recebimentos")}</p></div>
-              </div>
-              <dl className="profileOperationalList">
-                <div>
-                  <dt><Bike size={17} /> {message("entregador.perfil.veiculo")}</dt>
-                  <dd>{domainLabel(perfil.tipoVeiculo)}</dd>
-                  <span>{perfil.placaVeiculo || message("entregador.perfil.placa.nao.informada")}</span>
-                </div>
-                <div>
-                  <dt><WalletCards size={17} /> {message("entregador.perfil.recebimento.via.pix")}</dt>
-                  <dd>{perfil.chavePix ? message("entregador.perfil.pix.configurado") : message("entregador.perfil.pix.ainda.nao.configurado")}</dd>
-                  <span>{perfil.chavePix ? `${perfil.titularPix || message("entregador.perfil.titular.nao.informado")} · ${perfil.chavePix}` : message("entregador.perfil.peca.ao.proprietario.para.cadastrar.sua.chave")}</span>
-                </div>
-              </dl>
-              <div className="profileReadOnlyNotice">
-                <CircleAlert size={18} />
-                <p>{message("entregador.perfil.veiculo.e.pix.sao.alterados.pelo.proprietario.para.proteger.os.receb")} <Link to="/operacional/ajuda">{message("entregador.perfil.preciso.de.ajuda")}</Link></p>
-              </div>
-            </section>
-          </div>
-
-          <div className="panelCard profileSecurityCard"><SegurancaConta /></div>
-        </>
-      ) : null}
+          <section className="panelCard accountSection" aria-labelledby="account-operation-title">
+            <div className="accountSectionHeader"><span><Bike size={20} /></span><div><h2 id="account-operation-title">{message('conta.edicao.veiculo.pix')}</h2><p>{message('conta.edicao.operacao.descricao')}</p></div></div>
+            <div className="accountFields">
+              <div className="accountField accountWide"><label htmlFor="profile-plate">{message('conta.edicao.placa')}</label><input id="profile-plate" aria-describedby="profile-plate-help" name="placaVeiculo" autoComplete="off" maxLength={8} placeholder="ABC-1D23" value={form.placaVeiculo} onChange={e => setField('placaVeiculo', formatVehiclePlate(e.target.value))} /><small id="profile-plate-help">{domainLabel(perfil.tipoVeiculo)}</small></div>
+              <label className="accountWide">{message('conta.edicao.tipo.pix')}<select value={form.tipoChavePix} onChange={e => { setForm({ ...form, tipoChavePix: e.target.value as TipoChavePix | '', chavePix: '', titularPix: form.titularPix }); setFeedback(''); setError(''); }}>
+                <option value="">{message('entregadores.ainda.nao.configurado')}</option>{(['CPF', 'EMAIL', 'TELEFONE', 'ALEATORIA'] as const).map(type => <option key={type} value={type}>{domainLabel(type)}</option>)}
+              </select></label>
+              <label className="accountWide">{message('conta.edicao.chave.pix')}<input name="chavePix" disabled={!form.tipoChavePix} required={!!form.tipoChavePix} type={form.tipoChavePix === 'EMAIL' ? 'email' : 'text'} inputMode={form.tipoChavePix === 'CPF' ? 'numeric' : form.tipoChavePix === 'TELEFONE' ? 'tel' : 'text'} maxLength={180} value={form.tipoChavePix ? form.chavePix : ''} onChange={e => setField('chavePix', form.tipoChavePix === 'CPF' ? formatCpf(e.target.value) : form.tipoChavePix === 'EMAIL' ? formatEmailInput(e.target.value) : e.target.value)} /></label>
+              <label className="accountWide">{message('conta.edicao.titular.pix')}<input name="titularPix" disabled={!form.tipoChavePix} required={!!form.tipoChavePix} maxLength={140} value={form.tipoChavePix ? form.titularPix : ''} onChange={e => setField('titularPix', e.target.value)} /></label>
+              <p className="accountWide accountHint"><WalletCards size={17} />{message('conta.edicao.pix.descricao')}</p>
+            </div>
+          </section>
+        </div>
+        <div className="accountSaveBar"><span>{message('conta.edicao.salvamento.direto')}</span><button className="primaryButton" disabled={busy || !changed || !phoneValid}><Save size={17} />{message(busy ? 'comum.salvando' : 'conta.edicao.salvar')}</button></div>
+        {error ? <p className="profileMessage error" role="alert"><CircleAlert size={18} />{error}</p> : null}
+        {feedback ? <p className="profileMessage success" role="status"><BadgeCheck size={18} />{feedback}</p> : null}
+      </form>
+      <div className="panelCard profileSecurityCard"><SegurancaConta /></div>
     </main>
   );
 }
