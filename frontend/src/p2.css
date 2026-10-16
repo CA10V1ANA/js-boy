@@ -7,7 +7,7 @@
 .requestGrid label { display: grid; gap: .4rem; font-weight: 650; }
 .requestGrid input, .requestGrid textarea {
   width: 100%; min-height: 44px; border: 1px solid var(--border);
-  border-radius: 10px; padding: .7rem .8rem; background: var(--surface, #fff); color: inherit;
+  border-radius: 10px; padding: .7rem .8rem; background: var(--surface, var(--theme-bg-fff, #fff)); color: inherit;
 }
 .requestGrid textarea { min-height: 88px; resize: vertical; }
 .requestWide { grid-column: 1 / -1; }
@@ -85,7 +85,7 @@
   min-height: 34px;
   padding: 0;
   color: var(--body-2);
-  background: #fff;
+  background: var(--theme-bg-fff, #fff);
   border: 1px solid var(--input-border);
   border-radius: 9px;
   cursor: pointer;
@@ -93,12 +93,12 @@
 }
 .tableActionButton:hover {
   color: var(--amber-text);
-  background: #fcf6e7;
-  border-color: #e7ca82;
+  background: var(--theme-bg-fcf6e7, #fcf6e7);
+  border-color: var(--theme-border-e7ca82, #e7ca82);
   transform: translateY(-1px);
 }
-.tableActionButton.danger { color: #b73b31; }
-.tableActionButton.danger:hover { background: #fff0ee; border-color: #efb7b1; }
+.tableActionButton.danger { color: var(--theme-fg-b73b31, #b73b31); }
+.tableActionButton.danger:hover { background: var(--theme-bg-fff0ee, #fff0ee); border-color: var(--theme-border-efb7b1, #efb7b1); }
 .tableActionButton:disabled { opacity: .45; cursor: not-allowed; transform: none; }
 .publicRecordCode,
 .cellPrimary { display: block; color: var(--ink); font-size: 13px; font-weight: 700; }
@@ -112,7 +112,7 @@ td .cellSub { display: block; margin-top: 3px; color: var(--faint); font-size: 1
   min-height: 44px;
   padding: 0 10px 0 13px;
   color: var(--muted);
-  background: #fff;
+  background: var(--theme-bg-fff, #fff);
   border: 1px solid var(--head-border);
   border-radius: 11px;
 }
@@ -128,8 +128,8 @@ td .cellSub { display: block; margin-top: 3px; color: var(--faint); font-size: 1
   margin-bottom: 18px;
   padding: 15px 17px;
   color: var(--body-2);
-  background: #fcf7ea;
-  border: 1px solid #efe1bd;
+  background: var(--theme-bg-fcf7ea, #fcf7ea);
+  border: 1px solid var(--theme-border-efe1bd, #efe1bd);
   border-radius: 14px;
 }
 .infoBannerIcon,
@@ -140,7 +140,7 @@ td .cellSub { display: block; margin-top: 3px; color: var(--faint); font-size: 1
   width: 38px;
   height: 38px;
   color: var(--amber-text);
-  background: #f9e9bd;
+  background: var(--theme-bg-f9e9bd, #f9e9bd);
   border-radius: 10px;
 }
 .infoBanner strong { display: block; color: var(--ink); font-size: 13.5px; }
@@ -191,19 +191,19 @@ td .cellSub { display: block; margin-top: 3px; color: var(--faint); font-size: 1
 .financeForm input:focus,
 .financeForm select:focus,
 .privacyFields input:focus,
-.privacyFields select:focus { outline: none; background: #fff; border-color: var(--yellow-dark); box-shadow: 0 0 0 3px rgba(233,168,28,.15); }
+.privacyFields select:focus { outline: none; background: var(--theme-bg-fff, #fff); border-color: var(--yellow-dark); box-shadow: 0 0 0 3px rgba(233,168,28,.15); }
 .clientWizardForm textarea { padding: 12px 13px; resize: vertical; }
 .wizardCheckbox { align-self: end; min-height: 44px; padding: 0 12px; grid-template-columns: auto 1fr !important; background: var(--surface-input); border: 1px solid var(--input-border); border-radius: 10px; }
 .wizardCheckbox input { width: 18px; min-height: 18px; padding: 0; }
 .reviewPanel { display: grid; gap: 18px; }
-.reviewPanel > div { display: grid; gap: 4px; padding: 14px 16px; background: #fcf7ea; border: 1px solid #efe1bd; border-radius: 12px; }
+.reviewPanel > div { display: grid; gap: 4px; padding: 14px 16px; background: var(--theme-bg-fcf7ea, #fcf7ea); border: 1px solid var(--theme-border-efe1bd, #efe1bd); border-radius: 12px; }
 .reviewPanel > div span,
 .formHelp { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .compactForm { padding: 6px 0 12px; }
 .accessButton { color: var(--ink); }
 
 .settingsSections { display: grid; gap: 16px; }
-.settingsSection { padding: 20px; background: #fff; border: 1px solid var(--card-border); border-radius: 15px; box-shadow: 0 1px 2px rgba(30,25,15,.03); }
+.settingsSection { padding: 20px; background: var(--theme-bg-fff, #fff); border: 1px solid var(--card-border); border-radius: 15px; box-shadow: 0 1px 2px rgba(30,25,15,.03); }
 .settingsSectionTitle { display: flex; align-items: flex-start; gap: 11px; margin-bottom: 17px; color: var(--amber-text); }
 .settingsSectionTitle h2 { margin: 0; color: var(--ink); font-size: 15px; }
 .settingsSectionTitle p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
@@ -217,13 +217,13 @@ td .cellSub { display: block; margin-top: 3px; color: var(--faint); font-size: 1
 .financePanel .panelCardHeader p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
 .financeForm { display: grid; gap: 13px; padding: 0 18px 18px; }
 .financeSummary { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin-top: 16px; }
-.financeSummary article { display: grid; gap: 8px; padding: 17px; background: #fff; border: 1px solid var(--card-border); border-radius: 13px; }
+.financeSummary article { display: grid; gap: 8px; padding: 17px; background: var(--theme-bg-fff, #fff); border: 1px solid var(--card-border); border-radius: 13px; }
 .financeSummary span { color: var(--muted); font-size: 12px; }
 .financeSummary strong { color: var(--ink); font-family: var(--font-display); font-size: 20px; }
 .financeSummary .result { color: #fff; background: #1c1912; border-color: #1c1912; }
 .financeSummary .result span,
 .financeSummary .result strong { color: #fff; }
-.emptyReport { display: grid; place-items: center; gap: 6px; min-height: 150px; margin-top: 16px; padding: 24px; color: var(--faint); text-align: center; background: #fff; border: 1px dashed var(--input-border); border-radius: 14px; }
+.emptyReport { display: grid; place-items: center; gap: 6px; min-height: 150px; margin-top: 16px; padding: 24px; color: var(--faint); text-align: center; background: var(--theme-bg-fff, #fff); border: 1px dashed var(--input-border); border-radius: 14px; }
 .emptyReport strong { color: var(--body-2); }
 .emptyReport span { font-size: 12px; }
 

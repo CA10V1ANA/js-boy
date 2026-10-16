@@ -4,8 +4,8 @@
 .priceTableStatus {
   flex: 0 0 auto;
   padding: 7px 11px;
-  color: #2f7d50;
-  background: #e7f5ec;
+  color: var(--theme-fg-2f7d50, #2f7d50);
+  background: var(--theme-bg-e7f5ec, #e7f5ec);
   border-radius: 999px;
   font-size: 11.5px;
   font-weight: 700;
@@ -24,19 +24,19 @@
 .priceSimulator label { display: grid; gap: 7px; color: var(--body-2); font-size: 12px; font-weight: 600; }
 .priceFeeGrid small { color: var(--muted); font-size: 11px; font-weight: 500; line-height: 1.45; }
 .moneyInput { display: flex; align-items: center; min-height: 44px; overflow: hidden; background: var(--surface-input); border: 1px solid var(--input-border); border-radius: 10px; }
-.moneyInput:focus-within { background: #fff; border-color: var(--yellow-dark); box-shadow: 0 0 0 3px rgba(233,168,28,.15); }
+.moneyInput:focus-within { background: var(--theme-bg-fff, #fff); border-color: var(--yellow-dark); box-shadow: 0 0 0 3px rgba(233,168,28,.15); }
 .moneyInput > span { padding-left: 13px; color: var(--faint); font-size: 12px; font-weight: 700; }
 .moneyInput input { min-height: 42px !important; padding-left: 7px !important; background: transparent !important; border: 0 !important; box-shadow: none !important; }
 .priceAreaList { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.priceAreaCard { display: grid; gap: 14px; padding: 16px; background: #fbfaf6; border: 1px solid var(--row-divider); border-radius: 13px; }
+.priceAreaCard { display: grid; gap: 14px; padding: 16px; background: var(--theme-bg-fbfaf6, #fbfaf6); border: 1px solid var(--row-divider); border-radius: 13px; }
 .priceAreaHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .priceAreaHeader > div { display: grid; gap: 3px; }
 .priceAreaHeader strong { color: var(--ink); font-size: 14px; }
 .priceAreaHeader > div > span { color: var(--muted); font-size: 11.5px; }
 .priceVehicleGrid label > span { display: inline-flex; align-items: center; gap: 6px; }
 .neighborhoodChips { display: flex; flex-wrap: wrap; gap: 6px; }
-.neighborhoodChips span { padding: 5px 8px; color: var(--body-2); background: #fff; border: 1px solid var(--row-divider); border-radius: 999px; font-size: 10.5px; font-weight: 600; }
-.priceNegotiatedNote { margin: 0; padding: 11px 12px; color: var(--muted); background: #fff7e2; border-radius: 9px; font-size: 11.5px; line-height: 1.5; }
+.neighborhoodChips span { padding: 5px 8px; color: var(--body-2); background: var(--theme-bg-fff, #fff); border: 1px solid var(--row-divider); border-radius: 999px; font-size: 10.5px; font-weight: 600; }
+.priceNegotiatedNote { margin: 0; padding: 11px 12px; color: var(--muted); background: var(--theme-bg-fff7e2, #fff7e2); border-radius: 9px; font-size: 11.5px; line-height: 1.5; }
 .priceBottomGrid { display: grid; grid-template-columns: minmax(0, .85fr) minmax(360px, 1.15fr); gap: 16px; }
 .priceFallbackGrid { grid-template-columns: 1fr; }
 .priceSimulator { display: grid; align-content: start; gap: 13px; }
@@ -46,13 +46,13 @@
 .priceFallbackGrid input { width: 100%; min-height: 44px; padding: 8px 13px; color: var(--ink); background: var(--surface-input); border: 1px solid var(--input-border); border-radius: 10px; font: inherit; }
 .priceSimulator input:focus,
 .priceSimulator select:focus,
-.priceFallbackGrid input:focus { outline: none; background: #fff; border-color: var(--yellow-dark); box-shadow: 0 0 0 3px rgba(233,168,28,.15); }
-.priceReturnCheck { display: flex !important; grid-template-columns: auto 1fr; align-items: center; gap: 9px !important; min-height: 42px; padding: 0 12px; background: #fbfaf6; border: 1px solid var(--row-divider); border-radius: 10px; }
+.priceFallbackGrid input:focus { outline: none; background: var(--theme-bg-fff, #fff); border-color: var(--yellow-dark); box-shadow: 0 0 0 3px rgba(233,168,28,.15); }
+.priceReturnCheck { display: flex !important; grid-template-columns: auto 1fr; align-items: center; gap: 9px !important; min-height: 42px; padding: 0 12px; background: var(--theme-bg-fbfaf6, #fbfaf6); border: 1px solid var(--row-divider); border-radius: 10px; }
 .priceReturnCheck input { width: 17px; min-height: 17px; padding: 0; }
 .priceSimulationResult { margin-top: 1px; }
 .priceSimulationResult .wizardSummaryRow + .wizardSummaryRow { margin-top: 8px; }
-.deliveryAreaNotice { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 14px; padding: 11px 13px; color: #906b22; background: #fff8e8; border: 1px solid #efddb2; border-radius: 11px; }
-.deliveryAreaNotice.matched { color: #28754a; background: #eff8f2; border-color: #cde7d6; }
+.deliveryAreaNotice { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 14px; padding: 11px 13px; color: var(--theme-fg-906b22, #906b22); background: var(--theme-bg-fff8e8, #fff8e8); border: 1px solid var(--theme-border-efddb2, #efddb2); border-radius: 11px; }
+.deliveryAreaNotice.matched { color: var(--theme-fg-28754a, #28754a); background: var(--theme-bg-eff8f2, #eff8f2); border-color: var(--theme-border-cde7d6, #cde7d6); }
 .deliveryAreaNotice svg { flex: 0 0 auto; margin-top: 1px; }
 .deliveryAreaNotice div { display: grid; gap: 2px; }
 .deliveryAreaNotice strong { color: var(--ink); font-size: 12.5px; }

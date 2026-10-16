@@ -1,5 +1,6 @@
 import { CadastroClientePage } from './pages/CadastroClientePage';
 import { VerificarEmailPage } from './pages/VerificarEmailPage';
+import './preferences';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
@@ -10,6 +11,7 @@ import './p2.css';
 import './price.css';
 import './portal.css';
 import './overview.css';
+import './themes.css';
 import './services/authToken';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';

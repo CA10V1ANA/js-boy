@@ -1,0 +1,367 @@
+:root { color-scheme: light; }
+:root[data-theme="dark"], :root[data-theme="dark"] .roleShell {
+  color-scheme: dark;
+  color: #f1f2f4;
+  background: #15171b;
+  --panel-bg: #15171b;
+  --panel-dark: #17191d;
+  --surface: #202329;
+  --ink: #f1f2f4;
+  --ink-2: #e0e3e8;
+  --body-text: #c9ced7;
+  --body-2: #b9bec8;
+  --muted: #adb4c0;
+  --faint: #a7afbc;
+  --faint-2: #a7afbc;
+  --gray: #adb4c0;
+  --line: #414752;
+  --card-border: #373d47;
+  --input-border: #4a5260;
+  --head-border: #373d47;
+  --row-divider: #333943;
+  --row-hover: #2a3039;
+  --surface-input: #1a1e24;
+  --icon-tile-neutral: #30343d;
+  --chip-track: #343944;
+  --amber-text: #f4c86a;
+  --amber-text-2: #f4c86a;
+  --amber-icon: #f4c86a;
+  --theme-bg-d8d3c8: #292d34;
+  --theme-bg-d9f6e8: hsl(151 25% 18%);
+  --theme-bg-dceaff: hsl(216 25% 18%);
+  --theme-bg-dcf7ec: hsl(156 25% 18%);
+  --theme-bg-dcfce7: hsl(141 25% 18%);
+  --theme-bg-def4f0: hsl(169 25% 18%);
+  --theme-bg-def8ec: hsl(152 25% 18%);
+  --theme-bg-dff8ed: hsl(154 25% 18%);
+  --theme-bg-e0f2fe: hsl(204 25% 18%);
+  --theme-bg-e1e1e1: #292d34;
+  --theme-bg-e1f0ef: hsl(176 25% 18%);
+  --theme-bg-e1f3e7: hsl(140 25% 18%);
+  --theme-bg-e4f3e9: hsl(140 25% 18%);
+  --theme-bg-e6f0ff: hsl(216 25% 18%);
+  --theme-bg-e7e4dd: #292d34;
+  --theme-bg-e7eef7: hsl(214 25% 18%);
+  --theme-bg-e7f5ec: hsl(141 25% 18%);
+  --theme-bg-e8e7e3: #292d34;
+  --theme-bg-e9f6ef: hsl(148 25% 18%);
+  --theme-bg-eaf3ff: hsl(214 25% 18%);
+  --theme-bg-eaf7ee: hsl(138 25% 18%);
+  --theme-bg-ece8df: #292d34;
+  --theme-bg-ece8fa: hsl(253 25% 18%);
+  --theme-bg-edf4fc: hsl(212 25% 18%);
+  --theme-bg-edf8f0: hsl(136 25% 18%);
+  --theme-bg-eee: #292d34;
+  --theme-bg-eeeae0: #292d34;
+  --theme-bg-eeece6: #292d34;
+  --theme-bg-eeeeee: #292d34;
+  --theme-bg-efefef: #292d34;
+  --theme-bg-efeff2: #292d34;
+  --theme-bg-eff8f1: hsl(133 25% 18%);
+  --theme-bg-eff8f2: hsl(140 25% 18%);
+  --theme-bg-f0e9ff: hsl(259 25% 18%);
+  --theme-bg-f0eee7: #292d34;
+  --theme-bg-f0f0f4: #292d34;
+  --theme-bg-f1ede3: #292d34;
+  --theme-bg-f1efe9: #292d34;
+  --theme-bg-f1efea: #292d34;
+  --theme-bg-f1f5f7: hsl(200 25% 18%);
+  --theme-bg-f2efe7: #292d34;
+  --theme-bg-f3f0e9: #292d34;
+  --theme-bg-f3f1ec: #292d34;
+  --theme-bg-f4f6f9: hsl(216 25% 18%);
+  --theme-bg-f4fbf8: hsl(154 25% 18%);
+  --theme-bg-f5f3ee: #292d34;
+  --theme-bg-f5fbf7: hsl(140 25% 18%);
+  --theme-bg-f7f7f7: #202329;
+  --theme-bg-f8e6e2: hsl(11 25% 18%);
+  --theme-bg-f8f2e7: #292d34;
+  --theme-bg-f8f8f8: #202329;
+  --theme-bg-f9e9bd: hsl(44 25% 18%);
+  --theme-bg-faf8f2: #202329;
+  --theme-bg-faf8f3: #202329;
+  --theme-bg-faf9f5: #202329;
+  --theme-bg-faf9f6: #202329;
+  --theme-bg-fafaf8: #202329;
+  --theme-bg-fbe9e6: hsl(9 25% 18%);
+  --theme-bg-fbecea: hsl(7 25% 18%);
+  --theme-bg-fbefd3: hsl(42 25% 18%);
+  --theme-bg-fbfaf6: #202329;
+  --theme-bg-fce8e4: hsl(10 25% 18%);
+  --theme-bg-fcf3d6: hsl(46 25% 18%);
+  --theme-bg-fcf6e7: hsl(43 25% 18%);
+  --theme-bg-fcf7ea: hsl(43 25% 18%);
+  --theme-bg-fee2e2: hsl(0 25% 18%);
+  --theme-bg-ffedb9: hsl(45 25% 18%);
+  --theme-bg-fff: #202329;
+  --theme-bg-fff0bb: hsl(47 25% 18%);
+  --theme-bg-fff0bc: hsl(47 25% 18%);
+  --theme-bg-fff0bd: hsl(46 25% 18%);
+  --theme-bg-fff0be: hsl(46 25% 18%);
+  --theme-bg-fff0c2: hsl(45 25% 18%);
+  --theme-bg-fff0c7: hsl(44 25% 18%);
+  --theme-bg-fff0ee: hsl(7 25% 18%);
+  --theme-bg-fff1bd: hsl(47 25% 18%);
+  --theme-bg-fff2c2: hsl(47 25% 18%);
+  --theme-bg-fff2c6: hsl(46 25% 18%);
+  --theme-bg-fff3c5: hsl(48 25% 18%);
+  --theme-bg-fff3c8: hsl(47 25% 18%);
+  --theme-bg-fff3cd: hsl(46 25% 18%);
+  --theme-bg-fff3d9: hsl(41 25% 18%);
+  --theme-bg-fff3f1: hsl(9 25% 18%);
+  --theme-bg-fff4da: hsl(42 25% 18%);
+  --theme-bg-fff4dc: hsl(41 25% 18%);
+  --theme-bg-fff5cc: hsl(48 25% 18%);
+  --theme-bg-fff5d4: hsl(46 25% 18%);
+  --theme-bg-fff5d8: hsl(45 25% 18%);
+  --theme-bg-fff5d9: hsl(44 25% 18%);
+  --theme-bg-fff5dc: hsl(43 25% 18%);
+  --theme-bg-fff6d9: hsl(46 25% 18%);
+  --theme-bg-fff7e2: hsl(43 25% 18%);
+  --theme-bg-fff8d6: hsl(50 25% 18%);
+  --theme-bg-fff8df: hsl(47 25% 18%);
+  --theme-bg-fff8e4: hsl(44 25% 18%);
+  --theme-bg-fff8e5: hsl(44 25% 18%);
+  --theme-bg-fff8e8: hsl(42 25% 18%);
+  --theme-bg-fff9e9: hsl(44 25% 18%);
+  --theme-bg-fffaf0: hsl(40 25% 18%);
+  --theme-bg-fffbef: hsl(45 25% 18%);
+  --theme-bg-fffcf2: hsl(46 25% 18%);
+  --theme-bg-fffcf3: hsl(45 25% 18%);
+  --theme-bg-fffdf6: hsl(47 25% 18%);
+  --theme-bg-fffdf7: hsl(45 25% 18%);
+  --theme-bg-fffdf8: hsl(43 25% 18%);
+  --theme-bg-fffefa: hsl(48 25% 18%);
+  --theme-bg-ffffff: #202329;
+  --theme-border-b8b9c4: #414752;
+  --theme-border-b9d8c5: hsl(143 30% 35%);
+  --theme-border-b9ded3: hsl(162 30% 35%);
+  --theme-border-bae6fd: hsl(201 30% 35%);
+  --theme-border-bbf7d0: hsl(141 30% 35%);
+  --theme-border-bfc7c5: #414752;
+  --theme-border-c8e5d0: hsl(137 30% 35%);
+  --theme-border-c9e2d5: hsl(149 30% 35%);
+  --theme-border-cce8d4: hsl(137 30% 35%);
+  --theme-border-cde7d6: hsl(141 30% 35%);
+  --theme-border-cee7d4: hsl(134 30% 35%);
+  --theme-border-d5d5d5: #414752;
+  --theme-border-d8d4ca: #414752;
+  --theme-border-d8d8d8: #414752;
+  --theme-border-d9aca6: hsl(7 30% 35%);
+  --theme-border-d9b24b: hsl(44 30% 35%);
+  --theme-border-d9d9d9: #414752;
+  --theme-border-dcdcdc: #414752;
+  --theme-border-dedede: #414752;
+  --theme-border-e0bb58: hsl(44 30% 35%);
+  --theme-border-e1e1e1: #414752;
+  --theme-border-e2e2e2: #414752;
+  --theme-border-e4e4e9: #414752;
+  --theme-border-e5e1d8: #414752;
+  --theme-border-e5e5e5: #414752;
+  --theme-border-e6cbc7: hsl(8 30% 35%);
+  --theme-border-e6e2d9: #414752;
+  --theme-border-e7b443: hsl(41 30% 35%);
+  --theme-border-e7c764: hsl(45 30% 35%);
+  --theme-border-e7ca82: hsl(43 30% 35%);
+  --theme-border-e7cd83: hsl(44 30% 35%);
+  --theme-border-e7e4dc: #414752;
+  --theme-border-e9e8e4: #414752;
+  --theme-border-ead8a7: hsl(44 30% 35%);
+  --theme-border-ead9a6: hsl(45 30% 35%);
+  --theme-border-ead9b7: hsl(40 30% 35%);
+  --theme-border-ece5d7: hsl(40 30% 35%);
+  --theme-border-ece8df: hsl(42 30% 35%);
+  --theme-border-ececf0: #414752;
+  --theme-border-ededf0: #414752;
+  --theme-border-eee6d4: hsl(42 30% 35%);
+  --theme-border-eee8d9: hsl(43 30% 35%);
+  --theme-border-eeeeef: #414752;
+  --theme-border-efb7b1: hsl(6 30% 35%);
+  --theme-border-efd98c: hsl(47 30% 35%);
+  --theme-border-efddb2: hsl(42 30% 35%);
+  --theme-border-efe1bd: hsl(43 30% 35%);
+  --theme-border-efede7: #414752;
+  --theme-border-f0c8c4: hsl(5 30% 35%);
+  --theme-border-f0c9c3: hsl(8 30% 35%);
+  --theme-border-f0d37d: hsl(45 30% 35%);
+  --theme-border-f0dfae: hsl(45 30% 35%);
+  --theme-border-f0e4c4: hsl(44 30% 35%);
+  --theme-border-f1d681: hsl(46 30% 35%);
+  --theme-border-f1dfae: hsl(44 30% 35%);
+  --theme-border-f2d66d: hsl(47 30% 35%);
+  --theme-border-f2e4b8: hsl(46 30% 35%);
+  --theme-border-fecaca: hsl(0 30% 35%);
+  --theme-border-ffc33b: hsl(42 30% 35%);
+  --theme-border-ffc642: hsl(42 30% 35%);
+  --theme-border-ffd676: hsl(42 30% 35%);
+  --theme-border-fff: #414752;
+  --theme-border-fff7d9: hsl(47 30% 35%);
+  --theme-border-ffffff: #414752;
+  --theme-fg-0067e1: hsl(213 85% 75%);
+  --theme-fg-008b94: hsl(184 85% 75%);
+  --theme-fg-009c65: hsl(159 85% 75%);
+  --theme-fg-009d65: hsl(159 85% 75%);
+  --theme-fg-00a26b: hsl(160 85% 75%);
+  --theme-fg-00a36a: hsl(159 85% 75%);
+  --theme-fg-00a66d: hsl(159 85% 75%);
+  --theme-fg-050505: #f1f2f4;
+  --theme-fg-07080e: hsl(231 50% 75%);
+  --theme-fg-075985: hsl(201 85% 75%);
+  --theme-fg-0c0d18: hsl(235 50% 75%);
+  --theme-fg-10101d: hsl(240 50% 75%);
+  --theme-fg-10111b: hsl(235 50% 75%);
+  --theme-fg-10111d: hsl(235 50% 75%);
+  --theme-fg-111: #f1f2f4;
+  --theme-fg-111111: #f1f2f4;
+  --theme-fg-11121d: hsl(235 50% 75%);
+  --theme-fg-111829: hsl(223 50% 75%);
+  --theme-fg-16130b: #f1f2f4;
+  --theme-fg-166534: hsl(143 64% 75%);
+  --theme-fg-171208: #f1f2f4;
+  --theme-fg-17130a: #f1f2f4;
+  --theme-fg-171926: hsl(232 50% 75%);
+  --theme-fg-172033: hsl(221 50% 75%);
+  --theme-fg-19703c: hsl(144 64% 75%);
+  --theme-fg-1b8079: hsl(176 65% 75%);
+  --theme-fg-23613b: hsl(143 50% 75%);
+  --theme-fg-236b44: hsl(147 51% 75%);
+  --theme-fg-245f38: hsl(140 50% 75%);
+  --theme-fg-247a4c: hsl(148 54% 75%);
+  --theme-fg-25613b: hsl(142 50% 75%);
+  --theme-fg-267147: hsl(146 50% 75%);
+  --theme-fg-28754a: hsl(146 50% 75%);
+  --theme-fg-2d6553: hsl(161 50% 75%);
+  --theme-fg-2d7650: hsl(149 50% 75%);
+  --theme-fg-2e8b57: hsl(146 50% 75%);
+  --theme-fg-2f7d50: hsl(145 50% 75%);
+  --theme-fg-30313b: #f1f2f4;
+  --theme-fg-334155: hsl(215 50% 75%);
+  --theme-fg-38628d: hsl(210 50% 75%);
+  --theme-fg-3d4656: #b9bec8;
+  --theme-fg-3e6ea8: hsl(213 50% 75%);
+  --theme-fg-475569: #b9bec8;
+  --theme-fg-4f4a3e: #f1f2f4;
+  --theme-fg-4f4a42: #b9bec8;
+  --theme-fg-4f6856: #b9bec8;
+  --theme-fg-4fb477: hsl(144 50% 75%);
+  --theme-fg-545565: #b9bec8;
+  --theme-fg-554d41: #b9bec8;
+  --theme-fg-555555: #b9bec8;
+  --theme-fg-5a564c: #b9bec8;
+  --theme-fg-5c5140: #b9bec8;
+  --theme-fg-5e594d: #b9bec8;
+  --theme-fg-5e5a4e: #b9bec8;
+  --theme-fg-5f4307: hsl(41 85% 75%);
+  --theme-fg-5f594f: #b9bec8;
+  --theme-fg-5f5a51: #b9bec8;
+  --theme-fg-646574: #b9bec8;
+  --theme-fg-64748b: #b9bec8;
+  --theme-fg-654700: hsl(42 85% 75%);
+  --theme-fg-65563d: #b9bec8;
+  --theme-fg-665b47: #b9bec8;
+  --theme-fg-666156: #b9bec8;
+  --theme-fg-666158: #b9bec8;
+  --theme-fg-6b4b00: hsl(42 85% 75%);
+  --theme-fg-6b5200: hsl(46 85% 75%);
+  --theme-fg-6b5530: #b9bec8;
+  --theme-fg-6b6255: #b9bec8;
+  --theme-fg-6c4b00: hsl(42 85% 75%);
+  --theme-fg-6d4c00: hsl(42 85% 75%);
+  --theme-fg-6e58c8: hsl(252 50% 75%);
+  --theme-fg-6f6b60: #b9bec8;
+  --theme-fg-737481: #b9bec8;
+  --theme-fg-755006: hsl(40 85% 75%);
+  --theme-fg-765000: hsl(41 85% 75%);
+  --theme-fg-777168: #b9bec8;
+  --theme-fg-77736b: #b9bec8;
+  --theme-fg-7a746a: #b9bec8;
+  --theme-fg-7a756a: #b9bec8;
+  --theme-fg-7c776a: #b9bec8;
+  --theme-fg-7f3b34: hsl(6 50% 75%);
+  --theme-fg-8046f4: hsl(260 85% 75%);
+  --theme-fg-817c72: #b9bec8;
+  --theme-fg-858592: #b9bec8;
+  --theme-fg-858595: #b9bec8;
+  --theme-fg-875b00: hsl(40 85% 75%);
+  --theme-fg-8a5a00: hsl(39 85% 75%);
+  --theme-fg-8b5e00: hsl(41 85% 75%);
+  --theme-fg-8b6000: hsl(41 85% 75%);
+  --theme-fg-8b8578: #b9bec8;
+  --theme-fg-8b897f: #b9bec8;
+  --theme-fg-8c8b88: #b9bec8;
+  --theme-fg-8d8c88: #b9bec8;
+  --theme-fg-8f271f: hsl(4 64% 75%);
+  --theme-fg-906b22: hsl(40 62% 75%);
+  --theme-fg-916500: hsl(42 85% 75%);
+  --theme-fg-925900: hsl(37 85% 75%);
+  --theme-fg-92929a: #b9bec8;
+  --theme-fg-92929c: #b9bec8;
+  --theme-fg-936400: hsl(41 85% 75%);
+  --theme-fg-93939b: #b9bec8;
+  --theme-fg-93939c: #b9bec8;
+  --theme-fg-95959d: #b9bec8;
+  --theme-fg-95959f: #b9bec8;
+  --theme-fg-986500: hsl(40 85% 75%);
+  --theme-fg-991b1b: hsl(0 70% 75%);
+  --theme-fg-99968e: #b9bec8;
+  --theme-fg-9a6a00: hsl(41 85% 75%);
+  --theme-fg-9b3e36: hsl(5 50% 75%);
+  --theme-fg-9b9ba4: #b9bec8;
+  --theme-fg-9c978b: #b9bec8;
+  --theme-fg-9d2921: hsl(4 65% 75%);
+  --theme-fg-9d6900: hsl(40 85% 75%);
+  --theme-fg-9e6b00: hsl(41 85% 75%);
+  --theme-fg-9f3428: hsl(6 60% 75%);
+  --theme-fg-a36d00: hsl(40 85% 75%);
+  --theme-fg-a56500: hsl(37 85% 75%);
+  --theme-fg-a7780e: hsl(42 85% 75%);
+  --theme-fg-ae9270: #b9bec8;
+  --theme-fg-b47a12: hsl(39 82% 75%);
+  --theme-fg-b54434: hsl(7 55% 75%);
+  --theme-fg-b57b00: hsl(41 85% 75%);
+  --theme-fg-b73b31: hsl(4 58% 75%);
+  --theme-fg-bd8a12: hsl(42 83% 75%);
+  --theme-fg-c0503f: hsl(8 51% 75%);
+  --theme-fg-c67a15: hsl(34 81% 75%);
+  --theme-fg-c79a12: hsl(45 83% 75%);
+  --theme-fg-e4b900: hsl(49 85% 75%);
+  --theme-fg-e9b84a: hsl(42 78% 75%);
+  --theme-fg-ed9900: hsl(39 85% 75%);
+  --theme-fg-ef9700: hsl(38 85% 75%);
+  --theme-fg-f3a000: hsl(40 85% 75%);
+  --theme-fg-ffb600: hsl(43 85% 75%);
+  --theme-glass-055: rgba(32, 35, 41, 0.55);
+  --theme-glass-097: rgba(32, 35, 41, 0.97);
+}
+
+.appearancePreferences { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.siteActions > a { white-space: nowrap; }
+:root[data-theme="dark"] .siteCta,
+:root[data-theme="dark"] .siteCta h2,
+:root[data-theme="dark"] .siteCta p,
+:root[data-theme="dark"] .siteCta .siteOutlineButton { color: #181a1e; }
+.languagePreference { display: flex; align-items: center; gap: 4px; color: var(--ink); }
+.languagePreference select, .themePreference { color: var(--ink); background: var(--surface); border: 1px solid var(--input-border); border-radius: 8px; min-height: 40px; }
+.languagePreference select { max-width: 126px; padding: 6px; cursor: pointer; }
+.themePreference { width: 40px; display: grid; place-items: center; cursor: pointer; }
+.themePreference[aria-pressed="true"] { border-color: var(--yellow-strong); color: var(--yellow-strong); }
+.appPreferencesBar { display: flex; justify-content: flex-end; padding: 8px 28px 0; background: var(--panel-bg); }
+.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+:root[data-theme="dark"] input, :root[data-theme="dark"] textarea, :root[data-theme="dark"] select { color-scheme: dark; }
+:root[data-theme="dark"] input::placeholder, :root[data-theme="dark"] textarea::placeholder { color: #a7afbc; }
+:root[data-theme="dark"] input:-webkit-autofill { -webkit-text-fill-color: #f1f2f4; box-shadow: 0 0 0 1000px #202329 inset; }
+@media (max-width: 1280px) { .siteActions .siteGhostButton { display: none; } }
+@media (max-width: 700px) {
+  .siteHeaderInner { gap: 8px; }
+  .siteActions { gap: 6px; }
+  .siteActions .languagePreference svg { display: none; }
+  .siteActions .languagePreference select { max-width: 96px; font-size: 12px; }
+  .siteActions .themePreference { width: 36px; }
+  .appPreferencesBar { padding: 8px 16px 0; }
+}
+@media (max-width: 560px) {
+  .siteHeaderInner { grid-template-columns: minmax(0, 1fr) auto; padding-block: 8px; }
+  .siteHeaderInner > .siteBrand { grid-column: 1; grid-row: 1; }
+  .siteHeaderInner > .siteMenuButton { grid-column: 2; grid-row: 1; }
+  .siteHeaderInner > .siteActions { grid-column: 1 / -1; grid-row: 2; justify-content: space-between; width: 100%; }
+}
