@@ -1,5 +1,12 @@
 # Estado do JS Boy
 
+## Temas e mensagens da interface web — 15/10/2026
+
+- Tema claro/escuro e idiomas português, inglês e espanhol, com seleção acessível, persistência local e sincronização entre abas.
+- Catálogos UTF-8 `messages.properties` (inglês), `messages_es.properties` e `messages_pt.properties`, resolvidos por `message('pagamento.aba.esquerda')`. Traduções por contexto operacional; dados informados pelos usuários e códigos da API preservados.
+- Testes locais: 75 aprovados; TypeScript e build Vite aprovados. Build emite aviso de chunk principal acima de 500 kB. Navegador: troca de idiomas/tema, persistência após recarga e cabeçalho em 320/375 px conferidos.
+- Orientações e limites em `docs/temas-internacionalizacao.md`: mensagens de sistema conhecidas localizadas na web; conteúdos inéditos da API e e-mails do backend permanecem no idioma de origem. Sem homologação de produção nesta execução.
+
 ## Resolução dos gates após merge na main
 
 - Branch `fix/gates-seguranca`, base `54dbd79`; usuário solicitou resolver verificações e segurança pendentes.
