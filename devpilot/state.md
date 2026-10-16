@@ -1,5 +1,13 @@
 # Estado do JS Boy
 
+## Edição da própria conta — 15/10/2026
+
+- Entregador: nome, e-mail de acesso, telefone, placa e Pix editáveis em Meu perfil. Cliente: e-mail, telefone/WhatsApp, CPF/CNPJ e endereço editáveis na conta, sem aprovação do proprietário.
+- Formulários responsivos com campos identificados, máscaras, feedback e traduções nos três catálogos. Atualização do contexto de autenticação após salvar.
+- API restringe as alterações ao vínculo do usuário autenticado e reutiliza normalização, validação de Pix/documento, versão e auditoria existentes. E-mail duplicado é rejeitado; links anteriores de verificação e recuperação são consumidos quando o e-mail muda. JWT vincula também o ID imutável da conta; renovação de sessão existente preservada.
+- Maven verify aprovado, incluindo 59 testes de integração e regressões de isolamento de contas, dados inválidos, versão antiga e novo login. Frontend: 78 testes aprovados; TypeScript/build Vite aprovados (aviso existente de chunk acima de 500 kB).
+- Sem mudanças de migrations ou mobile. Sem homologação de produção.
+
 ## Temas e mensagens da interface web — 15/10/2026
 
 - Tema claro/escuro e idiomas português, inglês e espanhol, com seleção acessível, persistência local e sincronização entre abas.
