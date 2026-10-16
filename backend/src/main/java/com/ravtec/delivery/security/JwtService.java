@@ -38,6 +38,7 @@ public class JwtService {
 
         return Jwts.builder()
             .subject(principal.getUsername())
+            .claim("uid", principal.getId().toString())
             .claim("nome", principal.getNome())
             .claim("perfil", principal.getUsuario().getPerfilEfetivo().name())
             .issuedAt(Date.from(agora))
@@ -52,7 +53,10 @@ public class JwtService {
 
     public boolean tokenValido(String token, UserDetails userDetails) {
         var email = extrairEmail(token);
-        return email.equals(userDetails.getUsername()) && claims(token).getExpiration().after(new Date());
+        var dados = claims(token);
+        return userDetails instanceof UsuarioPrincipal principal
+            && principal.getId().toString().equals(dados.get("uid", String.class))
+            && email.equals(userDetails.getUsername()) && dados.getExpiration().after(new Date());
     }
 
     private Claims claims(String token) {
